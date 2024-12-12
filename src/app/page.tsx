@@ -1,0 +1,43 @@
+import AppBar from "@/components/AppBar";
+import AuthDesign from "@/components/AuthDesign";
+import { auth } from "../../auth";
+import { db } from "@/lib/db";
+import ClientComp from "@/components/ClientComp";
+import { redirect } from "next/navigation";
+// import Image from 'next/image';
+
+export default async function Home() {
+  const session = await auth();
+  if (session) {
+    const user = await db.user.findUnique({
+      where: { email: session?.user?.email! },
+      include: { Inventory: true },
+    });
+    console.log(user, "user");
+
+    if (user && !user?.isAdmin) {
+      return (
+        <>
+        {/* <Image 
+                        src="\aaa.png" 
+                        alt="full" 
+                        width={40} 
+                        height={40}
+                        style={{ marginLeft: 'auto', marginBottom: 'auto' }}
+                    /> */}
+          <AppBar />
+          <ClientComp user={user} />
+        </>
+      );
+    } else if (user && user?.isAdmin) {
+      redirect("/dashboard");
+    }
+  } else {
+    return (
+      <div className="">
+        <AppBar />
+        <AuthDesign />
+      </div>
+    );
+  }
+}
