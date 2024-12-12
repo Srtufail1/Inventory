@@ -47,8 +47,18 @@ import {
 import { signOut } from "next-auth/react";
 import InventoryData from "./InventoryData";
 import InventoryUpdate from "./InventoryUpdate";
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { FaCalendarAlt } from 'react-icons/fa';
+
+// Utility function to parse date
+const parseDate = (date: any): Date | null => {
+  if (date instanceof Date) return date;
+  if (typeof date === 'string' || typeof date === 'number') {
+    const parsedDate = new Date(date);
+    return isValid(parsedDate) ? parsedDate : null;
+  }
+  return null;
+};
 
 export const columns: ColumnDef<InventoryDataProps>[] = [
   {
@@ -100,18 +110,20 @@ export const columns: ColumnDef<InventoryDataProps>[] = [
     accessorKey: "createdAt",
     header: "Created At",
     cell: ({ row }) => {
-      const date = row.getValue("createdAt");
-      if (!date) return <div>N/A</div>;
-      
+      const dateValue = row.getValue("createdAt");
+      const parsedDate = parseDate(dateValue);
+  
+      if (!parsedDate) return <div>N/A</div>;
+  
       try {
         return (
           <div className="flex items-center">
             <FaCalendarAlt className="mr-2 text-gray-500" />
-            <span>{format(new Date(date), 'MMM d, yyyy HH:mm')}</span>
+            <span>{format(parsedDate, 'MMM d, yyyy HH:mm')}</span>
           </div>
         );
       } catch (error) {
-        console.error("Invalid date:", date);
+        console.error("Invalid date:");
         return <div>Invalid Date</div>;
       }
     },
