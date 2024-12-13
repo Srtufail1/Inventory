@@ -1,28 +1,17 @@
-import { Construction } from "lucide-react";
-export default function inward() {
-    return (
-      <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-        <h1 style={{ color: '#333', fontSize: '24px' }}>Outward Gate Pass</h1>
-        <br></br>
-        <p style={{ color: '#666', fontSize: '16px' }}>
-          Under Construction 
-        </p>
-        <Construction size={32} color="#ff0000" strokeWidth={1.75}/>
-        <ul style={{ listStyleType: 'disc', paddingLeft: '20px' }}>
-          <li>Item 1</li>
-          <li>Item 2</li>
-          <li>Item 3</li>
-        </ul>
-        <button style={{
-          backgroundColor: '#FF0000',
-          color: 'white',
-          padding: '10px 15px',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer'
-        }}>
-          Test Button
-        </button>
-      </div>
-    );
-  }
+import React from "react";
+import OutwardTable from "@/components/outward/OutwardTable";
+import { db } from "@/lib/db";
+
+const outward = async () => {
+  const [outwardData, clients] = await db.$transaction([
+    db.outward.findMany(),
+    db.user.findMany(),
+  ]);
+
+  const response = outwardData?.map((inv) => {
+    return { ...inv, clients };
+  });
+  return <OutwardTable data={response} />
+};
+
+export default outward;

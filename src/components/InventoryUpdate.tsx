@@ -6,7 +6,7 @@ const InventoryUpdate = ({ row }: any) => {
   const data = row.original;
   return (
     <div className="flex gap-5">
-      <InventoryData title="Update Inventory" data={data} />
+      <InventoryData title="Update" data={data} />
       <InventoryDelete data={data} />
     </div>
   );

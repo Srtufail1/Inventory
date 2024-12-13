@@ -153,3 +153,162 @@ export const DeleteInventory = async (id: string) => {
     return { error: "inventory not deleted" };
   }
 };
+
+// add/update inward
+
+export const addUpdateInward = async (formData: FormData, data: any) => {
+  const session = await auth();
+
+  const inumber = formData.get("inumber") as string;
+  const addDateString = formData.get("addDate") as string;
+  const addDate = new Date(addDateString);
+  const customer = formData.get("customer") as string;
+  const item = formData.get("item") as string;
+  const packing = formData.get("packing") as string;
+  const weight = formData.get("weight") as string;
+  const quantity = formData.get("quantity") as string;
+  const store_rate = formData.get("store_rate") as string;
+  const labour_rate = formData.get("labour_rate") as string;
+  const labour_amount = formData.get("labour_amount") as string;
+
+  const user = await db.user.findUnique({
+    where: { email: session?.user?.email! },
+  });
+
+  if ( !inumber || !customer || !addDate || !customer || !item || !packing || !weight || !quantity || !store_rate || !labour_rate || !labour_amount ) {
+    return { error: "All fields are required" };
+  }
+
+  let inward;
+  try {
+    if (data?.id) {
+      inward = await db.inward.update({
+        where: { id: data?.id },
+        data: { 
+          inumber,
+          addDate,
+          customer, 
+          item, 
+          packing,
+          weight,
+          quantity,
+          store_rate,
+          labour_rate,
+          labour_amount
+        },
+      });
+    } else {
+      inward = await db.inward.create({
+        data: { 
+          inumber,
+          addDate,
+          customer, 
+          item, 
+          packing,
+          weight,
+          quantity,
+          store_rate,
+          labour_rate,
+          labour_amount
+        },
+      });
+    }
+    if (!inward) {
+      return { error: "failed to create inward data" };
+    }
+  } catch (error) {
+    return { error: "failed to create inward data" };
+  }
+
+  revalidatePath(`/dashboard/inward`);
+  return inward;
+};
+
+// delete inward
+
+export const DeleteInward = async (id: string) => {
+  try {
+    const result = await db.inward.delete({
+      where: { id },
+    });
+    revalidatePath("/dashboard/inward");
+    if (!result) {
+      return { error: "inward not deleted" };
+    }
+  } catch (error) {
+    return { error: "inward not deleted" };
+  }
+};
+
+
+
+// add/update outward
+
+export const addUpdateOutward = async (formData: FormData, data: any) => {
+  const session = await auth();
+
+  const onumber = formData.get("onumber") as string;
+  const outDateString = formData.get("outDate") as string;
+  const outDate = new Date(outDateString);
+  const customer = formData.get("customer") as string;
+  const item = formData.get("item") as string;
+  const quantity = formData.get("quantity") as string;
+
+  const user = await db.user.findUnique({
+    where: { email: session?.user?.email! },
+  });
+
+  if (!onumber || !customer || !outDate || !item || !quantity) {
+    return { error: "All fields are required" };
+  }
+
+  let outward;
+  try {
+    if (data?.id) {
+      outward = await db.outward.update({
+        where: { id: data?.id },
+        data: { 
+          onumber,
+          outDate,
+          customer,
+          item,
+          quantity,
+        },
+      });
+    } else {
+      outward = await db.outward.create({
+        data: { 
+          onumber,
+          outDate,
+          customer,
+          item,
+          quantity,
+        },
+      });
+    }
+    if (!outward) {
+      return { error: "failed to create outward data" };
+    }
+  } catch (error) {
+    return { error: "failed to create outward data" };
+  }
+
+  revalidatePath(`/dashboard/outward`);
+  return outward;
+};
+
+// delete outward
+
+export const DeleteOutward = async (id: string) => {
+  try {
+    const result = await db.outward.delete({
+      where: { id },
+    });
+    revalidatePath("/dashboard/outward");
+    if (!result) {
+      return { error: "outward not deleted" };
+    }
+  } catch (error) {
+    return { error: "outward not deleted" };
+  }
+};

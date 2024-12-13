@@ -22,3 +22,26 @@ export type InventoryDataProps = {
   createdAt: Date;
   updatedAt: Date | null;
 }[];
+
+export type InwardDataProps = {
+  id: string;
+  inumber: string;
+  addDate: Date;
+  customer: string;
+  item: string;
+  packing: string;
+  weight: string;
+  quantity: string;
+  store_rate: string;
+  labour_rate: string;
+  labour_amount: string;
+}[];
+
+export type OutwardDataProps = {
+  id: string;
+  onumber: string;
+  outDate: Date;
+  customer: string;
+  item: string;
+  quantity: string;
+}[];

@@ -30,3 +30,26 @@ model Inventory {
   createdAt DateTime @default(now())
   updatedAr DateTime @updatedAt
 }
+
+model Inward {
+  id            String  @id @default(auto()) @map("_id") @db.ObjectId
+  addDate       DateTime
+  inumber       String
+  customer      String
+  item          String
+  packing       String
+  weight        String
+  quantity      String
+  store_rate    String
+  labour_rate   String
+  labour_amount String
+}
+
+model Outward {
+  id            String  @id @default(auto()) @map("_id") @db.ObjectId
+  outDate       DateTime
+  onumber       String
+  customer      String
+  item          String
+  quantity      String
+}
