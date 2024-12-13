@@ -36,3 +36,5 @@ This is an inventory management application built with Next.js 14. It allows use
 - `yarn run dev` - Start the development server
 - `yarn build` - Build the application for production
 - `yarn start` - Start the production server
+
+.
