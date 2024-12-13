@@ -82,7 +82,7 @@ export const columns: ColumnDef<OutwardDataProps>[] = [
   },
   {
     accessorKey: "outDate",
-    header: "Add Date",
+    header: "Date",
     cell: ({ row }) => {
       const date = row.getValue("outDate");
       
