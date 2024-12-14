@@ -37,6 +37,8 @@ import { signOut } from "next-auth/react";
 import OutwardData from "../outward/OutwardData";
 import OutwardUpdate from "../outward/OutwardUpdate";
 import { format } from 'date-fns';
+import DarkModeToggle from '../DarkModeToggle'
+import { FaCalendarAlt } from 'react-icons/fa';
 
 export const columns: ColumnDef<OutwardDataProps>[] = [
   {
@@ -62,6 +64,13 @@ export const columns: ColumnDef<OutwardDataProps>[] = [
     enableHiding: false,
   },
   {
+    accessorKey: "inumber",
+    header: "In Number",
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("inumber")}</div>
+    ),
+  },
+  {
     accessorKey: "onumber",
     header: ({ column }) => {
       return (
@@ -69,7 +78,7 @@ export const columns: ColumnDef<OutwardDataProps>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Number
+          Out Number
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -102,7 +111,12 @@ export const columns: ColumnDef<OutwardDataProps>[] = [
       // Format the date
       const formattedDate = format(dateObject, 'dd MMM yyyy');
       
-      return <div className="capitalize">{formattedDate}</div>;
+      return (
+              <div className="flex items-center">
+                <FaCalendarAlt className="mr-2 text-gray-500" />
+                <div className="capitalize">{formattedDate}</div>
+              </div>
+            );
     },
     // sortingFn: "datetime",
   },
@@ -207,6 +221,7 @@ const OutwardTable = ({ data }: any) => {
             </DropdownMenu>
           </div>
         </div>
+        <DarkModeToggle />
         <Button onClick={() => signOut()} type="submit">
           Sign Out
         </Button>

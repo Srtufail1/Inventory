@@ -80,31 +80,31 @@ const InwardData = ({ title, data }: Props) => {
                   defaultValue={data?.packing}
                 />
                 <FormInput
-                  type="text"
+                  type="number"
                   name="weight"
                   label="Enter weight"
                   defaultValue={data?.weight}
                 />
                 <FormInput
-                  type="text"
+                  type="number"
                   name="quantity"
                   label="Enter quantity"
                   defaultValue={data?.quantity}
                 />
                 <FormInput
-                  type="text"
+                  type="number"
                   name="store_rate"
                   label="Enter store rate"
                   defaultValue={data?.store_rate}
                 />
                 <FormInput
-                  type="text"
+                  type="number"
                   name="labour_rate"
                   label="Enter labour rate"
                   defaultValue={data?.labour_rate}
                 />
                 <FormInput
-                  type="text"
+                  type="number"
                   name="labour_amount"
                   label="Enter labour amount"
                   defaultValue={data?.labour_amount}

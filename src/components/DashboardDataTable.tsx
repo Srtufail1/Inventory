@@ -49,6 +49,8 @@ import InventoryData from "./InventoryData";
 import InventoryUpdate from "./InventoryUpdate";
 import { format, isValid } from 'date-fns';
 import { FaCalendarAlt } from 'react-icons/fa';
+import DarkModeToggle from './DarkModeToggle'
+import SimpleBarChart from './dashboard/SimpleBarChart'
 
 // Utility function to parse date
 const parseDate = (date: any): Date | null => {
@@ -189,7 +191,7 @@ export const columns: ColumnDef<InventoryDataProps>[] = [
   },
 ];
 
-const DashboardDataTable = ({ data }: any) => {
+const DashboardDataTable = ({ data, chartData }: any) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -262,14 +264,19 @@ const DashboardDataTable = ({ data }: any) => {
             </DropdownMenu>
           </div>
         </div>
+        <DarkModeToggle />
         <Button onClick={() => signOut()} type="submit">
           Sign Out
         </Button>
       </div>
       <div className="p-6">
+        <h1 className="text-3xl font-bold tracking-tight">
+          Dashboard
+        </h1>
+        <SimpleBarChart data={chartData} />
         <div className="flex item justify-between pt-3 pb-6">
           <h1 className="text-3xl font-bold tracking-tight">
-            Inventories Data
+            Test Inventories Data
           </h1>
           <InventoryData title="Add Inventory" data={{}} />
         </div>

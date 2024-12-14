@@ -39,6 +39,7 @@ export type InwardDataProps = {
 
 export type OutwardDataProps = {
   id: string;
+  inumber: string;
   onumber: string;
   outDate: Date;
   customer: string;

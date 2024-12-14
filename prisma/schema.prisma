@@ -49,6 +49,7 @@ model Outward {
   id            String  @id @default(auto()) @map("_id") @db.ObjectId
   outDate       DateTime
   onumber       String
+  inumber       String
   customer      String
   item          String
   quantity      String
