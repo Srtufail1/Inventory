@@ -48,15 +48,13 @@ const OutwardData = ({ title, data }: Props) => {
               <FormInput
                   type="number"
                   name="inumber"
-                  label="Inward Numer"
-                  placeholder="Enter the number"
+                  label="Enter Inward Numer"
                   defaultValue={data?.inumber}
                 />
                 <FormInput
                   type="number"
                   name="onumber"
-                  label="Outward Numer"
-                  placeholder="Enter the number"
+                  label="Enter Outward Numer"
                   defaultValue={data?.onumber}
                 />
                 <FormInput

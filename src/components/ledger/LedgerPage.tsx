@@ -22,7 +22,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import DarkModeToggle from '../DarkModeToggle'
+import DarkModeToggle from '../DarkModeToggle';
+import LaborTable, { LaborEntry } from './LaborTable';
 
 type LedgerEntry = {
   inwardOut: string;
@@ -32,8 +33,6 @@ type LedgerEntry = {
   amount: number;
   amountReceived: number;
   dateReceived: string;
-  labourRate: number;
-  labourAmount: number;
 };
 
 const columns: ColumnDef<LedgerEntry>[] = [
@@ -79,22 +78,6 @@ const columns: ColumnDef<LedgerEntry>[] = [
     accessorKey: "dateReceived",
     header: "Date Received",
   },
-  {
-    accessorKey: "labourRate",
-    header: "Labour Rate",
-  },
-  {
-    accessorKey: "labourAmount",
-    header: "Labour Amount",
-  },
-  {
-    accessorKey: "amountReceived",
-    header: "Amount Received",
-  },
-  {
-    accessorKey: "dateReceived",
-    header: "Date Received",
-  },
 ];
 
 type CustomerDetails = {
@@ -130,6 +113,7 @@ const CustomerDetailsTable = ({ details }: { details: CustomerDetails }) => (
 
 const LedgerPage = () => {
   const [data, setData] = React.useState<LedgerEntry[]>([]);
+  const [laborData, setLaborData] = React.useState<LaborEntry[]>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
@@ -156,6 +140,7 @@ const LedgerPage = () => {
       if (!response.ok) throw new Error('Failed to fetch data');
       const result = await response.json();
       setData(result.combinedData);
+      setLaborData(result.laborTable);
       setCustomerDetails(result.customerDetails);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -194,8 +179,10 @@ const LedgerPage = () => {
         </div>
         <div className="pb-6"></div>
         {customerDetails && <CustomerDetailsTable details={customerDetails} />}
+        {laborData.length > 0 && <LaborTable data={laborData} />}
         {data.length > 0 ? (
           <div>
+            <h2 className="text-xl font-semibold mb-2">Ledger Table</h2>
             <div className="rounded-md border">
               <Table>
                 <TableHeader>

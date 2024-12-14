@@ -94,10 +94,29 @@ export async function GET(request: NextRequest) {
         amount: quantityForPeriod*parseInt(inwardItem.store_rate),
         amountReceived: "pending",
         dateReceived: "pending",
-        labourRate: inwardItem.labour_rate || '0',
-        labourAmount: inwardTotals.labourAmount,
       };
     });
+
+    // Function to generate labor table data
+    const generateLaborTable = (inwardData: any[]) => {
+      return inwardData.map(item => {
+        const addDate = new Date(item.addDate);
+        const dueDate = new Date(addDate);
+        dueDate.setMonth(dueDate.getMonth() + 1);
+
+        return {
+          addDate: formatDate(addDate),
+          dueDate: formatDate(dueDate),
+          quantity: item.quantity,
+          labourRate: item.labour_rate,
+          labourAmount: (parseInt(item.quantity) || 0) * (parseFloat(item.labour_rate) || 0),
+          amountReceived: "pending",
+          dateReceived: "pending",
+        };
+      });
+    };
+
+    const laborTable = generateLaborTable(inwardData);
 
     const customerDetails = inwardData.length > 0 ? {
       customer: inwardData[0].customer,
@@ -106,7 +125,7 @@ export async function GET(request: NextRequest) {
       weight: inwardData[0].weight,
     } : null;
 
-    return NextResponse.json({ combinedData, customerDetails });
+    return NextResponse.json({ combinedData, customerDetails, laborTable });
   } catch (error) {
     console.error('Error fetching data:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
