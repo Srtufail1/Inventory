@@ -26,6 +26,9 @@ export async function GET(request: NextRequest) {
           mode: 'insensitive',
         },
       },
+      orderBy: {
+        outDate: 'asc',
+      },
     });
 
     // Calculate totals from inward data
@@ -48,6 +51,10 @@ export async function GET(request: NextRequest) {
     // Get the initial date from inward data, or use current date if no inward data
     const initialDate = inwardData.length > 0 ? new Date(inwardData[0].addDate) : new Date();
 
+    let remainingQuantity = inwardTotals.quantity;
+    let outwardIndex = 0;
+    let nextPeriodReduction = 0;
+
     // Combine inward and outward data
     const combinedData = outwardData.map((outItem, index) => {
       const inwardItem = inwardData.find(inItem => inItem.inumber === outItem.inumber) || inwardData[0] || {};
@@ -57,20 +64,38 @@ export async function GET(request: NextRequest) {
       startDate.setMonth(startDate.getMonth() + index);
       const endDate = new Date(startDate);
       endDate.setMonth(endDate.getMonth() + 1);
-      endDate.setDate(endDate.getDate()); // Subtract one day to not overlap with next month
+      endDate.setDate(endDate.getDate());
+
+      // Apply reduction from previous period
+      remainingQuantity -= nextPeriodReduction;
+      nextPeriodReduction = 0;
+
+      // Calculate quantity for this period and reduction for next period
+      let quantityForPeriod = remainingQuantity;
+      while (outwardIndex < outwardData.length) {
+        const currentOutwardItem = outwardData[outwardIndex];
+        const outwardDate = new Date(currentOutwardItem.outDate);
+        if (outwardDate >= startDate && outwardDate <= endDate) {
+          nextPeriodReduction += parseInt(currentOutwardItem.quantity) || 0;
+          outwardIndex++;
+        } else if (outwardDate > endDate) {
+          break;
+        } else {
+          outwardIndex++;
+        }
+      }
 
       return {
         inwardOut: `${parseInt(outItem.inumber) || 'N/A'}/${parseInt(outItem.onumber) || 'N/A'}`,
         dates: `${formatDate(startDate)} - ${formatDate(endDate)}`,
-        quantity: inwardTotals.quantity.toString(),
+        quantity: quantityForPeriod.toString(),
+        nextPeriodQuantity: (quantityForPeriod - nextPeriodReduction).toString(),
         storeRate: inwardItem.store_rate || '0',
-        amount: inwardTotals.amount - (parseInt(outItem.quantity) || 0),
+        amount: quantityForPeriod*parseInt(inwardItem.store_rate),
         amountReceived: "pending",
         dateReceived: "pending",
         labourRate: inwardItem.labour_rate || '0',
         labourAmount: inwardTotals.labourAmount,
-        outQuantity: outItem.quantity,
-        outDate: formatDate(new Date(outItem.outDate)),
       };
     });
 

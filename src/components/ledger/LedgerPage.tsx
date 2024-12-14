@@ -26,8 +26,6 @@ import DarkModeToggle from '../DarkModeToggle'
 
 type LedgerEntry = {
   inwardOut: string;
-  inumber: number;
-  onumber: number;
   dates: string;
   quantity: number;
   storeRate: number;
