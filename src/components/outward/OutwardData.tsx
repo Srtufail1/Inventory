@@ -45,6 +45,13 @@ const OutwardData = ({ title, data }: Props) => {
           <form action={handleSubmit}>
             <div className="flex flex-col gap-2 mt-5">
               <div className="flex flex-col gap-5">
+              <FormInput
+                  type="number"
+                  name="inumber"
+                  label="Inward Numer"
+                  placeholder="Enter the number"
+                  defaultValue={data?.inumber}
+                />
                 <FormInput
                   type="number"
                   name="onumber"
@@ -74,7 +81,7 @@ const OutwardData = ({ title, data }: Props) => {
                   defaultValue={data?.item}
                 />
                 <FormInput
-                  type="text"
+                  type="number"
                   name="quantity"
                   label="Enter quantity"
                   defaultValue={data?.quantity}

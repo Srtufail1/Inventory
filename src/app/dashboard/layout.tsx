@@ -20,11 +20,11 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <div className="grid min-h-screen w-full lg:grid-cols-[0.18fr_1fr]">
-      <div className="hidden lg:block border-r bg-gray-100/40 ">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full">
+      <div className="w-full lg:w-[14%] border-b lg:border-r bg-gray-100/40">
         <Siderbar />
       </div>
-      <div className="flex flex-col">{children}</div>
+      <div className="flex-1">{children}</div>
     </div>
   );
 };

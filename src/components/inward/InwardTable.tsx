@@ -37,6 +37,8 @@ import { signOut } from "next-auth/react";
 import InwardData from "../inward/InwardData";
 import InwardUpdate from "../inward/InwardUpdate";
 import { format } from 'date-fns';
+import DarkModeToggle from '../DarkModeToggle'
+import { FaCalendarAlt } from 'react-icons/fa';
 
 export const columns: ColumnDef<InwardDataProps>[] = [
   {
@@ -102,7 +104,12 @@ export const columns: ColumnDef<InwardDataProps>[] = [
       // Format the date
       const formattedDate = format(dateObject, 'dd MMM yyyy');
       
-      return <div className="capitalize">{formattedDate}</div>;
+      return (
+        <div className="flex items-center">
+          <FaCalendarAlt className="mr-2 text-gray-500" />
+          <div className="capitalize">{formattedDate}</div>
+        </div>
+      );
     },
     // sortingFn: "datetime",
   },
@@ -129,7 +136,7 @@ export const columns: ColumnDef<InwardDataProps>[] = [
   },
   {
     accessorKey: "weight",
-    header: "Weight",
+    header: "Weight (Kg)",
     cell: ({ row }) => (
       <div className="capitalize">{row.getValue("weight")}</div>
     ),
@@ -143,21 +150,21 @@ export const columns: ColumnDef<InwardDataProps>[] = [
   },
   {
     accessorKey: "store_rate",
-    header: "Store Rate",
+    header: "Store Rate (Rs.)",
     cell: ({ row }) => (
       <div className="capitalize">{row.getValue("store_rate")}</div>
     ),
   },
   {
     accessorKey: "labour_rate",
-    header: "Labour Rate",
+    header: "Labour Rate (Rs.)",
     cell: ({ row }) => (
       <div className="capitalize">{row.getValue("labour_rate")}</div>
     ),
   },
   {
     accessorKey: "labour_amount",
-    header: "Labour Amount",
+    header: "Labour Amount (Rs.)",
     cell: ({ row }) => (
       <div className="capitalize">{row.getValue("labour_amount")}</div>
     ),
@@ -242,6 +249,7 @@ const InwardTable = ({ data }: any) => {
             </DropdownMenu>
           </div>
         </div>
+        <DarkModeToggle />
         <Button onClick={() => signOut()} type="submit">
           Sign Out
         </Button>

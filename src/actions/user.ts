@@ -248,6 +248,7 @@ export const addUpdateOutward = async (formData: FormData, data: any) => {
   const session = await auth();
 
   const onumber = formData.get("onumber") as string;
+  const inumber = formData.get("inumber") as string;
   const outDateString = formData.get("outDate") as string;
   const outDate = new Date(outDateString);
   const customer = formData.get("customer") as string;
@@ -258,7 +259,7 @@ export const addUpdateOutward = async (formData: FormData, data: any) => {
     where: { email: session?.user?.email! },
   });
 
-  if (!onumber || !customer || !outDate || !item || !quantity) {
+  if (!onumber || !customer || !outDate || !item || !quantity || !inumber) {
     return { error: "All fields are required" };
   }
 
@@ -269,6 +270,7 @@ export const addUpdateOutward = async (formData: FormData, data: any) => {
         where: { id: data?.id },
         data: { 
           onumber,
+          inumber,
           outDate,
           customer,
           item,
@@ -279,6 +281,7 @@ export const addUpdateOutward = async (formData: FormData, data: any) => {
       outward = await db.outward.create({
         data: { 
           onumber,
+          inumber,
           outDate,
           customer,
           item,

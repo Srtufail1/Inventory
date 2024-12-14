@@ -4,7 +4,6 @@ import { auth } from "../../auth";
 import { db } from "@/lib/db";
 import ClientComp from "@/components/ClientComp";
 import { redirect } from "next/navigation";
-// import Image from 'next/image';
 
 export default async function Home() {
   const session = await auth();
@@ -18,13 +17,6 @@ export default async function Home() {
     if (user && !user?.isAdmin) {
       return (
         <>
-        {/* <Image 
-                        src="\aaa.png" 
-                        alt="full" 
-                        width={40} 
-                        height={40}
-                        style={{ marginLeft: 'auto', marginBottom: 'auto' }}
-                    /> */}
           <AppBar />
           <ClientComp user={user} />
         </>
@@ -34,10 +26,10 @@ export default async function Home() {
     }
   } else {
     return (
-      <div className="">
+      <>
         <AppBar />
         <AuthDesign />
-      </div>
+      </>
     );
   }
 }
