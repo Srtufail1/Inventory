@@ -12,7 +12,6 @@ const Dashboard = async () => {
         quantity: true,
         store_rate: true,
         labour_rate: true,
-        labour_amount: true,
       },
     }),
   ]);
@@ -29,7 +28,7 @@ const Dashboard = async () => {
     const monthYear = `${month} ${year}`;
     const sales = 
       parseFloat(item.quantity || '0') * parseFloat(item.store_rate || '0') +
-      parseFloat(item.labour_rate || '0') * parseFloat(item.labour_amount || '0');
+      parseFloat(item.labour_rate || '0') * parseFloat(item.quantity || '0');
 
     return { monthYear, sales };
   });

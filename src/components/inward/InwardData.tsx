@@ -59,7 +59,7 @@ const InwardData = ({ title, data }: Props) => {
                   defaultValue={data?.customer}
                 />
                 <div className="flex flex-col space-y-2">
-                  <Label htmlFor="addDate">Add Date</Label>
+                  <Label htmlFor="addDate">Add In Date</Label>
                   <Input
                     type="date"
                     id="addDate"
@@ -82,7 +82,7 @@ const InwardData = ({ title, data }: Props) => {
                 <FormInput
                   type="number"
                   name="weight"
-                  label="Enter weight"
+                  label="Enter Weight (Kg)"
                   defaultValue={data?.weight}
                 />
                 <FormInput
@@ -94,20 +94,14 @@ const InwardData = ({ title, data }: Props) => {
                 <FormInput
                   type="number"
                   name="store_rate"
-                  label="Enter store rate"
+                  label="Enter store rate (Rs.)"
                   defaultValue={data?.store_rate}
                 />
                 <FormInput
                   type="number"
                   name="labour_rate"
-                  label="Enter labour rate"
+                  label="Enter labour rate (Rs.)"
                   defaultValue={data?.labour_rate}
-                />
-                <FormInput
-                  type="number"
-                  name="labour_amount"
-                  label="Enter labour amount"
-                  defaultValue={data?.labour_amount}
                 />
               </div>
             </div>

@@ -42,7 +42,6 @@ model Inward {
   quantity      String
   store_rate    String
   labour_rate   String
-  labour_amount String
 }
 
 model Outward {

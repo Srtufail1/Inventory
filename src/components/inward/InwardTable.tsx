@@ -71,7 +71,7 @@ export const columns: ColumnDef<InwardDataProps>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Number
+          In Number
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -84,7 +84,7 @@ export const columns: ColumnDef<InwardDataProps>[] = [
   },
   {
     accessorKey: "addDate",
-    header: "Date",
+    header: "In Date",
     cell: ({ row }) => {
       const date = row.getValue("addDate");
       
@@ -160,13 +160,6 @@ export const columns: ColumnDef<InwardDataProps>[] = [
     header: "Labour Rate (Rs.)",
     cell: ({ row }) => (
       <div className="capitalize">{row.getValue("labour_rate")}</div>
-    ),
-  },
-  {
-    accessorKey: "labour_amount",
-    header: "Labour Amount (Rs.)",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("labour_amount")}</div>
     ),
   },
   {
