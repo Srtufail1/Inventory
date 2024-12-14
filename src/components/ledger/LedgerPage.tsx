@@ -3,14 +3,12 @@
 import * as React from "react";
 import {
   ColumnDef,
-  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   useReactTable,
   getPaginationRowModel,
   SortingState,
   getSortedRowModel,
-  getFilteredRowModel,
 } from "@tanstack/react-table";
 import { ArrowUpDown, Search } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -26,47 +24,118 @@ import {
 } from "@/components/ui/table";
 import DarkModeToggle from '../DarkModeToggle'
 
-const columns: ColumnDef<any>[] = [
+type LedgerEntry = {
+  inwardOut: string;
+  inumber: number;
+  onumber: number;
+  dates: string;
+  quantity: number;
+  storeRate: number;
+  amount: number;
+  amountReceived: number;
+  dateReceived: string;
+  labourRate: number;
+  labourAmount: number;
+};
+
+const columns: ColumnDef<LedgerEntry>[] = [
   {
-    accessorKey: "type",
-    header: "Type",
+    accessorKey: "inwardOut",
+    header: "Inward/Out",
   },
   {
-    accessorKey: "customerName", // Assuming this is the field for customer name
-    header: "Customer Name",
-  },
-  {
-    accessorKey: "addDate",
+    accessorKey: "dates",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Date
+          Dates (From - To)
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
-    cell: ({ row }) => new Date(row.getValue("addDate")).toLocaleDateString(),
   },
   {
     accessorKey: "quantity",
     header: "Quantity",
   },
   {
-    accessorKey: "store_rate",
+    accessorKey: "storeRate",
     header: "Store Rate",
   },
   {
-    accessorKey: "labour_rate",
+    accessorKey: "amount",
+    header: "Amount",
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue("amount"));
+      return <div style={{ color: amount < 0 ? 'red' : 'green' }}>{amount}</div>;
+    },
+  },
+  {
+    accessorKey: "amountReceived",
+    header: "Amount Received",
+  },
+  {
+    accessorKey: "dateReceived",
+    header: "Date Received",
+  },
+  {
+    accessorKey: "labourRate",
     header: "Labour Rate",
+  },
+  {
+    accessorKey: "labourAmount",
+    header: "Labour Amount",
+  },
+  {
+    accessorKey: "amountReceived",
+    header: "Amount Received",
+  },
+  {
+    accessorKey: "dateReceived",
+    header: "Date Received",
   },
 ];
 
-const LedgerPage = ({ data }: { data: any[] }) => {
+type CustomerDetails = {
+  customer: string;
+  item: string;
+  packing: string;
+  weight: string;
+};
+
+const CustomerDetailsTable = ({ details }: { details: CustomerDetails }) => (
+  <div className="mb-6">
+    <h2 className="text-xl font-semibold mb-2">Customer Details</h2>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Customer</TableHead>
+          <TableHead>Item</TableHead>
+          <TableHead>Packing</TableHead>
+          <TableHead>Weight (Kg)</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableRow>
+          <TableCell>{details.customer}</TableCell>
+          <TableCell>{details.item}</TableCell>
+          <TableCell>{details.packing}</TableCell>
+          <TableCell>{details.weight}</TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  </div>
+);
+
+const LedgerPage = () => {
+  const [data, setData] = React.useState<LedgerEntry[]>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [customerDetails, setCustomerDetails] = React.useState<CustomerDetails | null>(null);
 
   const table = useReactTable({
     data,
@@ -75,118 +144,133 @@ const LedgerPage = ({ data }: { data: any[] }) => {
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
-      columnFilters,
     },
   });
 
+  const handleSearch = async () => {
+    if (searchTerm.trim() === "") return;
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/ledger?customer=${encodeURIComponent(searchTerm)}`);
+      if (!response.ok) throw new Error('Failed to fetch data');
+      const result = await response.json();
+      setData(result.combinedData);
+      setCustomerDetails(result.customerDetails);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      // Handle error (e.g., show error message to user)
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div>
-        <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
-            <div className="w-full"></div>
-            <DarkModeToggle />
-            <Button onClick={() => signOut()} type="submit">
-                Sign Out
-            </Button>
+      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
+        <div className="w-full"></div>
+        <DarkModeToggle />
+        <Button onClick={() => signOut()} type="submit">
+          Sign Out
+        </Button>
+      </div>
+      <div className="p-6">
+        <div className="flex item justify-between pt-3 pb-6">
+          <h1 className="text-3xl font-bold tracking-tight">
+            Ledger
+          </h1>
         </div>
-        <div className="p-6">
-            <div className="flex item justify-between pt-3 pb-6">
-                <h1 className="text-3xl font-bold tracking-tight">
-                    Ledger
-                </h1>
-            </div>
-            <div className="relative max-w-sm w-full">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-                <Input
-                    placeholder="Search customer name..."
-                    value={(table.getColumn("customerName")?.getFilterValue() as string) ?? ""}
-                    onChange={(event) =>
-                    table.getColumn("customerName")?.setFilterValue(event.target.value)
-                    }
-                    className="pl-20 max-w-sm"
-                />
-            </div>
-            <div className="pb-6"></div>
-            <div>
-                <div className="rounded-md border">
-                    <Table>
-                    <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                        <TableRow key={headerGroup.id}>
-                            {headerGroup.headers.map((header) => {
-                            return (
-                                <TableHead key={header.id}>
-                                {header.isPlaceholder
-                                    ? null
-                                    : flexRender(
-                                        header.column.columnDef.header,
-                                        header.getContext()
-                                    )}
-                                </TableHead>
-                            );
-                            })}
-                        </TableRow>
+        <div className="relative max-w-sm w-full flex items-center">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+          <Input
+            placeholder="Search customer name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-8 max-w-sm"
+          />
+          <Button onClick={handleSearch} disabled={isLoading} className="ml-2">
+            {isLoading ? 'Searching...' : 'Search'}
+          </Button>
+        </div>
+        <div className="pb-6"></div>
+        {customerDetails && <CustomerDetailsTable details={customerDetails} />}
+        {data.length > 0 ? (
+          <div>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && "selected"}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
                         ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                        table.getRowModel().rows.map((row) => (
-                            <TableRow
-                            key={row.id}
-                            data-state={row.getIsSelected() && "selected"}
-                            >
-                            {row.getVisibleCells().map((cell) => (
-                                <TableCell key={cell.id}>
-                                {flexRender(
-                                    cell.column.columnDef.cell,
-                                    cell.getContext()
-                                )}
-                                </TableCell>
-                            ))}
-                            </TableRow>
-                        ))
-                        ) : (
-                        <TableRow>
-                            <TableCell
-                            colSpan={columns.length}
-                            className="h-24 text-center"
-                            >
-                            No results.
-                            </TableCell>
-                        </TableRow>
-                        )}
-                    </TableBody>
-                    </Table>
-                </div>
-                <div className="flex items-center justify-end space-x-2 py-5">
-                    <div className="flex-1 text-sm text-muted-foreground">
-                    {table.getFilteredSelectedRowModel().rows.length} of{" "}
-                    {table.getFilteredRowModel().rows.length} row(s) selected.
-                    </div>
-                    <div className="space-x-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => table.previousPage()}
-                        disabled={!table.getCanPreviousPage()}
-                    >
-                        Previous
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => table.nextPage()}
-                        disabled={!table.getCanNextPage()}
-                    >
-                        Next
-                    </Button>
-                    </div>
-                </div>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-24 text-center"
+                      >
+                        No results.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </div>
-        </div>
+            <div className="flex items-center justify-end space-x-2 py-5">
+              <div className="space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p>No data to display. Please search for a customer.</p>
+        )}
+      </div>
     </div>
   );
 };
