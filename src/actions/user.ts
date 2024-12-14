@@ -169,13 +169,12 @@ export const addUpdateInward = async (formData: FormData, data: any) => {
   const quantity = formData.get("quantity") as string;
   const store_rate = formData.get("store_rate") as string;
   const labour_rate = formData.get("labour_rate") as string;
-  const labour_amount = formData.get("labour_amount") as string;
 
   const user = await db.user.findUnique({
     where: { email: session?.user?.email! },
   });
 
-  if ( !inumber || !customer || !addDate || !customer || !item || !packing || !weight || !quantity || !store_rate || !labour_rate || !labour_amount ) {
+  if ( !inumber || !customer || !addDate || !customer || !item || !packing || !weight || !quantity || !store_rate || !labour_rate ) {
     return { error: "All fields are required" };
   }
 
@@ -194,7 +193,6 @@ export const addUpdateInward = async (formData: FormData, data: any) => {
           quantity,
           store_rate,
           labour_rate,
-          labour_amount
         },
       });
     } else {
@@ -209,7 +207,6 @@ export const addUpdateInward = async (formData: FormData, data: any) => {
           quantity,
           store_rate,
           labour_rate,
-          labour_amount
         },
       });
     }

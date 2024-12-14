@@ -103,12 +103,6 @@ const InwardData = ({ title, data }: Props) => {
                   label="Enter labour rate"
                   defaultValue={data?.labour_rate}
                 />
-                <FormInput
-                  type="number"
-                  name="labour_amount"
-                  label="Enter labour amount"
-                  defaultValue={data?.labour_amount}
-                />
               </div>
             </div>
             <Button type="submit" className="mt-5">

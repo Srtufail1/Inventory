@@ -163,13 +163,6 @@ export const columns: ColumnDef<InwardDataProps>[] = [
     ),
   },
   {
-    accessorKey: "labour_amount",
-    header: "Labour Amount (Rs.)",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("labour_amount")}</div>
-    ),
-  },
-  {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => <InwardUpdate row={row} />,
