@@ -14,7 +14,7 @@ const Ledger = async () => {
     ...inwardData.map(item => ({ ...item, type: 'inward' })),
   ];
 
-  return <LedgerPage data={combinedData} />;
+  return <LedgerPage />;
 };
 
 export default Ledger;
