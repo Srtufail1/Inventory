@@ -30,21 +30,44 @@ type LedgerEntry = {
   outDate_table: string;
   outQuantity: string;
   dates: string;
-  quantity: number;
-  storeRate: number;
+  quantity: string;
+  nextPeriodQuantity: string;
+  storeRate: string;
   amount: number;
-  amountReceived: number;
+  amountReceived: string;
   dateReceived: string;
+};
+
+type LedgerDataSet = {
+  inumber: string;
+  ledgerData: LedgerEntry[];
 };
 
 const columns: ColumnDef<LedgerEntry>[] = [
   {
     accessorKey: "inwardOut",
     header: "Inward/Out",
+    cell: ({ row }) => {
+      const inwardOut = row.getValue("inwardOut") as string;
+      return (
+        <div style={{ whiteSpace: 'pre-line' }}>
+          {inwardOut}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "outDate_table",
     header: "Out Date",
+    cell: ({ row }) => {
+      const inwardOut = row.getValue("outDate_table") as string;
+      return (
+        <div style={{ whiteSpace: 'pre-line' }}>
+          {inwardOut}
+        </div>
+      );
+    },
+
   },
   {
     accessorKey: "outQuantity",
@@ -121,13 +144,9 @@ const CustomerDetailsTable = ({ details }: { details: CustomerDetails }) => (
   </div>
 );
 
-const LedgerPage = () => {
-  const [data, setData] = React.useState<LedgerEntry[]>([]);
-  const [laborData, setLaborData] = React.useState<LaborEntry[]>([]);
+// New component for individual Ledger tables
+const LedgerTable = ({ data, inumber }: { data: LedgerEntry[], inumber: string }) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [customerDetails, setCustomerDetails] = React.useState<CustomerDetails | null>(null);
 
   const table = useReactTable({
     data,
@@ -141,6 +160,88 @@ const LedgerPage = () => {
     },
   });
 
+  return (
+    <div className="mb-8">
+      <h2 className="text-xl font-semibold mb-2">Ledger Table (Inward Number: {inumber})</h2>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      <div className="flex items-center justify-end space-x-2 py-5">
+        <div className="space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const LedgerPage = () => {
+  const [dataSets, setDataSets] = React.useState<LedgerDataSet[]>([]);
+  const [laborData, setLaborData] = React.useState<LaborEntry[]>([]);
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [customerDetails, setCustomerDetails] = React.useState<CustomerDetails | null>(null);
+
   const handleSearch = async () => {
     if (searchTerm.trim() === "") return;
 
@@ -149,7 +250,7 @@ const LedgerPage = () => {
       const response = await fetch(`/api/ledger?customer=${encodeURIComponent(searchTerm)}`);
       if (!response.ok) throw new Error('Failed to fetch data');
       const result = await response.json();
-      setData(result.combinedData);
+      setDataSets(result.ledgerDataSets);
       setLaborData(result.laborTable);
       setCustomerDetails(result.customerDetails);
     } catch (error) {
@@ -190,81 +291,9 @@ const LedgerPage = () => {
         <div className="pb-6"></div>
         {customerDetails && <CustomerDetailsTable details={customerDetails} />}
         {laborData.length > 0 && <LaborTable data={laborData} />}
-        {data.length > 0 ? (
-          <div>
-            <h2 className="text-xl font-semibold mb-2">Ledger Table</h2>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead key={header.id}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && "selected"}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center"
-                      >
-                        No results.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            <div className="flex items-center justify-end space-x-2 py-5">
-              <div className="space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <p>No data to display. Please search for a customer.</p>
-        )}
+        {dataSets.map((dataSet) => (
+          <LedgerTable key={dataSet.inumber} data={dataSet.ledgerData} inumber={dataSet.inumber} />
+        ))}
       </div>
     </div>
   );
