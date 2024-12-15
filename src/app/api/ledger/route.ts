@@ -17,6 +17,9 @@ export async function GET(request: NextRequest) {
           mode: 'insensitive',
         },
       },
+      orderBy: {
+        addDate: 'asc',
+      },
     });
 
     const outwardData = await db.outward.findMany({
@@ -31,13 +34,9 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Calculate totals from inward data
-    const inwardTotals = inwardData.reduce((acc, item) => {
-      acc.quantity += parseInt(item.quantity) || 0;
-      acc.amount += (parseInt(item.quantity) || 0) * (parseFloat(item.store_rate) || 0);
-      acc.labourAmount += (parseInt(item.quantity) || 0) * (parseFloat(item.labour_rate) || 0);
-      return acc;
-    }, { quantity: 0, amount: 0, labourAmount: 0 });
+    if (inwardData.length === 0) {
+      return NextResponse.json({ error: 'No inward data found for this customer' }, { status: 404 });
+    }
 
     // Function to format date as DD.MM.YY
     const formatDate = (date: Date) => {
@@ -48,77 +47,52 @@ export async function GET(request: NextRequest) {
       }).replace(/\//g, '.');
     };
 
-    // Function to calculate months difference
-    const monthsDiff = (date1: Date, date2: Date) => {
-      let months = (date2.getFullYear() - date1.getFullYear()) * 12;
-      months += date2.getMonth() - date1.getMonth();
-      if (date2.getDate() < date1.getDate()) {
-        months--;
-      }
-      return months <= 0 ? 0 : months;
-    };
+    // Get the initial date from inward data
+    const initialDate = new Date(inwardData[0].addDate);
 
-    // Get the initial date from inward data, or use current date if no inward data
-    const initialDate = inwardData.length > 0 ? new Date(inwardData[0].addDate) : new Date();
+    // Calculate totals from inward data
+    const inwardTotals = inwardData.reduce((acc, item) => {
+      acc.quantity += parseInt(item.quantity) || 0;
+      acc.amount += (parseInt(item.quantity) || 0) * (parseFloat(item.store_rate) || 0);
+      return acc;
+    }, { quantity: 0, amount: 0 });
 
     let remainingQuantity = inwardTotals.quantity;
-    let outwardIndex = 0;
-    let nextPeriodReduction = 0;
+    let currentDate = new Date(initialDate);
+    const lastOutwardDate = new Date(outwardData[outwardData.length - 1]?.outDate || currentDate);
+    const combinedData = [];
 
-    // Combine inward and outward data
-    const combinedData = outwardData.map((outItem, index, array) => {
-      const inwardItem = inwardData.find(inItem => inItem.inumber === outItem.inumber) || inwardData[0] || {};
-      
-      const startDate = new Date(initialDate);
-      startDate.setMonth(startDate.getMonth() + index);
-      let endDate = new Date(startDate);
+    while (currentDate <= lastOutwardDate) {
+      const startDate = new Date(currentDate);
+      const endDate = new Date(currentDate);
       endDate.setMonth(endDate.getMonth() + 1);
-      
-      let quantityForPeriod = remainingQuantity;
-      let monthsCount = 1;
+      endDate.setDate(endDate.getDate());
 
-      if (index === array.length - 1) {
-        // This is the last entry
-        const outwardDate = new Date(outItem.outDate);
-        if (outwardDate > endDate) {
-          // The outward date is beyond the expected one-month range
-          monthsCount = monthsDiff(startDate, outwardDate) + 1;
-          endDate = new Date(startDate);
-          endDate.setMonth(endDate.getMonth() + monthsCount);
-          endDate.setDate(startDate.getDate() ); // Set to the day before the next period would start
-        }
-      } else {
-        // For all entries except the last, use the original logic
-        while (outwardIndex < outwardData.length) {
-          const currentOutwardItem = outwardData[outwardIndex];
-          const outwardDate = new Date(currentOutwardItem.outDate);
-          if (outwardDate >= startDate && outwardDate <= endDate) {
-            nextPeriodReduction += parseInt(currentOutwardItem.quantity) || 0;
-            outwardIndex++;
-          } else if (outwardDate > endDate) {
-            break;
-          } else {
-            outwardIndex++;
-          }
-        }
-      }
+      const outwardInRange = outwardData.filter(item => {
+        const outDate = new Date(item.outDate);
+        return outDate >= startDate && outDate <= endDate;
+      });
 
-      remainingQuantity -= nextPeriodReduction;
-      nextPeriodReduction = 0;
+      const quantityOut = outwardInRange.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
+      const inwardOutNumbers = outwardInRange.map(item => `${item.inumber}/${item.onumber}`).join(', ');
+      const outDate_table = outwardInRange.map((item) => (formatDate(item.outDate)) );
 
-      const storeRate = parseFloat(inwardItem.store_rate) || 0;
-      const amount = quantityForPeriod * storeRate * monthsCount;
-
-      return {
-        inwardOut: `${parseInt(outItem.inumber) || 'N/A'}/${parseInt(outItem.onumber) || 'N/A'}`,
-        dates: `${formatDate(startDate)} - ${formatDate(endDate)}${monthsCount > 1 ? ` (${monthsCount} months)` : ''}`,
-        quantity: quantityForPeriod.toString(),
-        storeRate: storeRate.toString(),
-        amount: amount,
+      combinedData.push({
+        inwardOut: inwardOutNumbers || '',
+        outDate_table: outDate_table,
+        outQuantity: quantityOut,
+        dates: `${formatDate(startDate)} - ${formatDate(endDate)}`,
+        quantity: remainingQuantity.toString(),
+        nextPeriodQuantity: (remainingQuantity - quantityOut).toString(),
+        storeRate: inwardData[0].store_rate || '0',
+        amount: remainingQuantity * parseFloat(inwardData[0].store_rate || '0'),
         amountReceived: "pending",
         dateReceived: "pending",
-      };
-    });
+      });
+
+      remainingQuantity -= quantityOut;
+      currentDate.setMonth(currentDate.getMonth() + 1);
+    }
 
     // Function to generate labor table data
     const generateLaborTable = (inwardData: any[]) => {
@@ -141,12 +115,12 @@ export async function GET(request: NextRequest) {
 
     const laborTable = generateLaborTable(inwardData);
 
-    const customerDetails = inwardData.length > 0 ? {
+    const customerDetails = {
       customer: inwardData[0].customer,
       item: inwardData[0].item,
       packing: inwardData[0].packing,
       weight: inwardData[0].weight,
-    } : null;
+    };
 
     return NextResponse.json({ combinedData, customerDetails, laborTable });
   } catch (error) {
