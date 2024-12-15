@@ -27,6 +27,8 @@ import LaborTable, { LaborEntry } from './LaborTable';
 
 type LedgerEntry = {
   inwardOut: string;
+  outDate_table: string;
+  outQuantity: string;
   dates: string;
   quantity: number;
   storeRate: number;
@@ -39,6 +41,14 @@ const columns: ColumnDef<LedgerEntry>[] = [
   {
     accessorKey: "inwardOut",
     header: "Inward/Out",
+  },
+  {
+    accessorKey: "outDate_table",
+    header: "Out Date",
+  },
+  {
+    accessorKey: "outQuantity",
+    header: "Out Quantity",
   },
   {
     accessorKey: "dates",
@@ -56,7 +66,7 @@ const columns: ColumnDef<LedgerEntry>[] = [
   },
   {
     accessorKey: "quantity",
-    header: "Quantity",
+    header: "Stored Quantity",
   },
   {
     accessorKey: "storeRate",
