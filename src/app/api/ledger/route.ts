@@ -47,48 +47,48 @@ export async function GET(request: NextRequest) {
       }).replace(/\//g, '.');
     };
 
-    // Function to generate ledger data for a single inward record
-    const generateLedgerData = (inwardRecord: any, relatedOutwardData: any[]) => {
-      let currentDate = new Date(inwardRecord.addDate);
-      const lastOutwardDate = new Date(relatedOutwardData[relatedOutwardData.length - 1]?.outDate || currentDate);
-      const combinedData = [];
-      let remainingQuantity = parseInt(inwardRecord.quantity) || 0;
+  // Function to generate ledger data for a single inward record
+  const generateLedgerData = (inwardRecord: any, relatedOutwardData: any[]) => {
+    let currentDate = new Date(inwardRecord.addDate);
+    const today = new Date(); // Get current date
+    let remainingQuantity = parseInt(inwardRecord.quantity) || 0;
+    const combinedData = [];
 
-      while (currentDate <= lastOutwardDate) {
-        const startDate = new Date(currentDate);
-        const endDate = new Date(currentDate);
-        endDate.setMonth(endDate.getMonth() + 1);
-        endDate.setDate(endDate.getDate() - 1);
+    while (currentDate <= today && remainingQuantity > 0) {
+      const startDate = new Date(currentDate);
+      const endDate = new Date(currentDate);
+      endDate.setMonth(endDate.getMonth() + 1);
+      endDate.setDate(endDate.getDate() - 1);
 
-        const outwardInRange = relatedOutwardData.filter(item => {
-          const outDate = new Date(item.outDate);
-          return outDate >= startDate && outDate <= endDate;
-        });
+      const outwardInRange = relatedOutwardData.filter(item => {
+        const outDate = new Date(item.outDate);
+        return outDate >= startDate && outDate <= endDate;
+      });
 
-        const quantityOut = outwardInRange.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
-        const inwardOutNumbers = outwardInRange.map(item => `${item.inumber}/${item.onumber}`).join('\n');
-        const outDate_table = outwardInRange.map(item => formatDate(new Date(item.outDate))).join('\n');
+      const quantityOut = outwardInRange.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
+      const inwardOutNumbers = outwardInRange.map(item => `${item.inumber}/${item.onumber}`).join('\n');
+      const outDate_table = outwardInRange.map(item => formatDate(new Date(item.outDate))).join('\n');
 
-        combinedData.push({
-          inwardOut: inwardOutNumbers || '',
+      combinedData.push({
+        inwardOut: inwardOutNumbers || '',
           // inwardOut: inwardOutNumbers || inwardRecord.inumber,
-          outDate_table: outDate_table,
-          outQuantity: quantityOut,
-          dates: `${formatDate(startDate)} - ${formatDate(endDate)}`,
-          quantity: remainingQuantity.toString(),
-          nextPeriodQuantity: (remainingQuantity - quantityOut).toString(),
-          storeRate: inwardRecord.store_rate || '0',
-          amount: remainingQuantity * parseFloat(inwardRecord.store_rate || '0'),
-          amountReceived: "pending",
-          dateReceived: "pending",
-        });
+        outDate_table: outDate_table,
+        outQuantity: quantityOut,
+        dates: `${formatDate(startDate)} - ${formatDate(endDate)}`,
+        quantity: remainingQuantity.toString(),
+        nextPeriodQuantity: Math.max(remainingQuantity - quantityOut, 0).toString(),
+        storeRate: inwardRecord.store_rate || '0',
+        amount: remainingQuantity * parseFloat(inwardRecord.store_rate || '0'),
+        amountReceived: "pending",
+        dateReceived: "pending",
+      });
 
-        remainingQuantity -= quantityOut;
-        currentDate.setMonth(currentDate.getMonth() + 1);
-      }
+      remainingQuantity = Math.max(remainingQuantity - quantityOut, 0);
+      currentDate.setMonth(currentDate.getMonth() + 1);
+    }
 
-      return combinedData;
-    };
+    return combinedData;
+  };
 
     // Generate ledger data for each inward record
     const ledgerDataSets = inwardData.map(inwardRecord => {
