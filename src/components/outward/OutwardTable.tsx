@@ -182,12 +182,38 @@ const OutwardTable = ({ data }: any) => {
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search number..."
+              placeholder="Search Inward Number..."
+              value={
+                (table?.getColumn("inumber")?.getFilterValue() as string) ?? ""
+              }
+              onChange={(event) =>
+                table?.getColumn("inumber")?.setFilterValue(event?.target?.value)
+              }
+              className="pl-8 max-w-sm outline-none focus:outline-none"
+            />
+          </div>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search Outward Number..."
               value={
                 (table?.getColumn("onumber")?.getFilterValue() as string) ?? ""
               }
               onChange={(event) =>
                 table?.getColumn("onumber")?.setFilterValue(event?.target?.value)
+              }
+              className="pl-8 max-w-sm outline-none focus:outline-none"
+            />
+          </div>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search Customer..."
+              value={
+                (table?.getColumn("customer")?.getFilterValue() as string) ?? ""
+              }
+              onChange={(event) =>
+                table?.getColumn("customer")?.setFilterValue(event?.target?.value)
               }
               className="pl-8 max-w-sm outline-none focus:outline-none"
             />
