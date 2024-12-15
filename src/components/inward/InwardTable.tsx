@@ -200,15 +200,28 @@ const InwardTable = ({ data }: any) => {
     <div>
       <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
         <div className="flex items-center gap-3 w-full">
-          <div className="relative">
+        <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search number..."
+              placeholder="Search Inward Number..."
               value={
                 (table?.getColumn("inumber")?.getFilterValue() as string) ?? ""
               }
               onChange={(event) =>
                 table?.getColumn("inumber")?.setFilterValue(event?.target?.value)
+              }
+              className="pl-8 max-w-sm outline-none focus:outline-none"
+            />
+          </div>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search Customer..."
+              value={
+                (table?.getColumn("customer")?.getFilterValue() as string) ?? ""
+              }
+              onChange={(event) =>
+                table?.getColumn("customer")?.setFilterValue(event?.target?.value)
               }
               className="pl-8 max-w-sm outline-none focus:outline-none"
             />
