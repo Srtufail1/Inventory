@@ -113,34 +113,45 @@ const columns: ColumnDef<LedgerEntry>[] = [
   },
 ];
 
-type CustomerDetails = {
+type CustomerDetail = {
+  inumber: string;
+  addDate: string;
   customer: string;
   item: string;
   packing: string;
   weight: string;
+  quantity: string;
 };
 
-const CustomerDetailsTable = ({ details }: { details: CustomerDetails }) => (
+const CustomerDetailsTable = ({ details }: { details: CustomerDetail[] }) => (
   <div className="mb-6">
     <h2 className="text-xl font-semibold mb-2">Customer Details</h2>
-    <Table>
-      <TableHeader>
-        <TableRow>
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
           <TableHead>Customer</TableHead>
-          <TableHead>Item</TableHead>
-          <TableHead>Packing</TableHead>
-          <TableHead>Weight (Kg)</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        <TableRow>
-          <TableCell>{details.customer}</TableCell>
-          <TableCell>{details.item}</TableCell>
-          <TableCell>{details.packing}</TableCell>
-          <TableCell>{details.weight}</TableCell>
-        </TableRow>
-      </TableBody>
-    </Table>
+            <TableHead>Inward Number</TableHead>
+            <TableHead>Item</TableHead>
+            <TableHead>Packing</TableHead>
+            <TableHead>Weight (Kg)</TableHead>
+            <TableHead>Quantity</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {details.map((detail, index) => (
+            <TableRow key={index}>
+              <TableCell>{detail.customer}</TableCell>
+              <TableCell>{detail.inumber}</TableCell>
+              <TableCell>{detail.item}</TableCell>
+              <TableCell>{detail.packing}</TableCell>
+              <TableCell>{detail.weight}</TableCell>
+              <TableCell>{detail.quantity}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   </div>
 );
 
@@ -240,7 +251,7 @@ const LedgerPage = () => {
   const [laborData, setLaborData] = React.useState<LaborEntry[]>([]);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
-  const [customerDetails, setCustomerDetails] = React.useState<CustomerDetails | null>(null);
+  const [customerDetails, setCustomerDetails] = React.useState<CustomerDetail[]>([]);
 
   const handleSearch = async () => {
     if (searchTerm.trim() === "") return;
@@ -288,9 +299,9 @@ const LedgerPage = () => {
             {isLoading ? 'Searching...' : 'Search'}
           </Button>
         </div>
-        <div className="pb-6"></div>
-        {customerDetails && <CustomerDetailsTable details={customerDetails} />}
-        {laborData.length > 0 && <LaborTable data={laborData} />}
+      <div className="pb-6"></div>
+      {customerDetails.length > 0 && <CustomerDetailsTable details={customerDetails} />}
+      {laborData.length > 0 && <LaborTable data={laborData} />}
         {dataSets.map((dataSet) => (
           <LedgerTable key={dataSet.inumber} data={dataSet.ledgerData} inumber={dataSet.inumber} />
         ))}

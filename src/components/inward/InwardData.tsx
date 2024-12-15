@@ -105,9 +105,11 @@ const InwardData = ({ title, data }: Props) => {
                 />
               </div>
             </div>
+            <SheetClose>
             <Button type="submit" className="mt-5">
               {title}
             </Button>
+            </SheetClose>
           </form>
         </div>
       </SheetContent>

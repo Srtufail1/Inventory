@@ -120,12 +120,16 @@ export async function GET(request: NextRequest) {
 
     const laborTable = generateLaborTable(inwardData);
 
-    const customerDetails = {
-      customer: inwardData[0].customer,
-      item: inwardData[0].item,
-      packing: inwardData[0].packing,
-      weight: inwardData[0].weight,
-    };
+    // Update the customerDetails to include all inward entries
+    const customerDetails = inwardData.map(entry => ({
+      inumber: entry.inumber,
+      addDate: formatDate(new Date(entry.addDate)),
+      customer: entry.customer,
+      item: entry.item,
+      packing: entry.packing,
+      weight: entry.weight,
+      quantity: entry.quantity,
+    }));
 
     return NextResponse.json({ ledgerDataSets, customerDetails, laborTable });
   } catch (error) {
