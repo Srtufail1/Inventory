@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import DarkModeToggle from '../DarkModeToggle';
+import { signOut } from "next-auth/react";
 
 type BillEntry = {
   dueMonth: string;
@@ -76,7 +78,20 @@ const BillPage: React.FC = () => {
   };
 
   return (
+    <div>
+      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
+        <div className="w-full"></div>
+        <DarkModeToggle />
+        <Button onClick={() => signOut()} type="submit">
+          Sign Out
+        </Button>
+      </div>
     <div className="p-6">
+    <div className="flex item justify-between pt-3 pb-6">
+          <h1 className="text-3xl font-bold tracking-tight">
+            Customer Billing Records
+          </h1>
+        </div>
       <div className="flex items-center gap-4 mb-6">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
@@ -120,6 +135,7 @@ const BillPage: React.FC = () => {
       {billData.length === 0 && !isLoading && customerName && (
         <p>No bill data found for this customer.</p>
       )}
+    </div>
     </div>
   );
 };
