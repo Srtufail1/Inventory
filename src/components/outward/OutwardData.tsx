@@ -64,12 +64,12 @@ const OutwardData = ({ title, data }: Props) => {
                   defaultValue={data?.customer}
                 />
                 <div className="flex flex-col space-y-2">
-                  <Label htmlFor="addDate">Add Date</Label>
+                  <Label htmlFor="addDate">Out Date</Label>
                   <Input
                     type="date"
                     id="outDate"
                     name="outDate"
-                    defaultValue={data?.addDate ? new Date(data.addDate).toISOString().split('T')[0] : ''}
+                    defaultValue={data?.outDate ? new Date(data.outDate).toISOString().split('T')[0] : ''}
                   />
                 </div>
                 <FormInput
@@ -87,9 +87,9 @@ const OutwardData = ({ title, data }: Props) => {
               </div>
             </div>
             <SheetClose>
-            <Button type="submit" className="mt-5">
-              {title}
-            </Button>
+              <Button type="submit" className="mt-5">
+                {title}
+              </Button>
             </SheetClose>
           </form>
         </div>
