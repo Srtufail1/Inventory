@@ -16,6 +16,7 @@ import {
 
 export type LaborEntry = {
   addDate: string;
+  inumber: string;
   dueDate: string;
   quantity: number;
   labourRate: number;
@@ -30,8 +31,8 @@ const columns: ColumnDef<LaborEntry>[] = [
     header: "Add Date",
   },
   {
-    accessorKey: "dueDate",
-    header: "Due Date",
+    accessorKey: "inumber",
+    header: "Inward Number",
   },
   {
     accessorKey: "quantity",
@@ -44,6 +45,10 @@ const columns: ColumnDef<LaborEntry>[] = [
   {
     accessorKey: "labourAmount",
     header: "Labour Amount",
+  },
+  {
+    accessorKey: "dueDate",
+    header: "Due Date",
   },
   {
     accessorKey: "amountReceived",

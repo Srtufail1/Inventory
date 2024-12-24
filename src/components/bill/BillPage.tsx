@@ -34,7 +34,7 @@ const BillPage: React.FC = () => {
           const [startDate] = entry.dates.split(' - ');
           const [day, month, year] = startDate.split('.');
           const dueMonth = new Date(parseInt(`20${year}`), parseInt(month) - 1, parseInt(day));
-          dueMonth.setMonth(dueMonth.getMonth() + 1);
+          dueMonth.setMonth(dueMonth.getMonth() + 2);
           
           const dueMonthString = dueMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
           
@@ -54,6 +54,7 @@ const BillPage: React.FC = () => {
       result.laborTable.forEach((labor: any) => {
         const [day, month, year] = labor.dueDate.split('.');
         const dueMonth = new Date(parseInt(`20${year}`), parseInt(month) - 1, parseInt(day));
+        dueMonth.setMonth(dueMonth.getMonth() + 1);
         const dueMonthString = dueMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
         
         const existingEntry = billEntries.find(e => e.dueMonth === dueMonthString);

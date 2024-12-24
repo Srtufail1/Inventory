@@ -109,6 +109,7 @@ export async function GET(request: NextRequest) {
         return {
           addDate: formatDate(addDate),
           dueDate: formatDate(dueDate),
+          inumber: item.inumber,
           quantity: item.quantity,
           labourRate: item.labour_rate,
           labourAmount: (parseInt(item.quantity) || 0) * (parseFloat(item.labour_rate) || 0),
