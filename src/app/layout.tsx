@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import "./index.css";
+import "./responsive.css";
 import { Toaster } from "@/components/ui/toaster";
 import Providers from "@/lib/Providers";
 import { ThemeProvider } from 'next-themes'

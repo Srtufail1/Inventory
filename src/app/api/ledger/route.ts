@@ -58,11 +58,15 @@ export async function GET(request: NextRequest) {
       const startDate = new Date(currentDate);
       const endDate = new Date(currentDate);
       endDate.setMonth(endDate.getMonth() + 1);
-      endDate.setDate(endDate.getDate() - 1);
+      // Check if the month overflowed
+      if (endDate.getMonth() !== (startDate.getMonth() + 1) % 12) {
+        // If it did, set to the last day of the intended month
+        endDate.setDate(0);
+      }
 
       const outwardInRange = relatedOutwardData.filter(item => {
         const outDate = new Date(item.outDate);
-        return outDate >= startDate && outDate <= endDate;
+        return outDate > startDate && outDate <= endDate;
       });
 
       const quantityOut = outwardInRange.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
@@ -84,7 +88,16 @@ export async function GET(request: NextRequest) {
       });
 
       remainingQuantity = Math.max(remainingQuantity - quantityOut, 0);
-      currentDate.setMonth(currentDate.getMonth() + 1);
+      const nextMonth = new Date(currentDate);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+      // Check if the month overflowed
+      if (nextMonth.getMonth() !== (currentDate.getMonth() + 1) % 12) {
+          // If it did, set to the last day of the intended month
+          nextMonth.setDate(0);
+      }
+      // Now assign the corrected date back to currentDate
+      currentDate = nextMonth;
     }
 
     return combinedData;
