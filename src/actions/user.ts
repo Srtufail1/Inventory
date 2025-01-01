@@ -28,7 +28,7 @@ export const loginSignup = async (formData: FormData, isLogin: boolean) => {
     })
     .catch((err) => {
       if (err?.toString() == "Error: NEXT_REDIRECT") {
-        user?.isAdmin ? redirect("/dashboard") : redirect("/");
+        user?.isAdmin ? redirect("/dashboard/inward") : redirect("/");
       } else return { error: err?.type };
     });
 

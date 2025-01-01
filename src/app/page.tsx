@@ -1,5 +1,5 @@
 import AppBar from "@/components/AppBar";
-import AuthDesign from "@/components/AuthDesign";
+// import AuthDesign from "@/components/AuthDesign";
 import { auth } from "../../auth";
 import { db } from "@/lib/db";
 import ClientComp from "@/components/ClientComp";
@@ -22,14 +22,15 @@ export default async function Home() {
         </>
       );
     } else if (user && user?.isAdmin) {
-      redirect("/dashboard");
+      redirect("/dashboard/inward");
     }
   } else {
-    return (
-      <>
-        <AppBar />
-        <AuthDesign />
-      </>
-    );
+    redirect("/login");
+    // return (
+    //   <>
+    //     <AppBar />
+    //     <AuthDesign />
+    //   </>
+    // );
   }
 }
