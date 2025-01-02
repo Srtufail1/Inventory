@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
   // Function to generate ledger data for a single inward record
   const generateLedgerData = (inwardRecord: any, relatedOutwardData: any[]) => {
     let currentDate = new Date(inwardRecord.addDate);
+    let currentDateInitial = new Date(inwardRecord.addDate);
     const today = new Date(); // Get current date
     let remainingQuantity = parseInt(inwardRecord.quantity) || 0;
     const combinedData = [];
@@ -63,10 +64,10 @@ export async function GET(request: NextRequest) {
         // If it did, set to the last day of the intended month
         endDate.setDate(0);
       }
-
       const outwardInRange = relatedOutwardData.filter(item => {
         const outDate = new Date(item.outDate);
-        return outDate > startDate && outDate <= endDate;
+        if (currentDate.getTime() === currentDateInitial.getTime()) {return outDate >= startDate && outDate <= endDate;}
+        else {return outDate > startDate && outDate <= endDate;}
       });
 
       const quantityOut = outwardInRange.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
