@@ -2,27 +2,20 @@ import { db } from "@/lib/db";
 import CustomerPage from "@/components/customer/CustomerPage";
 
 export default async function CustomersPage() {
-  const inwardData = await db.inward.findMany({
-    select: {
-      customer: true,
+  const customerData = await db.inward.groupBy({
+    by: ['customer'],
+    _count: {
+      customer: true
     },
-    distinct: ['customer'],
+    orderBy: {
+      customer: 'asc'
+    }
   });
 
-  const customerData = inwardData.map(item => ({
+  const formattedData = customerData.map(item => ({
     customer: item.customer,
-    totalInwards: 0, // You'll need to calculate this
+    totalInwards: item._count.customer,
   }));
 
-  // Calculate totalInwards for each customer
-  for (let customer of customerData) {
-    const count = await db.inward.count({
-      where: {
-        customer: customer.customer,
-      },
-    });
-    customer.totalInwards = count;
-  }
-
-  return <CustomerPage data={customerData} />;
+  return <CustomerPage data={formattedData} />;
 }
