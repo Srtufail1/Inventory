@@ -253,6 +253,7 @@ const LedgerPage = () => {
   const [dataSets, setDataSets] = React.useState<LedgerDataSet[]>([]);
   const [laborData, setLaborData] = React.useState<LaborEntry[]>([]);
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [inwardNumber, setInwardNumber] = React.useState(""); // New state for inward number
   const [isLoading, setIsLoading] = React.useState(false);
   const [customerDetails, setCustomerDetails] = React.useState<CustomerDetail[]>([]);
 
@@ -261,7 +262,11 @@ const LedgerPage = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/ledger?customer=${encodeURIComponent(searchTerm)}`);
+      let url = `/api/ledger?customer=${encodeURIComponent(searchTerm)}`;
+      if (inwardNumber.trim() !== "") {
+        url += `&inward=${encodeURIComponent(inwardNumber)}`;
+      }
+      const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch data');
       const result = await response.json();
       setDataSets(result.ledgerDataSets);
@@ -290,13 +295,19 @@ const LedgerPage = () => {
             Ledger
           </h1>
         </div>
-        <div className="relative max-w-sm w-full flex items-center">
+        <div className="relative w-full flex items-center">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
           <Input
             placeholder="Search customer name..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8 max-w-sm"
+            className="pl-8 w-1/4 mr-2"
+          />
+          <Input
+            placeholder="Inward number (optional)"
+            value={inwardNumber}
+            onChange={(e) => setInwardNumber(e.target.value)}
+            className="w-1/4 mr-2"
           />
           <Button onClick={handleSearch} disabled={isLoading} className="ml-2">
             {isLoading ? 'Searching...' : 'Search'}
