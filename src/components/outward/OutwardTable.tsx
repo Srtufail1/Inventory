@@ -12,6 +12,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  FilterFn,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown, Search } from "lucide-react";
 import DatePicker from "react-datepicker";
@@ -41,6 +42,26 @@ import OutwardUpdate from "../outward/OutwardUpdate";
 import { format, isWithinInterval } from 'date-fns';
 import DarkModeToggle from '../DarkModeToggle'
 import { FaCalendarAlt } from 'react-icons/fa';
+
+const dateRangeFilter: FilterFn<OutwardDataProps> = (row, columnId, filterValue) => {
+  if (!filterValue.startDate || !filterValue.endDate) return true;
+  const cellValue = row.getValue(columnId);
+  
+  let dateObject: Date;
+  if (typeof cellValue === 'string') {
+    dateObject = new Date(cellValue);
+  } else if (cellValue instanceof Date) {
+    dateObject = cellValue;
+  } else {
+    return false;
+  }
+
+  if (isNaN(dateObject.getTime())) {
+    return false;
+  }
+
+  return isWithinInterval(dateObject, { start: filterValue.startDate, end: filterValue.endDate });
+};
 
 export const columns: ColumnDef<OutwardDataProps>[] = [
   {
@@ -120,7 +141,7 @@ export const columns: ColumnDef<OutwardDataProps>[] = [
         </div>
       );
     },
-    filterFn: "dateRange",
+    filterFn: dateRangeFilter,
   },
   {
     accessorKey: "customer",
@@ -176,25 +197,7 @@ const OutwardTable = ({ data }: any) => {
       rowSelection,
     },
     filterFns: {
-      dateRange: (row, columnId, filterValue) => {
-        if (!filterValue.startDate || !filterValue.endDate) return true;
-        const cellValue = row.getValue(columnId);
-        
-        let dateObject: Date;
-        if (typeof cellValue === 'string') {
-          dateObject = new Date(cellValue);
-        } else if (cellValue instanceof Date) {
-          dateObject = cellValue;
-        } else {
-          return false;
-        }
-    
-        if (isNaN(dateObject.getTime())) {
-          return false;
-        }
-      
-        return isWithinInterval(dateObject, { start: filterValue.startDate, end: filterValue.endDate });
-      },
+      dateRange: dateRangeFilter,
     },
   });
 
@@ -204,7 +207,7 @@ const OutwardTable = ({ data }: any) => {
     } else { 
       table.getColumn('outDate')?.setFilterValue(undefined);
     }
-  }, [dateRange]);
+  }, [startDate, endDate]);
 
   return (
     <div>
@@ -214,12 +217,8 @@ const OutwardTable = ({ data }: any) => {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search Inward Number..."
-              value={
-                (table?.getColumn("inumber")?.getFilterValue() as string) ?? ""
-              }
-              onChange={(event) =>
-                table?.getColumn("inumber")?.setFilterValue(event?.target?.value)
-              }
+              value={(table?.getColumn("inumber")?.getFilterValue() as string) ?? ""}
+              onChange={(event) => table?.getColumn("inumber")?.setFilterValue(event?.target?.value)}
               className="pl-8 max-w-sm outline-none focus:outline-none"
             />
           </div>
@@ -227,12 +226,8 @@ const OutwardTable = ({ data }: any) => {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search Outward Number..."
-              value={
-                (table?.getColumn("onumber")?.getFilterValue() as string) ?? ""
-              }
-              onChange={(event) =>
-                table?.getColumn("onumber")?.setFilterValue(event?.target?.value)
-              }
+              value={(table?.getColumn("onumber")?.getFilterValue() as string) ?? ""}
+              onChange={(event) => table?.getColumn("onumber")?.setFilterValue(event?.target?.value)}
               className="pl-8 max-w-sm outline-none focus:outline-none"
             />
           </div>
@@ -240,12 +235,8 @@ const OutwardTable = ({ data }: any) => {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search Customer..."
-              value={
-                (table?.getColumn("customer")?.getFilterValue() as string) ?? ""
-              }
-              onChange={(event) =>
-                table?.getColumn("customer")?.setFilterValue(event?.target?.value)
-              }
+              value={(table?.getColumn("customer")?.getFilterValue() as string) ?? ""}
+              onChange={(event) => table?.getColumn("customer")?.setFilterValue(event?.target?.value)}
               className="pl-8 max-w-sm outline-none focus:outline-none"
             />
           </div>
@@ -280,9 +271,7 @@ const OutwardTable = ({ data }: any) => {
                         key={column.id}
                         className="capitalize"
                         checked={column.getIsVisible()}
-                        onCheckedChange={(value) =>
-                          column.toggleVisibility(!!value)
-                        }
+                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
                       >
                         {column.id}
                       </DropdownMenuCheckboxItem>

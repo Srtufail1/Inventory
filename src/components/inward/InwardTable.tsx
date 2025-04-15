@@ -12,6 +12,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  FilterFn,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown, Search } from "lucide-react";
 import DatePicker from "react-datepicker";
@@ -41,6 +42,26 @@ import InwardUpdate from "../inward/InwardUpdate";
 import { format, isWithinInterval } from 'date-fns';
 import DarkModeToggle from '../DarkModeToggle'
 import { FaCalendarAlt } from 'react-icons/fa';
+
+const dateRangeFilter: FilterFn<InwardDataProps> = (row, columnId, filterValue) => {
+  if (!filterValue.startDate || !filterValue.endDate) return true;
+  const cellValue = row.getValue(columnId);
+  
+  let dateObject: Date;
+  if (typeof cellValue === 'string') {
+    dateObject = new Date(cellValue);
+  } else if (cellValue instanceof Date) {
+    dateObject = cellValue;
+  } else {
+    return false;
+  }
+
+  if (isNaN(dateObject.getTime())) {
+    return false;
+  }
+
+  return isWithinInterval(dateObject, { start: filterValue.startDate, end: filterValue.endDate });
+};
 
 export const columns: ColumnDef<InwardDataProps>[] = [
   {
@@ -113,7 +134,7 @@ export const columns: ColumnDef<InwardDataProps>[] = [
         </div>
       );
     },
-    filterFn: "dateRange",
+    filterFn: dateRangeFilter,
   },
   {
     accessorKey: "customer",
@@ -197,26 +218,7 @@ const InwardTable = ({ data }: any) => {
       rowSelection,
     },
     filterFns: {
-      dateRange: (row, columnId, filterValue) => {        
-        if (!filterValue.startDate || !filterValue.endDate) return true;
-        const cellValue = row.getValue(columnId);
-        
-        let dateObject: Date;
-        if (typeof cellValue === 'string') {
-          dateObject = new Date(cellValue);
-        } else if (cellValue instanceof Date) {
-          dateObject = cellValue;
-        } else {
-          return false;
-        }
-    
-        if (isNaN(dateObject.getTime())) {
-          return false;
-        }
-      
-        const result = isWithinInterval(dateObject, { start: filterValue.startDate, end: filterValue.endDate });
-        return result;
-      },
+      dateRange: dateRangeFilter,
     },
   });
 
@@ -232,16 +234,12 @@ const InwardTable = ({ data }: any) => {
     <div>
       <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
         <div className="flex items-center gap-3 w-full">
-        <div className="relative">
+          <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search Inward Number..."
-              value={
-                (table?.getColumn("inumber")?.getFilterValue() as string) ?? ""
-              }
-              onChange={(event) =>
-                table?.getColumn("inumber")?.setFilterValue(event?.target?.value)
-              }
+              value={(table?.getColumn("inumber")?.getFilterValue() as string) ?? ""}
+              onChange={(event) => table?.getColumn("inumber")?.setFilterValue(event?.target?.value)}
               className="pl-8 max-w-sm outline-none focus:outline-none"
             />
           </div>
@@ -249,12 +247,8 @@ const InwardTable = ({ data }: any) => {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search Customer..."
-              value={
-                (table?.getColumn("customer")?.getFilterValue() as string) ?? ""
-              }
-              onChange={(event) =>
-                table?.getColumn("customer")?.setFilterValue(event?.target?.value)
-              }
+              value={(table?.getColumn("customer")?.getFilterValue() as string) ?? ""}
+              onChange={(event) => table?.getColumn("customer")?.setFilterValue(event?.target?.value)}
               className="pl-8 max-w-sm outline-none focus:outline-none"
             />
           </div>
@@ -290,9 +284,7 @@ const InwardTable = ({ data }: any) => {
                         key={column.id}
                         className="capitalize"
                         checked={column.getIsVisible()}
-                        onCheckedChange={(value) =>
-                          column.toggleVisibility(!!value)
-                        }
+                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
                       >
                         {column.id}
                       </DropdownMenuCheckboxItem>
