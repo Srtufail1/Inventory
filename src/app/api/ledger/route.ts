@@ -1,34 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from "@/lib/db";
+import { Prisma } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const customer = searchParams.get('customer');
+  const inward = searchParams.get('inward');
 
   if (!customer) {
     return NextResponse.json({ error: 'Customer name is required' }, { status: 400 });
   }
 
   try {
-    const inwardData = await db.inward.findMany({
-      where: {
-        customer: {
-          contains: customer,
-          mode: 'insensitive',
-        },
+    let inwardQuery: Prisma.InwardWhereInput = {
+      customer: {
+        contains: customer,
+        mode: 'insensitive',
       },
+    };
+
+    if (inward) {
+      inwardQuery = {
+        AND: [
+          { customer: { contains: customer, mode: 'insensitive' } },
+          { inumber: inward }
+        ]
+      };
+    }
+
+    const inwardData = await db.inward.findMany({
+      where: inwardQuery,
       orderBy: {
         addDate: 'asc',
       },
     });
 
-    const outwardData = await db.outward.findMany({
-      where: {
-        customer: {
-          contains: customer,
-          mode: 'insensitive',
-        },
+    let outwardQuery: Prisma.OutwardWhereInput = {
+      customer: {
+        contains: customer,
+        mode: 'insensitive',
       },
+    };
+
+    if (inward) {
+      outwardQuery = {
+        AND: [
+          { customer: { contains: customer, mode: 'insensitive' } },
+          { inumber: inward }
+        ]
+      };
+    }
+
+    const outwardData = await db.outward.findMany({
+      where: outwardQuery,
       orderBy: {
         outDate: 'asc',
       },
