@@ -14,6 +14,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown, Search } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -36,7 +38,7 @@ import {
 import { signOut } from "next-auth/react";
 import OutwardData from "../outward/OutwardData";
 import OutwardUpdate from "../outward/OutwardUpdate";
-import { format } from 'date-fns';
+import { format, isWithinInterval } from 'date-fns';
 import DarkModeToggle from '../DarkModeToggle'
 import { FaCalendarAlt } from 'react-icons/fa';
 
@@ -112,13 +114,13 @@ export const columns: ColumnDef<OutwardDataProps>[] = [
       const formattedDate = format(dateObject, 'dd MMM yyyy');
       
       return (
-              <div className="flex items-center">
-                <FaCalendarAlt className="mr-2 text-gray-500" />
-                <div className="capitalize">{formattedDate}</div>
-              </div>
-            );
+        <div className="flex items-center">
+          <FaCalendarAlt className="mr-2 text-gray-500" />
+          <div className="capitalize">{formattedDate}</div>
+        </div>
+      );
     },
-    // sortingFn: "datetime",
+    filterFn: "dateRange",
   },
   {
     accessorKey: "customer",
@@ -150,12 +152,11 @@ export const columns: ColumnDef<OutwardDataProps>[] = [
 
 const OutwardTable = ({ data }: any) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>([null, null]);
+  const [startDate, endDate] = dateRange;
 
   const table = useReactTable({
     data,
@@ -174,7 +175,37 @@ const OutwardTable = ({ data }: any) => {
       columnVisibility,
       rowSelection,
     },
+    filterFns: {
+      dateRange: (row, columnId, filterValue) => {
+        if (!filterValue.startDate || !filterValue.endDate) return true;
+        const cellValue = row.getValue(columnId);
+        
+        let dateObject: Date;
+        if (typeof cellValue === 'string') {
+          dateObject = new Date(cellValue);
+        } else if (cellValue instanceof Date) {
+          dateObject = cellValue;
+        } else {
+          return false;
+        }
+    
+        if (isNaN(dateObject.getTime())) {
+          return false;
+        }
+      
+        return isWithinInterval(dateObject, { start: filterValue.startDate, end: filterValue.endDate });
+      },
+    },
   });
+
+  React.useEffect(() => {
+    if (startDate && endDate) {
+      table.getColumn('outDate')?.setFilterValue({ startDate, endDate });
+    } else { 
+      table.getColumn('outDate')?.setFilterValue(undefined);
+    }
+  }, [dateRange]);
+
   return (
     <div>
       <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
@@ -216,6 +247,20 @@ const OutwardTable = ({ data }: any) => {
                 table?.getColumn("customer")?.setFilterValue(event?.target?.value)
               }
               className="pl-8 max-w-sm outline-none focus:outline-none"
+            />
+          </div>
+          <div className="relative">
+            <DatePicker
+              selectsRange={true}
+              startDate={startDate}
+              endDate={endDate}
+              onChange={(update: [Date | null, Date | null]) => {
+                setDateRange(update);
+              }}
+              placeholderText="Select date range"
+              className="px-3 py-2 border rounded"
+              dateFormat="dd MMM yyyy"
+              isClearable={true}
             />
           </div>
           <div>
