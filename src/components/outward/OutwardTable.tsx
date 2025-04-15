@@ -88,9 +88,21 @@ export const columns: ColumnDef<OutwardDataProps>[] = [
   },
   {
     accessorKey: "inumber",
-    header: "In Number",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          In Number
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("inumber")}</div>
+      <div className="pl-8">
+        {row.getValue("inumber")}
+      </div>
     ),
   },
   {
@@ -114,7 +126,17 @@ export const columns: ColumnDef<OutwardDataProps>[] = [
   },
   {
     accessorKey: "outDate",
-    header: "Out Date",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Out Date
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const date = row.getValue("outDate");
       
@@ -159,9 +181,21 @@ export const columns: ColumnDef<OutwardDataProps>[] = [
   },
   {
     accessorKey: "quantity",
-    header: "Quantity",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Quantity
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("quantity")}</div>
+      <div className="pl-8">
+        {row.getValue("quantity")}
+      </div>
     ),
   },
   {

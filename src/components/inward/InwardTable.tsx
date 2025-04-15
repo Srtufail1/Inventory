@@ -107,7 +107,17 @@ export const columns: ColumnDef<InwardDataProps>[] = [
   },
   {
     accessorKey: "addDate",
-    header: "In Date",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          In Date
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const date = row.getValue("addDate");
       
@@ -161,28 +171,58 @@ export const columns: ColumnDef<InwardDataProps>[] = [
     accessorKey: "weight",
     header: "Weight (Kg)",
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("weight")}</div>
+      <div className="pl-4">{row.getValue("weight")}</div>
     ),
   },
   {
     accessorKey: "quantity",
-    header: "Quantity",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Quantity
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("quantity")}</div>
+      <div className="pl-8">{row.getValue("quantity")}</div>
     ),
   },
   {
     accessorKey: "store_rate",
-    header: "Store Rate (Rs.)",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Store Rate (Rs.)
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("store_rate")}</div>
+      <div className="pl-10">{row.getValue("store_rate")}</div>
     ),
   },
   {
     accessorKey: "labour_rate",
-    header: "Labour Rate (Rs.)",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Labour Rate (Rs.)
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("labour_rate")}</div>
+      <div className="pl-12">{row.getValue("labour_rate")}</div>
     ),
   },
   {
