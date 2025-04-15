@@ -121,6 +121,7 @@ type CustomerDetail = {
   packing: string;
   weight: string;
   quantity: string;
+  remaining_quantity: string;
 };
 
 const CustomerDetailsTable = ({ details }: { details: CustomerDetail[] }) => (
@@ -136,6 +137,7 @@ const CustomerDetailsTable = ({ details }: { details: CustomerDetail[] }) => (
             <TableHead>Packing</TableHead>
             <TableHead>Weight (Kg)</TableHead>
             <TableHead>Quantity</TableHead>
+            <TableHead>Remaining Quantity</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -147,6 +149,7 @@ const CustomerDetailsTable = ({ details }: { details: CustomerDetail[] }) => (
               <TableCell>{detail.packing}</TableCell>
               <TableCell>{detail.weight}</TableCell>
               <TableCell>{detail.quantity}</TableCell>
+              <TableCell>{detail.remaining_quantity}</TableCell>
             </TableRow>
           ))}
         </TableBody>

@@ -135,16 +135,28 @@ export async function GET(request: NextRequest) {
 
     const laborTable = generateLaborTable(inwardData);
 
+
+
+    const outwardTotals = new Map();
+    outwardData.forEach(item => {
+      const currentTotal = outwardTotals.get(item.inumber) || 0;
+      outwardTotals.set(item.inumber, currentTotal + (parseInt(item.quantity) || 0));
+    });
+
     // Update the customerDetails to include all inward entries
-    const customerDetails = inwardData.map(entry => ({
-      inumber: entry.inumber,
-      addDate: formatDate(new Date(entry.addDate)),
-      customer: entry.customer,
-      item: entry.item,
-      packing: entry.packing,
-      weight: entry.weight,
-      quantity: entry.quantity,
-    }));
+    const customerDetails = inwardData.map(entry => {
+      const totalOutward = outwardTotals.get(entry.inumber) || 0;
+      return {
+        inumber: entry.inumber,
+        addDate: formatDate(new Date(entry.addDate)),
+        customer: entry.customer,
+        item: entry.item,
+        packing: entry.packing,
+        weight: entry.weight,
+        quantity: entry.quantity,
+        remaining_quantity: Math.max(0, (parseInt(entry.quantity) || 0) - totalOutward),
+      };
+    });
 
     return NextResponse.json({ ledgerDataSets, customerDetails, laborTable });
   } catch (error) {
