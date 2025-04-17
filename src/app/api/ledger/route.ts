@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
 
       const quantityOut = outwardInRange.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
       const inwardOutNumbers = outwardInRange.map(item => `${item.inumber}/${item.onumber}`).join('\n');
-      const outDate_table = outwardInRange.map(item => formatDate(new Date(item.outDate))).join('\n');
+      const outDate_table = outwardInRange.map(item => `${formatDate(new Date(item.outDate))} - ${item.quantity}`).join('\n');
 
       combinedData.push({
         inwardOut: inwardOutNumbers || '',
