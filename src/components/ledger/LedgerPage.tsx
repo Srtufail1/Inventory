@@ -58,12 +58,12 @@ const columns: ColumnDef<LedgerEntry>[] = [
   },
   {
     accessorKey: "outDate_table",
-    header: "Out Date",
+    header: "Out Date - Out Quantity",
     cell: ({ row }) => {
-      const inwardOut = row.getValue("outDate_table") as string;
+      const outDateQuantity = row.getValue("outDate_table") as string;
       return (
         <div style={{ whiteSpace: 'pre-line' }}>
-          {inwardOut}
+          {outDateQuantity}
         </div>
       );
     },
@@ -71,7 +71,7 @@ const columns: ColumnDef<LedgerEntry>[] = [
   },
   {
     accessorKey: "outQuantity",
-    header: "Out Quantity",
+    header: "Total Out Quantity",
   },
   {
     accessorKey: "dates",
@@ -103,14 +103,14 @@ const columns: ColumnDef<LedgerEntry>[] = [
       return <div style={{ color: amount < 0 ? 'red' : 'green' }}>{amount}</div>;
     },
   },
-  {
-    accessorKey: "amountReceived",
-    header: "Amount Received",
-  },
-  {
-    accessorKey: "dateReceived",
-    header: "Date Received",
-  },
+  // {
+  //   accessorKey: "amountReceived",
+  //   header: "Amount Received",
+  // },
+  // {
+  //   accessorKey: "dateReceived",
+  //   header: "Date Received",
+  // },
 ];
 
 type CustomerDetail = {

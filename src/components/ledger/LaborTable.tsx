@@ -50,14 +50,14 @@ const columns: ColumnDef<LaborEntry>[] = [
     accessorKey: "dueDate",
     header: "Due Date",
   },
-  {
-    accessorKey: "amountReceived",
-    header: "Amount Received",
-  },
-  {
-    accessorKey: "dateReceived",
-    header: "Date Received",
-  },
+  // {
+  //   accessorKey: "amountReceived",
+  //   header: "Amount Received",
+  // },
+  // {
+  //   accessorKey: "dateReceived",
+  //   header: "Date Received",
+  // },
 ];
 
 interface LaborTableProps {
