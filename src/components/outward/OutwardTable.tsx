@@ -212,6 +212,7 @@ const OutwardTable = ({ data }: any) => {
   const [rowSelection, setRowSelection] = React.useState({});
   const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>([null, null]);
   const [startDate, endDate] = dateRange;
+  const [pageSize, setPageSize] = React.useState(10);
 
   const table = useReactTable({
     data,
@@ -229,11 +230,19 @@ const OutwardTable = ({ data }: any) => {
       columnFilters,
       columnVisibility,
       rowSelection,
+      pagination: {
+        pageSize,
+        pageIndex: 0,
+      },
     },
     filterFns: {
       dateRange: dateRangeFilter,
     },
   });
+
+  React.useEffect(() => {
+      table.setPageSize(pageSize);
+    }, [pageSize, table]);
 
   React.useEffect(() => {
     if (startDate && endDate) {
@@ -382,6 +391,23 @@ const OutwardTable = ({ data }: any) => {
             <div className="flex-1 text-sm text-muted-foreground">
               {table.getFilteredSelectedRowModel().rows.length} of{" "}
               {table.getFilteredRowModel().rows.length} row(s) selected.
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-700">Rows per page:</span>
+              <select
+                value={pageSize === data.length ? 100000000 : pageSize}
+                onChange={e => {
+                  const newSize = Number(e.target.value);
+                  setPageSize(newSize === 100000000 ? data.length : newSize);
+                }}
+                className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+              >
+                {[10, 20, 50, 100, 500, 1000, 100000000].map(size => (
+                  <option key={size} value={size}>
+                    {size === 100000000 ? 'All' : size}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="space-x-2">
               <Button
