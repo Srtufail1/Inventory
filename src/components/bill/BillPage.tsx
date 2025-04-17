@@ -27,13 +27,13 @@ type MonthSelectorProps = {
 };
 
 const MonthSelector: React.FC<MonthSelectorProps> = ({ months, selectedMonth, onSelectMonth }) => (
-  <div className="mb-4">
-    <label htmlFor="month-select" className="block text-sm font-medium text-gray-700">Select Month</label>
+  <div className="mb-6">
+    <label htmlFor="month-select" className="block text-sm font-medium text-gray-700 mb-2">Select Month</label>
     <select
       id="month-select"
       value={selectedMonth || ''}
       onChange={(e) => onSelectMonth(e.target.value || null)}
-      className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+      className="block w-full px-3 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
     >
       <option value="">All Months</option>
       {months.map((month) => (
@@ -151,7 +151,7 @@ const BillPage: React.FC = () => {
   return (
     <div>
       <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
-        <div className="w-full"></div>
+        <div className="flex items-center gap-3 w-full"></div>
         <DarkModeToggle />
         <Button onClick={() => signOut()} type="submit">
           Sign Out
@@ -163,24 +163,29 @@ const BillPage: React.FC = () => {
             Customer Billing Records
           </h1>
         </div>
-        <div className="flex items-center gap-4 mb-6">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Search customer name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 max-w-sm"
-            />
+      </div>
+
+      <main className="max-w-5xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-10">
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Search customer name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+            <Button onClick={handleSearch} disabled={isLoading} className="px-4 py-2">
+              {isLoading ? 'Searching...' : 'Search'}
+            </Button>
           </div>
-          <Button onClick={handleSearch} disabled={isLoading}>
-            {isLoading ? 'Searching...' : 'Search'}
-          </Button>
         </div>
         
         {customerName && (
-          <div className="mb-4">
-            <h2 className="text-2xl font-bold">Customer: {customerName}</h2>
+          <div className="mb-6">
+            <h2 className="text-3xl font-bold text-gray-900">Customer: {customerName}</h2>
           </div>
         )}
         
@@ -193,41 +198,46 @@ const BillPage: React.FC = () => {
             />
             <div className="space-y-8">
               {filteredBillData.map((entry, index) => (
-                <div key={index} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold">{entry.dueMonth}</h3>
-                    <div className="flex items-center space-x-4">
-                      <p className="text-xl font-bold">Total Amount: {entry.totalAmount}</p>
-                      <Button
-                        onClick={() => toggleMonthExpansion(entry.dueMonth)}
-                        variant="outline"
-                        size="sm"
-                      >
-                        {expandedMonths.has(entry.dueMonth) ? 'Hide Details' : 'Show Details'}
-                      </Button>
+                <div key={index} className="bg-white shadow rounded-lg overflow-hidden">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-xl font-semibold text-gray-900">{entry.dueMonth}</h3>
+                      <div className="flex items-center space-x-4">
+                        <p className="text-l text-gray-900">Total Amount:</p>
+                        <p className="text-xl font-bold text-gray-900">{entry.totalAmount.toLocaleString('en-IN')}</p>
+                        <Button
+                          onClick={() => toggleMonthExpansion(entry.dueMonth)}
+                          variant="outline"
+                          size="sm"
+                        >
+                          {expandedMonths.has(entry.dueMonth) ? 'Hide Details' : 'Show Details'}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                   {expandedMonths.has(entry.dueMonth) && (
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inward Number</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Store Cost</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Labour Cost</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sum</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {entry.items.map((item, itemIndex) => (
-                          <tr key={itemIndex}>
-                            <td className="px-6 py-4 whitespace-nowrap">{item.inwardNumber}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">{item.storeCost}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">{item.labourCost}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">{item.sum}</td>
+                    <div className="px-6 py-4 overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inward Number</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Store Cost</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Labour Cost</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sum</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {entry.items.map((item, itemIndex) => (
+                            <tr key={itemIndex} className={itemIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.inwardNumber}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.storeCost.toLocaleString('en-IN')}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.labourCost.toLocaleString('en-IN')}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.sum.toLocaleString('en-IN')}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
                 </div>
               ))}
@@ -236,9 +246,9 @@ const BillPage: React.FC = () => {
         )}
         
         {billData.length === 0 && !isLoading && customerName && (
-          <p>No bill data found for this customer.</p>
+          <p className="text-center text-gray-500 mt-8">No bill data found for this customer.</p>
         )}
-      </div>
+      </main>
     </div>
   );
 };
