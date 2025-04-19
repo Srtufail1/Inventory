@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -149,9 +150,11 @@ const OutwardData = ({ title, data }: Props) => {
                 />
               </div>
             </div>
-            <Button type="submit" className="mt-5">
-              {title}
-            </Button>
+            <SheetClose>
+              <Button type="submit" className="mt-5">
+                {title}
+              </Button>
+            </SheetClose>
           </form>
         </div>
       </SheetContent>
