@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   try {
     let inwardQuery: Prisma.InwardWhereInput = {
       customer: {
-        contains: customer,
+        equals: customer,
         mode: 'insensitive',
       },
     };
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     if (inward) {
       inwardQuery = {
         AND: [
-          { customer: { contains: customer, mode: 'insensitive' } },
+          { customer: { equals: customer, mode: 'insensitive' } },
           { inumber: inward }
         ]
       };
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     let outwardQuery: Prisma.OutwardWhereInput = {
       customer: {
-        contains: customer,
+        equals: customer,
         mode: 'insensitive',
       },
     };
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     if (inward) {
       outwardQuery = {
         AND: [
-          { customer: { contains: customer, mode: 'insensitive' } },
+          { customer: { equals: customer, mode: 'insensitive' } },
           { inumber: inward }
         ]
       };
