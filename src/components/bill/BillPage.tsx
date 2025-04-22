@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
@@ -50,6 +50,33 @@ const BillPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [customers, setCustomers] = useState<string[]>([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<string[]>([]);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        const response = await fetch('/api/customers');
+        const data = await response.json();
+        setCustomers(data.map((customer: any) => customer.customer || customer.name || ''));
+      } catch (error) {
+        console.error("Error fetching customers:", error);
+      }
+    };
+    fetchCustomers();
+  }, []);
+
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = customers.filter(customer => 
+        customer.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredCustomers(filtered);
+    } else {
+      setFilteredCustomers([]);
+    }
+  }, [searchTerm, customers]);
 
   const handleSearch = async () => {
     if (searchTerm.trim() === "") return;
@@ -115,7 +142,7 @@ const BillPage: React.FC = () => {
         }
         billEntry.totalAmount += labor.labourAmount;
       });
-  
+
       setBillData(billEntries.sort((a, b) => new Date(a.dueMonth).getTime() - new Date(b.dueMonth).getTime()));
       setCustomerName(searchTerm);
     } catch (error) {
@@ -169,13 +196,32 @@ const BillPage: React.FC = () => {
         <div className="mb-10">
           <div className="flex items-center gap-4">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <Input
-                placeholder="Search customer name..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
-              />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+
+                <Input
+                  ref={searchRef}
+                  placeholder="Search customer name..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2 w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                />
+                {filteredCustomers.length > 0 && (
+                  <ul className="absolute z-10 w-full bg-white border border-gray-300 mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
+                    {filteredCustomers.map((customer, index) => (
+                      <li 
+                        key={index}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => {
+                          setSearchTerm(customer);
+                          setFilteredCustomers([]);
+                        }}
+                      >
+                        {customer}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
             </div>
             <Button onClick={handleSearch} disabled={isLoading} className="px-4 py-2">
               {isLoading ? 'Searching...' : 'Search'}

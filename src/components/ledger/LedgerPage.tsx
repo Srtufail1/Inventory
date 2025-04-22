@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   ColumnDef,
   flexRender,
@@ -160,7 +160,7 @@ const CustomerDetailsTable = ({ details }: { details: CustomerDetail[] }) => (
 
 // New component for individual Ledger tables
 const LedgerTable = ({ data, inumber }: { data: LedgerEntry[], inumber: string }) => {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   const table = useReactTable({
     data,
@@ -250,12 +250,39 @@ const LedgerTable = ({ data, inumber }: { data: LedgerEntry[], inumber: string }
 };
 
 const LedgerPage = () => {
-  const [dataSets, setDataSets] = React.useState<LedgerDataSet[]>([]);
-  const [laborData, setLaborData] = React.useState<LaborEntry[]>([]);
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [inwardNumber, setInwardNumber] = React.useState(""); // New state for inward number
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [customerDetails, setCustomerDetails] = React.useState<CustomerDetail[]>([]);
+  const [dataSets, setDataSets] = useState<LedgerDataSet[]>([]);
+  const [laborData, setLaborData] = useState<LaborEntry[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [inwardNumber, setInwardNumber] = useState(""); // New state for inward number
+  const [isLoading, setIsLoading] = useState(false);
+  const [customerDetails, setCustomerDetails] = useState<CustomerDetail[]>([]);
+  const [customers, setCustomers] = useState<string[]>([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<string[]>([]);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        const response = await fetch('/api/customers');
+        const data = await response.json();
+        setCustomers(data.map((customer: any) => customer.customer || customer.name || ''));
+      } catch (error) {
+        console.error("Error fetching customers:", error);
+      }
+    };
+    fetchCustomers();
+  }, []);
+
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = customers.filter(customer => 
+        customer.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredCustomers(filtered);
+    } else {
+      setFilteredCustomers([]);
+    }
+  }, [searchTerm, customers]);
 
   const handleSearch = async () => {
     if (searchTerm.trim() === "") return;
@@ -296,13 +323,32 @@ const LedgerPage = () => {
           </h1>
         </div>
         <div className="relative w-full flex items-center">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-          <Input
-            placeholder="Search customer name..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8 w-1/4 mr-2"
-          />
+          <div className="relative w-1/4 mr-2">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+            <Input
+              ref={searchRef}
+              placeholder="Search customer name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8"
+            />
+            {filteredCustomers.length > 0 && (
+              <ul className="absolute z-10 w-full bg-white border border-gray-300 mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
+                {filteredCustomers.map((customer, index) => (
+                  <li 
+                    key={index}
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setSearchTerm(customer);
+                      setFilteredCustomers([]);
+                    }}
+                  >
+                    {customer}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           <Input
             placeholder="Inward number (optional)"
             value={inwardNumber}
@@ -313,9 +359,9 @@ const LedgerPage = () => {
             {isLoading ? 'Searching...' : 'Search'}
           </Button>
         </div>
-      <div className="pb-6"></div>
-      {customerDetails.length > 0 && <CustomerDetailsTable details={customerDetails} />}
-      {laborData.length > 0 && <LaborTable data={laborData} />}
+        <div className="pb-6"></div>
+        {customerDetails.length > 0 && <CustomerDetailsTable details={customerDetails} />}
+        {laborData.length > 0 && <LaborTable data={laborData} />}
         {dataSets.map((dataSet) => (
           <LedgerTable key={dataSet.inumber} data={dataSet.ledgerData} inumber={dataSet.inumber} />
         ))}
