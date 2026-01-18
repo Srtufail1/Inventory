@@ -90,7 +90,11 @@ const generateMonthOptions = (): { value: string; label: string }[] => {
   return options;
 };
 
-const BillPage: React.FC = () => {
+type BillPageProps = {
+  isSuperAdmin?: boolean;
+};
+
+const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => { 
   // Customer search state
   const [searchTerm, setSearchTerm] = useState('');
   const [billData, setBillData] = useState<BillEntry[]>([]);
@@ -467,7 +471,7 @@ const BillPage: React.FC = () => {
 
       <main className="max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Search Section - Side by Side */}
-        <div className="mb-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className={`mb-10 grid grid-cols-1 ${isSuperAdmin ? 'md:grid-cols-2' : ''} gap-6`}>
           {/* Customer Search */}
           <div className="p-4 bg-gray-50 rounded-lg h-fit">
             <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
@@ -511,43 +515,45 @@ const BillPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Month Search */}
-          <div className="p-4 bg-blue-50 rounded-lg">
-            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Search by Month (All Customers)
-            </h3>
-            <div className="space-y-3">
-              <select
-                value={selectedSearchMonth}
-                onChange={(e) => setSelectedSearchMonth(e.target.value)}
-                className="block w-full px-3 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-              >
-                <option value="">Select a month...</option>
-                {monthOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <Button 
-                onClick={handleMonthSearch} 
-                disabled={isLoading || !selectedSearchMonth} 
-                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700"
-              >
-                {isMonthSearching ? 'Searching...' : 'Search Month'}
-              </Button>
-              
-              {/* Progress Bar */}
-              {isMonthSearching && (
-                <ProgressBar 
-                  current={searchProgress.current} 
-                  total={searchProgress.total}
-                  label="Fetching customer bills"
-                />
-              )}
+          {/* Month Search - Only visible to SuperAdmin */}
+          {isSuperAdmin && (
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Search by Month (All Customers)
+              </h3>
+              <div className="space-y-3">
+                <select
+                  value={selectedSearchMonth}
+                  onChange={(e) => setSelectedSearchMonth(e.target.value)}
+                  className="block w-full px-3 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                >
+                  <option value="">Select a month...</option>
+                  {monthOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <Button 
+                  onClick={handleMonthSearch} 
+                  disabled={isLoading || !selectedSearchMonth} 
+                  className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700"
+                >
+                  {isMonthSearching ? 'Searching...' : 'Search Month'}
+                </Button>
+                
+                {/* Progress Bar */}
+                {isMonthSearching && (
+                  <ProgressBar 
+                    current={searchProgress.current} 
+                    total={searchProgress.total}
+                    label="Fetching customer bills"
+                  />
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
         
         {/* Customer Search Results */}
@@ -619,8 +625,8 @@ const BillPage: React.FC = () => {
           </>
         )}
 
-        {/* Month Search Results */}
-        {searchMode === 'month' && searchedMonth && !isMonthSearching && (
+        {/* Month Search Results - Only visible to SuperAdmin */}
+        {isSuperAdmin && searchMode === 'month' && searchedMonth && !isMonthSearching && (
           <>
           {/* Print Button - Outside printable area */}
               {monthBillData.length > 0 && (

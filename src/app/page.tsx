@@ -12,7 +12,6 @@ export default async function Home() {
       where: { email: session?.user?.email! },
       include: { Inventory: true },
     });
-    console.log(user, "user");
 
     if (user && !user?.isAdmin) {
       return (

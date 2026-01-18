@@ -85,7 +85,6 @@ export const updateUserRole = async (
       where: { id: data?.id },
       data: { name, email, password, isAdmin },
     });
-    console.log(user, "user");
     if (!user) {
       return { error: "User not udpated" };
     }
