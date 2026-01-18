@@ -239,37 +239,55 @@ const BillPage: React.FC = () => {
     try {
       const customerBills: CustomerBillEntry[] = [];
       let total = 0;
+      let processedCount = 0;
 
-      // Fetch bill data for each customer
-      for (let i = 0; i < validCustomers.length; i++) {
-        const customer = validCustomers[i];
-        
+      // Batch size - number of parallel requests at a time
+      const BATCH_SIZE = 20;
+
+      // Function to fetch a single customer's bill
+      const fetchCustomerBill = async (customer: string): Promise<CustomerBillEntry | null> => {
         try {
           const response = await fetch(`/api/ledger?customer=${encodeURIComponent(customer)}`);
-          if (!response.ok) {
-            setSearchProgress({ current: i + 1, total: validCustomers.length });
-            continue;
-          }
+          if (!response.ok) return null;
+          
           const result = await response.json();
-          
           const billEntries = processBillData(result);
-          
-          // Find the bill entry for the selected month
           const monthEntry = billEntries.find(entry => entry.dueMonth === selectedSearchMonth);
           
           if (monthEntry && monthEntry.totalAmount > 0) {
-            customerBills.push({
+            return {
               customerName: customer,
               totalAmount: monthEntry.totalAmount,
               items: monthEntry.items
-            });
-            total += monthEntry.totalAmount;
+            };
           }
+          return null;
         } catch (error) {
           console.error(`Error fetching data for customer ${customer}:`, error);
+          return null;
         }
+      };
+
+      // Process customers in parallel batches
+      for (let i = 0; i < validCustomers.length; i += BATCH_SIZE) {
+        const batch = validCustomers.slice(i, i + BATCH_SIZE);
         
-        setSearchProgress({ current: i + 1, total: validCustomers.length });
+        // Fetch all customers in this batch in parallel
+        const batchResults = await Promise.all(
+          batch.map(customer => fetchCustomerBill(customer))
+        );
+        
+        // Process batch results
+        batchResults.forEach(result => {
+          if (result) {
+            customerBills.push(result);
+            total += result.totalAmount;
+          }
+        });
+        
+        // Update progress
+        processedCount += batch.length;
+        setSearchProgress({ current: processedCount, total: validCustomers.length });
       }
 
       // Sort by customer name
@@ -581,6 +599,18 @@ const BillPage: React.FC = () => {
         {/* Month Search Results */}
         {searchMode === 'month' && searchedMonth && !isMonthSearching && (
           <>
+            {/* Print Button - Outside printable area */}
+              {monthBillData.length > 0 && (
+                <div className="flex justify-end mb-8">
+                  <Button 
+                    onClick={handlePrint}
+                    className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900"
+                  >
+                    <Printer className="h-4 w-4" />
+                    Print Summary
+                  </Button>
+                </div>
+              )}
             {/* Printable Content */}
             <div ref={printRef}>
               <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">Monthly Bill Summary</h1>
@@ -635,18 +665,6 @@ const BillPage: React.FC = () => {
               )}
             </div>
 
-            {/* Print Button - Outside printable area */}
-            {monthBillData.length > 0 && (
-              <div className="flex justify-end mb-8">
-                <Button 
-                  onClick={handlePrint}
-                  className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900"
-                >
-                  <Printer className="h-4 w-4" />
-                  Print Summary
-                </Button>
-              </div>
-            )}
             
             {monthBillData.length === 0 && (
               <p className="text-center text-gray-500 mt-8">No bill data found for {searchedMonth}.</p>
