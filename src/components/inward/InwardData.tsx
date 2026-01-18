@@ -32,7 +32,6 @@ const InwardData = ({ title, data }: Props) => {
       try {
         const response = await fetch('/api/customers');
         const data = await response.json();
-        console.log("Raw customer data:", data);
         setCustomers(data.map((customer: any) => customer.customer || customer.name || ''));
       } catch (error) {
         console.error("Error fetching customers:", error);
