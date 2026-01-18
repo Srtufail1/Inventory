@@ -103,6 +103,27 @@ const BillPage: React.FC = () => {
   const searchRef = useRef<HTMLInputElement>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
+  // Helper function to escape HTML special characters (prevents XSS)
+  const escapeHtml = (value: string): string =>
+    value.replace(/[&<>"'`]/g, (char) => {
+      switch (char) {
+        case '&':
+          return '&amp;';
+        case '<':
+          return '&lt;';
+        case '>':
+          return '&gt;';
+        case '"':
+          return '&quot;';
+        case "'":
+          return '&#39;';
+        case '`':
+          return '&#96;';
+        default:
+          return char;
+      }
+    });
+
   // Month search state
   const [searchMode, setSearchMode] = useState<'customer' | 'month'>('customer');
   const [selectedSearchMonth, setSelectedSearchMonth] = useState<string>('');
@@ -311,11 +332,13 @@ const BillPage: React.FC = () => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
+    const safeSearchedMonth = escapeHtml(searchedMonth);
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Monthly Bill Summary - ${searchedMonth}</title>
+          <title>Monthly Bill Summary - ${safeSearchedMonth}</title>
           <style>
             body {
               font-family: Arial, sans-serif;
@@ -599,7 +622,7 @@ const BillPage: React.FC = () => {
         {/* Month Search Results */}
         {searchMode === 'month' && searchedMonth && !isMonthSearching && (
           <>
-            {/* Print Button - Outside printable area */}
+          {/* Print Button - Outside printable area */}
               {monthBillData.length > 0 && (
                 <div className="flex justify-end mb-8">
                   <Button 
