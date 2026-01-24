@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Calendar, Printer } from "lucide-react";
 import DarkModeToggle from '../DarkModeToggle';
 import { signOut } from "next-auth/react";
+import { useCustomers } from '@/context/CustomersContext';
 
 type BillItemEntry = {
   inwardNumber: string;
@@ -102,7 +103,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-  const [customers, setCustomers] = useState<string[]>([]);
+  const { customers, loading } = useCustomers();
   const [filteredCustomers, setFilteredCustomers] = useState<string[]>([]);
   const searchRef = useRef<HTMLInputElement>(null);
   const printRef = useRef<HTMLDivElement>(null);
@@ -142,28 +143,15 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
   const monthOptions = generateMonthOptions();
 
   useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        const response = await fetch('/api/customers');
-        const data = await response.json();
-        setCustomers(data.map((customer: any) => customer.customer || customer.name || ''));
-      } catch (error) {
-        console.error("Error fetching customers:", error);
+      if (!searchTerm || loading) {
+        setFilteredCustomers([]);
+        return;
       }
-    };
-    fetchCustomers();
-  }, []);
-
-  useEffect(() => {
-    if (searchTerm) {
-      const filtered = customers.filter(customer => 
+      const filtered = customers.filter(customer =>
         customer.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredCustomers(filtered);
-    } else {
-      setFilteredCustomers([]);
-    }
-  }, [searchTerm, customers]);
+    }, [searchTerm, customers, loading]);
 
   // Process bill data for a single customer
   const processBillData = (result: any): BillEntry[] => {

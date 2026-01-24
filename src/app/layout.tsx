@@ -5,7 +5,8 @@ import "./index.css";
 import "./responsive.css";
 import { Toaster } from "@/components/ui/toaster";
 import Providers from "@/lib/Providers";
-import { ThemeProvider } from 'next-themes'
+import { ThemeProvider } from 'next-themes';
+import { CustomersProvider } from '@/context/CustomersContext';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,10 +23,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <Providers>
-            <Toaster />
-            {children}
+            <CustomersProvider>
+              <Toaster />
+              {children}
+            </CustomersProvider>
           </Providers>
         </ThemeProvider>
       </body>
