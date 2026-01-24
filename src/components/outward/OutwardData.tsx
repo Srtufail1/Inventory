@@ -14,6 +14,7 @@ import {
 import FormInput from "../FormInput";
 import { addUpdateOutward } from "@/actions/user";
 import { toast } from "../ui/use-toast";
+import { useCustomers } from '@/context/CustomersContext';
 
 type Props = {
   title: string;
@@ -21,35 +22,23 @@ type Props = {
 };
 
 const OutwardData = ({ title, data }: Props) => {
-  const [customers, setCustomers] = useState<string[]>([]);
+  const { customers, loading } = useCustomers();
   const [searchTerm, setSearchTerm] = useState(data?.customer || '');
   const [filteredCustomers, setFilteredCustomers] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  
 
   useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        const response = await fetch('/api/customers');
-        const data = await response.json();
-        setCustomers(data.map((customer: any) => customer.customer || customer.name || ''));
-      } catch (error) {
-        console.error("Error fetching customers:", error);
-      }
-    };
-    fetchCustomers();
-  }, []);
-
-  useEffect(() => {
-    if (searchTerm) {
-      const filtered = customers.filter(customer => 
-        customer.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredCustomers(filtered);
-    } else {
-      setFilteredCustomers([]);
-    }
-  }, [searchTerm, customers]);
+  if (!searchTerm || loading) {
+    setFilteredCustomers([]);
+    return;
+  }
+  const filtered = customers.filter(customer =>
+    customer.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  setFilteredCustomers(filtered);
+}, [searchTerm, customers, loading]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

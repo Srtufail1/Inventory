@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import DarkModeToggle from '../DarkModeToggle';
 import LaborTable, { LaborEntry } from './LaborTable';
+import { useCustomers } from '@/context/CustomersContext';
 
 type LedgerEntry = {
   inwardOut: string;
@@ -256,33 +257,20 @@ const LedgerPage = () => {
   const [inwardNumber, setInwardNumber] = useState(""); // New state for inward number
   const [isLoading, setIsLoading] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<CustomerDetail[]>([]);
-  const [customers, setCustomers] = useState<string[]>([]);
+  const { customers, loading } = useCustomers();
   const [filteredCustomers, setFilteredCustomers] = useState<string[]>([]);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        const response = await fetch('/api/customers');
-        const data = await response.json();
-        setCustomers(data.map((customer: any) => customer.customer || customer.name || ''));
-      } catch (error) {
-        console.error("Error fetching customers:", error);
+      if (!searchTerm || loading) {
+        setFilteredCustomers([]);
+        return;
       }
-    };
-    fetchCustomers();
-  }, []);
-
-  useEffect(() => {
-    if (searchTerm) {
-      const filtered = customers.filter(customer => 
+      const filtered = customers.filter(customer =>
         customer.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredCustomers(filtered);
-    } else {
-      setFilteredCustomers([]);
-    }
-  }, [searchTerm, customers]);
+    }, [searchTerm, customers, loading]);
 
   const handleSearch = async () => {
     if (searchTerm.trim() === "") return;
