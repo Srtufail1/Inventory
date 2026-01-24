@@ -132,7 +132,7 @@ const CustomerDetailsTable = ({ details }: { details: CustomerDetail[] }) => (
       <Table>
         <TableHeader>
           <TableRow>
-          <TableHead>Customer</TableHead>
+            <TableHead>Customer</TableHead>
             <TableHead>Inward Number</TableHead>
             <TableHead>Item</TableHead>
             <TableHead>Packing</TableHead>
@@ -259,18 +259,30 @@ const LedgerPage = () => {
   const [customerDetails, setCustomerDetails] = useState<CustomerDetail[]>([]);
   const { customers, loading } = useCustomers();
   const [filteredCustomers, setFilteredCustomers] = useState<string[]>([]);
+  const [hasSelected, setHasSelected] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-      if (!searchTerm || loading) {
-        setFilteredCustomers([]);
-        return;
-      }
-      const filtered = customers.filter(customer =>
-        customer.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredCustomers(filtered);
-    }, [searchTerm, customers, loading]);
+    if (!searchTerm || loading || hasSelected) {
+      setFilteredCustomers([]);
+      return;
+    }
+    const filtered = customers.filter(customer =>
+      customer.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredCustomers(filtered);
+  }, [searchTerm, customers, loading, hasSelected]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setHasSelected(false);
+  };
+
+  const handleCustomerSelect = (customer: string) => {
+    setSearchTerm(customer);
+    setHasSelected(true);
+    setFilteredCustomers([]);
+  };
 
   const handleSearch = async () => {
     if (searchTerm.trim() === "") return;
@@ -317,7 +329,7 @@ const LedgerPage = () => {
               ref={searchRef}
               placeholder="Search customer name..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleInputChange}
               className="pl-8"
             />
             {filteredCustomers.length > 0 && (
@@ -326,10 +338,7 @@ const LedgerPage = () => {
                   <li 
                     key={index}
                     className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => {
-                      setSearchTerm(customer);
-                      setFilteredCustomers([]);
-                    }}
+                    onClick={() => handleCustomerSelect(customer)}
                   >
                     {customer}
                   </li>

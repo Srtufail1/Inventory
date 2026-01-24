@@ -27,18 +27,30 @@ const OutwardData = ({ title, data }: Props) => {
   const [filteredCustomers, setFilteredCustomers] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const [hasSelected, setHasSelected] = useState(false);
   
 
   useEffect(() => {
-  if (!searchTerm || loading) {
-    setFilteredCustomers([]);
-    return;
-  }
-  const filtered = customers.filter(customer =>
-    customer.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  setFilteredCustomers(filtered);
-}, [searchTerm, customers, loading]);
+      if (!searchTerm || loading || hasSelected) {
+        setFilteredCustomers([]);
+        return;
+      }
+      const filtered = customers.filter(customer =>
+        customer.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredCustomers(filtered);
+    }, [searchTerm, customers, loading, hasSelected]);
+  
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchTerm(e.target.value);
+      setHasSelected(false);
+    };
+  
+    const handleCustomerSelect = (customer: string) => {
+      setSearchTerm(customer);
+      setHasSelected(true);
+      setFilteredCustomers([]);
+    };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -94,7 +106,7 @@ const OutwardData = ({ title, data }: Props) => {
                     type="text"
                     name="customer"
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={handleInputChange}
                     placeholder="Search for a customer"
                     className="mt-2"
                   />
@@ -104,10 +116,7 @@ const OutwardData = ({ title, data }: Props) => {
                         <li 
                           key={index}
                           className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => {
-                            setSearchTerm(customer);
-                            setFilteredCustomers([]);
-                          }}
+                          onClick={() => handleCustomerSelect(customer)}
                         >
                           {customer}
                         </li>
