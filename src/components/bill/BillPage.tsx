@@ -107,6 +107,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
   const [filteredCustomers, setFilteredCustomers] = useState<string[]>([]);
   const searchRef = useRef<HTMLInputElement>(null);
   const printRef = useRef<HTMLDivElement>(null);
+  const [hasSelected, setHasSelected] = useState(false);
 
   // Helper function to escape HTML special characters (prevents XSS)
   const escapeHtml = (value: string): string =>
@@ -143,7 +144,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
   const monthOptions = generateMonthOptions();
 
   useEffect(() => {
-      if (!searchTerm || loading) {
+      if (!searchTerm || loading || hasSelected) {
         setFilteredCustomers([]);
         return;
       }
@@ -151,7 +152,18 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
         customer.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredCustomers(filtered);
-    }, [searchTerm, customers, loading]);
+    }, [searchTerm, customers, loading, hasSelected]);
+  
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchTerm(e.target.value);
+      setHasSelected(false);
+    };
+  
+    const handleCustomerSelect = (customer: string) => {
+      setSearchTerm(customer);
+      setHasSelected(true);
+      setFilteredCustomers([]);
+    };
 
   // Process bill data for a single customer
   const processBillData = (result: any): BillEntry[] => {
@@ -473,7 +485,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
                   ref={searchRef}
                   placeholder="Search customer name..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={handleInputChange}
                   className="pl-10 pr-4 py-2 w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
                 />
                 {filteredCustomers.length > 0 && (
@@ -482,10 +494,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
                       <li 
                         key={index}
                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
-                          setSearchTerm(customer);
-                          setFilteredCustomers([]);
-                        }}
+                        onClick={() => handleCustomerSelect(customer)}
                       >
                         {customer}
                       </li>
