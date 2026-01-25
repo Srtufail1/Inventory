@@ -128,182 +128,181 @@ export const generateCustomerPdf = (
         <title>Bill - ${safeCustomerName} - ${safeMonth}</title>
         <style>
           @page {
-  size: A4;
-  margin: 10mm 12mm;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 9pt;
-  line-height: 1.35;
-  color: #000;
-  background: #fff;
-  width: 210mm;
-  min-height: 297mm;
-  padding: 8mm 10mm;
-  margin: 0 auto;
-}
-
-/* PRINT OPTIMIZATION */
-@media print {
-  body {
-    padding: 0;
-    margin: 0;
-    -webkit-print-color-adjust: economy;
-    print-color-adjust: economy;
-  }
-  .no-print {
-    display: none !important;
-  }
-}
-
-/* HEADER */
-.header {
-  border-bottom: 1px solid #000;
-  padding-bottom: 6px;
-  margin-bottom: 10px;
-}
-
-.header-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.company-name {
-  font-size: 18pt;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.company-tagline,
-.company-contact {
-  font-size: 7.5pt;
-  line-height: 1.4;
-}
-
-.bill-title-box {
-  border: 1px solid #000;
-  padding: 6px 16px;
-}
-
-.bill-title {
-  font-size: 11pt;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-
-/* BILL INFO */
-.bill-info {
-  display: flex;
-  justify-content: space-between;
-  margin: 10px 0;
-  padding: 6px 8px;
-  border: 1px solid #000;
-}
-
-.bill-to h3 {
-  font-size: 7.5pt;
-  font-weight: 600;
-  text-transform: uppercase;
-  margin-bottom: 2px;
-}
-
-.customer-name {
-  font-size: 11pt;
-  font-weight: 700;
-}
-
-.bill-details {
-  text-align: right;
-  font-size: 8pt;
-}
-
-/* PERIOD */
-.period-banner {
-  text-align: center;
-  padding: 4px;
-  margin-bottom: 8px;
-  font-size: 9.5pt;
-  font-weight: 700;
-  border: 1px solid #000;
-}
-
-/* TABLE */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 8pt;
-  margin-bottom: 8px;
-}
-
-th,
-td {
-  border: 0.7px solid #000;
-  padding: 4px;
-}
-
-th {
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 7.5pt;
-}
-
-.text-right {
-  text-align: right;
-}
-
-/* TOTAL */
-.total-row td {
-  font-weight: 700;
-  border-top: 1.2px solid #000;
-}
-
-/* AMOUNT IN WORDS */
-.amount-words {
-  border: 1px solid #000;
-  padding: 6px 8px;
-  margin: 10px 0;
-  font-size: 8pt;
-}
-
-/* FOOTER */
-.footer {
-  margin-top: 20px;
-  padding-top: 10px;
-  border-top: 1px solid #000;
-}
-
-.signatures {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 25px;
-}
-
-.signature-box {
-  width: 45%;
-  text-align: center;
-}
-
-.signature-line {
-  border-top: 1px solid #000;
-  margin-top: 35px;
-  padding-top: 4px;
-  font-size: 8pt;
-}
-
-/* NO PRINT CONTROLS */
-.no-print {
-  margin-bottom: 15px;
-  text-align: center;
-}
-
+            size: A4;
+            margin: 10mm 12mm;
+          }
+          
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 9pt;
+            line-height: 1.35;
+            color: #000;
+            background: #fff;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 8mm 10mm;
+            margin: 0 auto;
+          }
+          
+          /* PRINT OPTIMIZATION */
+          @media print {
+            body {
+              padding: 0;
+              margin: 0;
+              -webkit-print-color-adjust: economy;
+              print-color-adjust: economy;
+            }
+            .no-print {
+              display: none !important;
+            }
+          }
+          
+          /* HEADER */
+          .header {
+            border-bottom: 1px solid #000;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+          }
+          
+          .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+          }
+          
+          .company-name {
+            font-size: 18pt;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+          }
+          
+          .company-tagline,
+          .company-contact {
+            font-size: 7.5pt;
+            line-height: 1.4;
+          }
+          
+          .bill-title-box {
+            border: 1px solid #000;
+            padding: 6px 16px;
+          }
+          
+          .bill-title {
+            font-size: 11pt;
+            font-weight: 700;
+            letter-spacing: 1px;
+          }
+          
+          /* BILL INFO */
+          .bill-info {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 6px 8px;
+            border: 1px solid #000;
+          }
+          
+          .bill-to h3 {
+            font-size: 7.5pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+          }
+          
+          .customer-name {
+            font-size: 11pt;
+            font-weight: 700;
+          }
+          
+          .bill-details {
+            text-align: right;
+            font-size: 8pt;
+          }
+          
+          /* PERIOD */
+          .period-banner {
+            text-align: center;
+            padding: 4px;
+            margin-bottom: 8px;
+            font-size: 9.5pt;
+            font-weight: 700;
+            border: 1px solid #000;
+          }
+          
+          /* TABLE */
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+            margin-bottom: 8px;
+          }
+          
+          th,
+          td {
+            border: 0.7px solid #000;
+            padding: 4px;
+          }
+          
+          th {
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 7.5pt;
+          }
+          
+          .text-right {
+            text-align: right;
+          }
+          
+          /* TOTAL */
+          .total-row td {
+            font-weight: 700;
+            border-top: 1.2px solid #000;
+          }
+          
+          /* AMOUNT IN WORDS */
+          .amount-words {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            margin: 10px 0;
+            font-size: 8pt;
+          }
+          
+          /* FOOTER */
+          .footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #000;
+          }
+          
+          .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+          }
+          
+          .signature-box {
+            width: 45%;
+            text-align: center;
+          }
+          
+          .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 35px;
+            padding-top: 4px;
+            font-size: 8pt;
+          }
+          
+          /* NO PRINT CONTROLS */
+          .no-print {
+            margin-bottom: 15px;
+            text-align: center;
+          }
         </style>
       </head>
       <body>
