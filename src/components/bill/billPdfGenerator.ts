@@ -128,300 +128,182 @@ export const generateCustomerPdf = (
         <title>Bill - ${safeCustomerName} - ${safeMonth}</title>
         <style>
           @page {
-            size: A4;
-            margin: 10mm 12mm;
-          }
-          
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-          
-          body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 9pt;
-            line-height: 1.3;
-            color: #1a1a1a;
-            background: white;
-            width: 210mm;
-            min-height: 297mm;
-            padding: 8mm 10mm;
-            margin: 0 auto;
-          }
-          
-          @media print {
-            body { 
-              padding: 0;
-              margin: 0;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            .no-print { display: none !important; }
-          }
-          
-          .header {
-            border-bottom: 2px solid #1e40af;
-            padding-bottom: 8px;
-            margin-bottom: 10px;
-          }
-          
-          .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-          }
-          
-          .company-info {
-            flex: 1;
-          }
-          
-          .company-name {
-            font-size: 20pt;
-            font-weight: 700;
-            color: #1e40af;
-            letter-spacing: 1px;
-            margin-bottom: 2px;
-          }
-          
-          .company-tagline {
-            font-size: 8pt;
-            color: #4b5563;
-            margin-bottom: 4px;
-          }
-          
-          .company-contact {
-            font-size: 7.5pt;
-            color: #374151;
-            line-height: 1.4;
-          }
-          
-          .bill-title-box {
-            background: #1e40af;
-            color: white;
-            padding: 8px 20px;
-            text-align: center;
-          }
+  size: A4;
+  margin: 10mm 12mm;
+}
 
-          .bill-title-box {
-            background: #ffffff;      /* white background */
-            color: #000000;           /* black text */
-            border: 1px solid #000000;/* black border */
-            padding: 8px 20px;
-            text-align: center;
-            font-weight: bold;
-          }
-          
-          .bill-title {
-            font-size: 12pt;
-            font-weight: 700;
-            letter-spacing: 1px;
-          }
-          
-          .bill-info {
-            display: flex;
-            justify-content: space-between;
-            margin: 12px 0;
-            padding: 8px 12px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-          }
-          
-          .bill-to h3 {
-            font-size: 8pt;
-            color: #6b7280;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-bottom: 2px;
-          }
-          
-          .customer-name {
-            font-size: 12pt;
-            font-weight: 700;
-            color: #111827;
-          }
-          
-          .bill-details {
-            text-align: right;
-            font-size: 8pt;
-          }
-          
-          .bill-details p {
-            margin: 2px 0;
-          }
-          
-          .bill-details strong {
-            color: #374151;
-          }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-          .period-banner {
-            background: #ffffff;      /* white */
-            border: 1px solid #000000;/* black border */
-            text-align: center;
-            padding: 6px;
-            margin-bottom: 10px;
-            font-size: 10pt;
-            font-weight: 600;
-            color: #000000;           /* black text */
-          }
-          
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 8pt;
-            margin-bottom: 8px;
-          }
-          
-          thead tr {
-            background: #1e40af;
-            color: white;
-          }
-          
-          th {
-            padding: 6px 4px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 7.5pt;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            border: 1px solid #1e3a8a;
-          }
-          
-          th.text-right {
-            text-align: right;
-          }
-          
-          td {
-            padding: 4px;
-            border: 1px solid #d1d5db;
-            vertical-align: middle;
-          }
-          
-          tbody tr:nth-child(even) {
-            background: #f9fafb;
-          }
-          
-          .text-right {
-            text-align: right;
-          }
-          
-          .total-row {
-            background: #dcfce7 !important;
-            font-weight: 700;
-          }
-          
-          .total-row td {
-            padding: 8px 4px;
-            font-size: 9pt;
-            color: #166534;
-            border: 1px solid #86efac;
-          }
-          
-          .amount-words {
-            background: #fefce8;
-            border: 1px solid #fde047;
-            padding: 6px 10px;
-            margin: 10px 0;
-            font-size: 8pt;
-          }
-          
-          .amount-words strong {
-            color: #854d0e;
-          }
-          
-          .footer {
-            margin-top: auto;
-            padding-top: 15px;
-            border-top: 1px solid #d1d5db;
-          }
-          
-          .terms {
-            font-size: 7pt;
-            color: #6b7280;
-            margin-bottom: 20px;
-          }
-          
-          .terms h4 {
-            font-size: 7.5pt;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 3px;
-          }
-          
-          .terms ul {
-            list-style: disc;
-            padding-left: 15px;
-          }
-          
-          .terms li {
-            margin: 1px 0;
-          }
-          
-          .signatures {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
-            padding-top: 10px;
-          }
-          
-          .signature-box {
-            width: 45%;
-            text-align: center;
-          }
-          
-          .signature-line {
-            border-top: 1px solid #374151;
-            margin-top: 40px;
-            padding-top: 5px;
-          }
-          
-          .signature-label {
-            font-size: 8pt;
-            font-weight: 600;
-            color: #374151;
-          }
-          
-          .signature-sublabel {
-            font-size: 7pt;
-            color: #6b7280;
-          }
-          
-          .no-print {
-            margin-top: 20px;
-            text-align: center;
-            padding: 15px;
-            background: #f3f4f6;
-            border-radius: 8px;
-          }
-          
-          .no-print button {
-            padding: 10px 25px;
-            margin: 0 8px;
-            font-size: 11pt;
-            font-weight: 600;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.2s;
-          }
-          
-          .btn-print {
-            background: #1e40af;
-            color: white;
-          }
-          
-          .btn-print:hover {
-            background: #1e3a8a;
-          }
-          
-          .btn-close {
-            background: #6b7280;
-            color: white;
-          }
-          
-          .btn-close:hover {
-            background: #4b5563;
-          }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 9pt;
+  line-height: 1.35;
+  color: #000;
+  background: #fff;
+  width: 210mm;
+  min-height: 297mm;
+  padding: 8mm 10mm;
+  margin: 0 auto;
+}
+
+/* PRINT OPTIMIZATION */
+@media print {
+  body {
+    padding: 0;
+    margin: 0;
+    -webkit-print-color-adjust: economy;
+    print-color-adjust: economy;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* HEADER */
+.header {
+  border-bottom: 1px solid #000;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.company-name {
+  font-size: 18pt;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.company-tagline,
+.company-contact {
+  font-size: 7.5pt;
+  line-height: 1.4;
+}
+
+.bill-title-box {
+  border: 1px solid #000;
+  padding: 6px 16px;
+}
+
+.bill-title {
+  font-size: 11pt;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* BILL INFO */
+.bill-info {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+  padding: 6px 8px;
+  border: 1px solid #000;
+}
+
+.bill-to h3 {
+  font-size: 7.5pt;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.customer-name {
+  font-size: 11pt;
+  font-weight: 700;
+}
+
+.bill-details {
+  text-align: right;
+  font-size: 8pt;
+}
+
+/* PERIOD */
+.period-banner {
+  text-align: center;
+  padding: 4px;
+  margin-bottom: 8px;
+  font-size: 9.5pt;
+  font-weight: 700;
+  border: 1px solid #000;
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8pt;
+  margin-bottom: 8px;
+}
+
+th,
+td {
+  border: 0.7px solid #000;
+  padding: 4px;
+}
+
+th {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 7.5pt;
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* TOTAL */
+.total-row td {
+  font-weight: 700;
+  border-top: 1.2px solid #000;
+}
+
+/* AMOUNT IN WORDS */
+.amount-words {
+  border: 1px solid #000;
+  padding: 6px 8px;
+  margin: 10px 0;
+  font-size: 8pt;
+}
+
+/* FOOTER */
+.footer {
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #000;
+}
+
+.signatures {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 25px;
+}
+
+.signature-box {
+  width: 45%;
+  text-align: center;
+}
+
+.signature-line {
+  border-top: 1px solid #000;
+  margin-top: 35px;
+  padding-top: 4px;
+  font-size: 8pt;
+}
+
+/* NO PRINT CONTROLS */
+.no-print {
+  margin-bottom: 15px;
+  text-align: center;
+}
+
         </style>
       </head>
       <body>
