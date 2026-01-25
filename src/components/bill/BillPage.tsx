@@ -3,16 +3,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Calendar, Printer } from "lucide-react";
+import { Search, Calendar, Printer, FileDown } from "lucide-react";
 import DarkModeToggle from '../DarkModeToggle';
 import { signOut } from "next-auth/react";
 import { useCustomers } from '@/context/CustomersContext';
+import { generateCustomerPdf, generateMonthlyPrint } from './billPdfGenerator';
 
-type BillItemEntry = {
+export type BillItemEntry = {
   inwardNumber: string;
   storeCost: number;
   labourCost: number;
   sum: number;
+  dateRange?: string;
+  itemName?: string;
+  storedQuantity?: number;
+  rate?: number;
 };
 
 type BillEntry = {
@@ -108,27 +113,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
   const searchRef = useRef<HTMLInputElement>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const [hasSelected, setHasSelected] = useState(false);
-
-  // Helper function to escape HTML special characters (prevents XSS)
-  const escapeHtml = (value: string): string =>
-    value.replace(/[&<>"'`]/g, (char) => {
-      switch (char) {
-        case '&':
-          return '&amp;';
-        case '<':
-          return '&lt;';
-        case '>':
-          return '&gt;';
-        case '"':
-          return '&quot;';
-        case "'":
-          return '&#39;';
-        case '`':
-          return '&#96;';
-        default:
-          return char;
-      }
-    });
+  const [detailedBillData, setDetailedBillData] = useState<Map<string, BillItemEntry[]>>(new Map());
 
   // Month search state
   const [searchMode, setSearchMode] = useState<'customer' | 'month'>('customer');
@@ -144,30 +129,31 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
   const monthOptions = generateMonthOptions();
 
   useEffect(() => {
-      if (!searchTerm || loading || hasSelected) {
-        setFilteredCustomers([]);
-        return;
-      }
-      const filtered = customers.filter(customer =>
-        customer.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredCustomers(filtered);
-    }, [searchTerm, customers, loading, hasSelected]);
-  
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchTerm(e.target.value);
-      setHasSelected(false);
-    };
-  
-    const handleCustomerSelect = (customer: string) => {
-      setSearchTerm(customer);
-      setHasSelected(true);
+    if (!searchTerm || loading || hasSelected) {
       setFilteredCustomers([]);
-    };
+      return;
+    }
+    const filtered = customers.filter(customer =>
+      customer.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredCustomers(filtered);
+  }, [searchTerm, customers, loading, hasSelected]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setHasSelected(false);
+  };
+
+  const handleCustomerSelect = (customer: string) => {
+    setSearchTerm(customer);
+    setHasSelected(true);
+    setFilteredCustomers([]);
+  };
 
   // Process bill data for a single customer
-  const processBillData = (result: any): BillEntry[] => {
+  const processBillData = (result: any): { entries: BillEntry[], detailedData: Map<string, BillItemEntry[]> } => {
     const billEntries: BillEntry[] = [];
+    const detailedData = new Map<string, BillItemEntry[]>();
 
     // Process ledger data
     result.ledgerDataSets.forEach((dataset: any) => {
@@ -185,17 +171,30 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
           billEntries.push(billEntry);
         }
 
-        billEntry.items.push({
+        const customerDetail = result.customerDetails.find((d: any) => d.inumber === dataset.inumber);
+        const itemName = customerDetail?.item || 'N/A';
+
+        const billItem: BillItemEntry = {
           inwardNumber: dataset.inumber,
           storeCost: entry.amount,
           labourCost: 0,
-          sum: entry.amount
-        });
+          sum: entry.amount,
+          dateRange: entry.dates,
+          itemName: itemName,
+          storedQuantity: parseInt(entry.quantity) || 0,
+          rate: parseFloat(entry.storeRate) || 0,
+        };
+
+        billEntry.items.push(billItem);
         billEntry.totalAmount += entry.amount;
+
+        if (!detailedData.has(dueMonthString)) {
+          detailedData.set(dueMonthString, []);
+        }
+        detailedData.get(dueMonthString)!.push(billItem);
       });
     });
 
-    // Process labor data
     result.laborTable.forEach((labor: any) => {
       const [day, month, year] = labor.dueDate.split('.');
       const dueMonth = new Date(parseInt(`20${year}`), parseInt(month) - 1, parseInt(day));
@@ -208,22 +207,55 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
         billEntries.push(billEntry);
       }
 
+      const customerDetail = result.customerDetails.find((d: any) => d.inumber === labor.inumber);
+      const itemName = customerDetail?.item || 'N/A';
+
       let item = billEntry.items.find(i => i.inwardNumber === labor.inumber);
       if (item) {
-        item.labourCost = labor.labourAmount;
-        item.sum += labor.labourAmount;
+        if (item.labourCost === 0) {
+          item.labourCost = labor.labourAmount;
+          item.sum += labor.labourAmount;
+          billEntry.totalAmount += labor.labourAmount;
+        }
       } else {
-        billEntry.items.push({
+        const newItem: BillItemEntry = {
           inwardNumber: labor.inumber,
           storeCost: 0,
           labourCost: labor.labourAmount,
-          sum: labor.labourAmount
+          sum: labor.labourAmount,
+          dateRange: `${labor.addDate} - ${labor.dueDate}`,
+          itemName: itemName,
+          storedQuantity: parseInt(labor.quantity) || 0,
+          rate: 0,
+        };
+        billEntry.items.push(newItem);
+        billEntry.totalAmount += labor.labourAmount;
+      }
+
+      if (!detailedData.has(dueMonthString)) {
+        detailedData.set(dueMonthString, []);
+      }
+      const existingDetailedItem = detailedData.get(dueMonthString)!.find(i => i.inwardNumber === labor.inumber);
+      if (existingDetailedItem) {
+        if (existingDetailedItem.labourCost === 0) {
+          existingDetailedItem.labourCost = labor.labourAmount;
+          existingDetailedItem.sum += labor.labourAmount;
+        }
+      } else {
+        detailedData.get(dueMonthString)!.push({
+          inwardNumber: labor.inumber,
+          storeCost: 0,
+          labourCost: labor.labourAmount,
+          sum: labor.labourAmount,
+          dateRange: `${labor.addDate} - ${labor.dueDate}`,
+          itemName: itemName,
+          storedQuantity: parseInt(labor.quantity) || 0,
+          rate: 0,
         });
       }
-      billEntry.totalAmount += labor.labourAmount;
     });
 
-    return billEntries;
+    return { entries: billEntries, detailedData };
   };
 
   const handleCustomerSearch = async () => {
@@ -239,8 +271,9 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
       if (!response.ok) throw new Error('Failed to fetch data');
       const result = await response.json();
       
-      const billEntries = processBillData(result);
-      setBillData(billEntries.sort((a, b) => new Date(a.dueMonth).getTime() - new Date(b.dueMonth).getTime()));
+      const { entries, detailedData } = processBillData(result);
+      setBillData(entries.sort((a, b) => new Date(a.dueMonth).getTime() - new Date(b.dueMonth).getTime()));
+      setDetailedBillData(detailedData);
       setCustomerName(searchTerm);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -276,8 +309,8 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
           if (!response.ok) return null;
           
           const result = await response.json();
-          const billEntries = processBillData(result);
-          const monthEntry = billEntries.find(entry => entry.dueMonth === selectedSearchMonth);
+          const { entries } = processBillData(result);
+          const monthEntry = entries.find(entry => entry.dueMonth === selectedSearchMonth);
           
           if (monthEntry && monthEntry.totalAmount > 0) {
             return {
@@ -296,11 +329,8 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
       // Process customers in parallel batches
       for (let i = 0; i < validCustomers.length; i += BATCH_SIZE) {
         const batch = validCustomers.slice(i, i + BATCH_SIZE);
-        
         // Fetch all customers in this batch in parallel
-        const batchResults = await Promise.all(
-          batch.map(customer => fetchCustomerBill(customer))
-        );
+        const batchResults = await Promise.all(batch.map(customer => fetchCustomerBill(customer)));
         
         // Process batch results
         batchResults.forEach(result => {
@@ -310,12 +340,10 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
           }
         });
         
-        // Update progress
         processedCount += batch.length;
         setSearchProgress({ current: processedCount, total: validCustomers.length });
       }
 
-      // Sort by customer name
       customerBills.sort((a, b) => a.customerName.localeCompare(b.customerName));
       
       setMonthBillData(customerBills);
@@ -329,104 +357,19 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
     }
   };
 
+  const handleGeneratePdf = (month: string) => {
+    const items = detailedBillData.get(month);
+    const billEntry = billData.find(e => e.dueMonth === month);
+    
+    if (items && billEntry) {
+      generateCustomerPdf(items, billEntry.totalAmount, customerName, month);
+    }
+  };
+
   const handlePrint = () => {
-    const printContent = printRef.current;
-    if (!printContent) return;
-
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-
-    const safeSearchedMonth = escapeHtml(searchedMonth);
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Monthly Bill Summary - ${safeSearchedMonth}</title>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              padding: 20px;
-              max-width: 800px;
-              margin: 0 auto;
-            }
-            h1 {
-              text-align: center;
-              color: #1a1a1a;
-              margin-bottom: 10px;
-            }
-            .subtitle {
-              text-align: center;
-              color: #666;
-              margin-bottom: 30px;
-            }
-            .total-box {
-              background: #f0fdf4;
-              border: 2px solid #22c55e;
-              border-radius: 8px;
-              padding: 20px;
-              margin-bottom: 30px;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-            }
-            .total-label {
-              font-size: 18px;
-              font-weight: bold;
-              color: #166534;
-            }
-            .total-amount {
-              font-size: 28px;
-              font-weight: bold;
-              color: #166534;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 20px;
-            }
-            th, td {
-              border: 1px solid #ddd;
-              padding: 12px;
-              text-align: left;
-            }
-            th {
-              background-color: #f3f4f6;
-              font-weight: 600;
-              text-transform: uppercase;
-              font-size: 12px;
-              color: #6b7280;
-            }
-            tr:nth-child(even) {
-              background-color: #f9fafb;
-            }
-            .amount-cell {
-              text-align: right;
-            }
-            .total-row {
-              background-color: #dcfce7 !important;
-              font-weight: bold;
-            }
-            .total-row td {
-              color: #166534;
-            }
-            @media print {
-              body { padding: 0; }
-            }
-          </style>
-        </head>
-        <body>
-          ${printContent.innerHTML}
-        </body>
-      </html>
-    `);
-
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    if (printRef.current) {
+      generateMonthlyPrint(printRef.current, searchedMonth);
+    }
   };
 
   const toggleMonthExpansion = (month: string) => {
@@ -583,6 +526,15 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
                             >
                               {expandedMonths.has(entry.dueMonth) ? 'Hide Details' : 'Show Details'}
                             </Button>
+                            <Button
+                              onClick={() => handleGeneratePdf(entry.dueMonth)}
+                              variant="default"
+                              size="sm"
+                              className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                            >
+                              <FileDown className="h-4 w-4" />
+                              Print Bill
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -592,16 +544,22 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
                             <thead className="bg-gray-50">
                               <tr>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inward Number</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Store Cost</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date (From - To)</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stored Qty</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Labour Cost</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sum</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                               </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                               {entry.items.map((item, itemIndex) => (
                                 <tr key={itemIndex} className={itemIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.inwardNumber}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.storeCost.toLocaleString('en-IN')}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.dateRange || '-'}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.itemName || '-'}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{(item.storedQuantity || 0).toLocaleString('en-IN')}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{(item.rate || 0).toLocaleString('en-IN')}</td>
                                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.labourCost.toLocaleString('en-IN')}</td>
                                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.sum.toLocaleString('en-IN')}</td>
                                 </tr>
@@ -626,17 +584,17 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
         {isSuperAdmin && searchMode === 'month' && searchedMonth && !isMonthSearching && (
           <>
           {/* Print Button - Outside printable area */}
-              {monthBillData.length > 0 && (
-                <div className="flex justify-end mb-8">
-                  <Button 
-                    onClick={handlePrint}
-                    className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900"
-                  >
-                    <Printer className="h-4 w-4" />
-                    Print Summary
-                  </Button>
-                </div>
-              )}
+            {monthBillData.length > 0 && (
+              <div className="flex justify-end mb-8">
+                <Button 
+                  onClick={handlePrint}
+                  className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900"
+                >
+                  <Printer className="h-4 w-4" />
+                  Print Summary
+                </Button>
+              </div>
+            )}
             {/* Printable Content */}
             <div ref={printRef}>
               <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">Monthly Bill Summary</h1>
