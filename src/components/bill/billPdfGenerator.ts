@@ -202,6 +202,15 @@ export const generateCustomerPdf = (
             padding: 8px 20px;
             text-align: center;
           }
+
+          .bill-title-box {
+            background: #ffffff;      /* white background */
+            color: #000000;           /* black text */
+            border: 1px solid #000000;/* black border */
+            padding: 8px 20px;
+            text-align: center;
+            font-weight: bold;
+          }
           
           .bill-title {
             font-size: 12pt;
@@ -244,16 +253,16 @@ export const generateCustomerPdf = (
           .bill-details strong {
             color: #374151;
           }
-          
+
           .period-banner {
-            background: #dbeafe;
-            border: 1px solid #93c5fd;
+            background: #ffffff;      /* white */
+            border: 1px solid #000000;/* black border */
             text-align: center;
             padding: 6px;
             margin-bottom: 10px;
             font-size: 10pt;
             font-weight: 600;
-            color: #1e40af;
+            color: #000000;           /* black text */
           }
           
           table {
