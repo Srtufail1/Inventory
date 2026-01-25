@@ -250,7 +250,7 @@ const OutwardTable = ({ data }: any) => {
     } else { 
       table.getColumn('outDate')?.setFilterValue(undefined);
     }
-  }, [startDate, endDate]);
+  }, [startDate, endDate, table]);
 
   return (
     <div>
