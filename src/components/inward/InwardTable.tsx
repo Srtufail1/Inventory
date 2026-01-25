@@ -277,7 +277,7 @@ const InwardTable = ({ data }: any) => {
     } else { 
       table.getColumn('addDate')?.setFilterValue(undefined);
     }
-  }, [startDate, endDate]);
+  }, [startDate, endDate, table]);
 
   return (
     <div>
