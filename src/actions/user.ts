@@ -9,11 +9,19 @@ export const loginSignup = async (formData: FormData, isLogin: boolean) => {
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const deviceToken = formData.get("deviceToken") as string;
 
   const user = await db.user.findUnique({
     where: { email },
-    select: { isAdmin: true },
+    select: { isAdmin: true, loginToken: true },
   });
+
+  // Check device token before attempting login
+  if (user && user.loginToken && user.loginToken !== "false") {
+    if (user.loginToken !== deviceToken) {
+      return { error: "Access denied." };
+    }
+  }
 
   const res = await signIn("credentials", {
     name,
@@ -66,30 +74,42 @@ export const updateUser = async (
 // update user role
 export const updateUserRole = async (
   formData: FormData,
-  isAdmin: boolean,
+  updatedData: {
+    name: string;
+    email: string;
+    isAdmin: boolean;
+    isSuperAdmin: boolean;
+    loginToken: string;
+  },
   data: any
 ) => {
-  const name = formData.get("name") as string;
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  const { name, email, isAdmin, isSuperAdmin, loginToken } = updatedData;
 
-  if (!name || !email || !password) {
-    return { error: "All fields are required" };
+  if (!name || !email) {
+    return { error: "Name and email are required" };
   }
-  const checkEmail = await db.user.findUnique({ where: { email } });
-  if (!checkEmail) return { error: "User not found" };
+
+  const checkUser = await db.user.findUnique({ where: { id: data?.id } });
+  if (!checkUser) return { error: "User not found" };
 
   let user;
   try {
     user = await db.user.update({
       where: { id: data?.id },
-      data: { name, email, password, isAdmin },
+      data: {
+        name,
+        email,
+        isAdmin,
+        isSuperAdmin,
+        loginToken,
+      },
     });
     if (!user) {
-      return { error: "User not udpated" };
+      return { error: "User not updated" };
     }
   } catch (error) {
-    return { error: "User not udpated" };
+    console.error("Update error:", error);
+    return { error: "User not updated" };
   }
 
   revalidatePath(`/dashboard/clients`);

@@ -13,7 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, Search } from "lucide-react";
+import { ArrowUpDown, ChevronDown, Search, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -24,8 +24,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import AssignInventoryActions from "./AssignInventoryActions";
-import { InventoryDataProps } from "@/lib/interface";
 import ClientActions from "./ClientActions";
 import {
   DropdownMenu,
@@ -35,8 +33,67 @@ import {
 } from "./ui/dropdown-menu";
 import { Input } from "./ui/input";
 import { signOut } from "next-auth/react";
+import { toast } from "./ui/use-toast";
 
-export const columns: ColumnDef<InventoryDataProps>[] = [
+interface UserData {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
+  loginToken: string | null;
+}
+
+// Separate component for the Access cell with Authorize button
+const AccessCell = ({ loginToken }: { loginToken: string | null | boolean }) => {
+  const isWorldWide = loginToken === "false" || loginToken === false;
+
+  const handleAuthorize = () => {
+    try {
+      if (typeof loginToken === "string" && loginToken !== "false") {
+        localStorage.setItem("zamzam_key", loginToken);
+        toast({
+          title: "Device Authorized",
+          description: "This device has been authorized successfully.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Authorization Failed",
+        description: "Failed to authorize device. Please enable cookies and try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium ${
+          isWorldWide
+            ? "bg-blue-100 text-blue-800"
+            : "bg-orange-100 text-orange-800"
+        }`}
+      >
+        {isWorldWide ? "World Wide" : "Token Based"}
+      </span>
+      {!isWorldWide && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 px-2 text-xs"
+          onClick={handleAuthorize}
+        >
+          <KeyRound className="h-3 w-3 mr-1" />
+          Authorize
+        </Button>
+      )}
+    </div>
+  );
+};
+
+export const columns: ColumnDef<UserData>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -73,7 +130,6 @@ export const columns: ColumnDef<InventoryDataProps>[] = [
     },
     cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
   },
-
   {
     accessorKey: "email",
     header: "Email",
@@ -83,23 +139,58 @@ export const columns: ColumnDef<InventoryDataProps>[] = [
       );
     },
   },
-  // {
-  //   accessorKey: "password",
-  //   header: "Password",
-  //   cell: ({ row }) => {
-  //     return (
-  //       <div className="lowercase line-clamp-2">{row.getValue("password")}</div>
-  //     );
-  //   },
-  // },
+  {
+    accessorKey: "isAdmin",
+    header: "Admin",
+    cell: ({ row }) => {
+      const isAdmin = row.getValue("isAdmin") as boolean;
+      return (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${
+            isAdmin
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {isAdmin ? "True" : "False"}
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "isSuperAdmin",
+    header: "Super Admin",
+    cell: ({ row }) => {
+      const isSuperAdmin = row.getValue("isSuperAdmin") as boolean;
+      return (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${
+            isSuperAdmin
+              ? "bg-purple-100 text-purple-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {isSuperAdmin ? "True" : "False"}
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "loginToken",
+    header: "Access",
+    cell: ({ row }) => {
+      const loginToken = row.getValue("loginToken") as string | null;
+      return <AccessCell loginToken={loginToken} />;
+    },
+  },
   {
     id: "actions",
-    header: "Transfer Inventory",
+    header: "Actions",
     cell: ({ row }) => <ClientActions row={row} />,
   },
 ];
 
-const ClientInventory = ({ data }: any) => {
+const ClientsData = ({ data }: { data: UserData[] }) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -206,21 +297,29 @@ const ClientInventory = ({ data }: any) => {
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
+                table.getRowModel().rows.map((row) => {
+                  const isSuperAdmin = row.original.isSuperAdmin;
+                  return (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                      className={
+                        isSuperAdmin
+                          ? "bg-purple-50 hover:bg-purple-100"
+                          : undefined
+                      }
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell
@@ -239,4 +338,4 @@ const ClientInventory = ({ data }: any) => {
   );
 };
 
-export default ClientInventory;
+export default ClientsData;
