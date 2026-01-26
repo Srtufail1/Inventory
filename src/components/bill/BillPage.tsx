@@ -158,10 +158,9 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
     // Process ledger data
     result.ledgerDataSets.forEach((dataset: any) => {
       dataset.ledgerData.forEach((entry: any) => {
-        const [startDate] = entry.dates.split(' - ');
-        const [day, month, year] = startDate.split('.');
-        const dueMonth = new Date(parseInt(`20${year}`), parseInt(month) - 1, parseInt(day));
-        dueMonth.setMonth(dueMonth.getMonth() + 2);
+        const [, endDate] = entry.dates.split(' - ');
+        const [day, month, year] = endDate.split('.');
+        const dueMonth = new Date(parseInt(`20${year}`), parseInt(month), 1);
         
         const dueMonthString = dueMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
         
