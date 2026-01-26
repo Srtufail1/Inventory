@@ -7,5 +7,5 @@ export const sidebar = [
   { title: "Ledger", link: "/dashboard/ledger", icon: <SquareLibrary /> },
   { title: "Customers", link: "/dashboard/customer", icon: <Users /> },
   { title: "Bill", link: "/dashboard/bill", icon: <ReceiptText /> },
-  // { title: "Clients", link: "/dashboard/clients", icon: <User /> },
+  { title: "Clients", link: "/dashboard/clients", icon: <User /> },
 ];

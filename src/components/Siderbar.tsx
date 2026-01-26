@@ -5,8 +5,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 
-const Siderbar = () => {
+interface SidebarProps {
+  isSuperAdmin?: boolean;
+}
+
+const Sidebar = ({ isSuperAdmin = false }: SidebarProps) => {
   const pathname = usePathname();
+  
+  // Filter sidebar items based on user role
+  const filteredSidebar = sidebar.filter((item) => {
+    // Hide "Clients" link for non-super-admins
+    if (item.link === "/dashboard/clients" && !isSuperAdmin) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <div>
       <div className="flex h-full max-h-screen flex-col gap-2">
@@ -17,7 +31,7 @@ const Siderbar = () => {
         </div>
         <div className="flex-1 overflow-auto py-2">
           <nav className="grid items-start px-4 text-sm font-medium">
-            {sidebar?.map((item, index) => (
+            {filteredSidebar.map((item, index) => (
               <Link
                 href={item.link}
                 key={index}
@@ -25,7 +39,7 @@ const Siderbar = () => {
               >
                 <span
                   className={`flex p-2 items-center gap-2 hover:bg-gray-100/50 ${
-                    pathname == item.link && "bg-gray-100/90"
+                    pathname === item.link && "bg-gray-100/90"
                   }`}
                 >
                   {item.icon}
@@ -40,4 +54,4 @@ const Siderbar = () => {
   );
 };
 
-export default Siderbar;
+export default Sidebar;

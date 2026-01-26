@@ -101,7 +101,7 @@ form input[type='text']
   outline: none;
 }
 
-form button[type='button'] {
+form button[type='button']:not([role='switch']) {
   width: 100%;
   padding: 16px;
   border: none;
