@@ -196,8 +196,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
 
     result.laborTable.forEach((labor: any) => {
       const [day, month, year] = labor.dueDate.split('.');
-      const dueMonth = new Date(parseInt(`20${year}`), parseInt(month) - 1, parseInt(day));
-      dueMonth.setMonth(dueMonth.getMonth() + 1);
+      const dueMonth = new Date(parseInt(`20${year}`), parseInt(month), 1);
       const dueMonthString = dueMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
       
       let billEntry = billEntries.find(e => e.dueMonth === dueMonthString);
