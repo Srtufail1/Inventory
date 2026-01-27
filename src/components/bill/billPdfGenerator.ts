@@ -314,12 +314,9 @@ export const generateCustomerPdf = (
         <div class="header">
           <div class="header-top">
             <div class="company-info">
-              <div class="company-name">ZAMZAM COLD STORAGE</div>
-              <div class="company-tagline">Cold Storage Services</div>
+              <div class="company-name">ZCS</div>
               <div class="company-contact">
                 <strong>Address:</strong> Faisalabad, Pakistan<br>
-                <strong>Phone:</strong> +92-XXX-XXXXXXX &nbsp;|&nbsp; <strong>Mobile:</strong> +92-3XX-XXXXXXX<br>
-                <strong>Email:</strong> info@zamzamcoldstorage.com
               </div>
             </div>
             <div class="bill-title-box">
@@ -382,7 +379,6 @@ export const generateCustomerPdf = (
             </div>
             <div class="signature-box">
               <div class="signature-line">
-                <div class="signature-label">For Zamzam Cold Storage</div>
                 <div class="signature-sublabel">Authorized Signature</div>
               </div>
             </div>
