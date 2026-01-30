@@ -16,7 +16,7 @@ model User {
   isSuperAdmin Boolean  @default(false)
   loginToken   String?  @default("false")
   createdAt    DateTime @default(now())
-  updatedAr    DateTime @updatedAt
+  updatedAt    DateTime @updatedAt
 
   Inventory Inventory[]
 }
@@ -30,11 +30,11 @@ model Inventory {
   user        User?   @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
-  updatedAr DateTime @updatedAt
+  updatedAt DateTime @updatedAt
 }
 
 model Inward {
-  id            String  @id @default(auto()) @map("_id") @db.ObjectId
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
   addDate       DateTime
   inumber       String
   customer      String
@@ -44,14 +44,22 @@ model Inward {
   quantity      String
   store_rate    String
   labour_rate   String
+
+  @@index([customer])
+  @@index([inumber])
+  @@index([addDate])
 }
 
 model Outward {
-  id            String  @id @default(auto()) @map("_id") @db.ObjectId
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
   outDate       DateTime
   onumber       String
   inumber       String
   customer      String
   item          String
   quantity      String
+
+  @@index([customer])
+  @@index([inumber])
+  @@index([outDate])
 }
