@@ -1,7 +1,7 @@
-import { db } from "@/lib/db";
 import React from "react";
-import { auth } from "../../../../auth";
 import ClientsData from "@/components/ClientsData";
+import { auth } from "../../../../auth";
+import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 
 const ClientsPage = async () => {
@@ -18,7 +18,7 @@ const ClientsPage = async () => {
   });
 
   if (!currentUser?.isSuperAdmin) {
-    redirect("/dashboard"); // or wherever you want to redirect non-super-admins
+    redirect("/dashboard/inward"); // redirect non-super-admins
   }
 
   const users = await db.user.findMany({});
