@@ -15,7 +15,7 @@ const Sidebar = ({ isSuperAdmin = false }: SidebarProps) => {
   // Filter sidebar items based on user role
   const filteredSidebar = sidebar.filter((item) => {
     // Hide "Clients" link for non-super-admins
-    if (item.link === "/dashboard/clients" && !isSuperAdmin) {
+    if ((item.link === "/dashboard/clients" || item.link === "/dashboard/labour") && !isSuperAdmin) {
       return false;
     }
     return true;
