@@ -13,7 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, Search, KeyRound } from "lucide-react";
+import { ArrowUpDown, ChevronDown, Search, KeyRound, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -34,6 +34,7 @@ import {
 import { Input } from "./ui/input";
 import { signOut } from "next-auth/react";
 import { toast } from "./ui/use-toast";
+import Link from "next/link";
 
 interface UserData {
   id: string;
@@ -264,6 +265,12 @@ const ClientsData = ({ data }: { data: UserData[] }) => {
             </DropdownMenu>
           </div>
         </div>
+        <Link href="/signup">
+          <Button className="bg-green-600 hover:bg-green-700">
+            <UserPlus className="h-4 w-4 mr-2" />
+            Create User
+          </Button>
+        </Link>
         <Button
           onClick={(e) => {
             e.preventDefault();
