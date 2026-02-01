@@ -21,48 +21,55 @@ const credentialsConfig = CredentialsProvider({
     },
   },
 
-  async authorize(credentials: any) {
-    const { name, email, password, isLogin } = credentials;
+  async authorize(credentials) {
+    const { name, email, password, isLogin } = credentials as {
+      name?: string;
+      email: string;
+      password: string;
+      isLogin: string;
+    };
+
+    if (!email || !password) {
+      return null;
+    }
+
     const user = await db.user.findUnique({
-      where: { email },
+      where: { email: email.toLowerCase().trim() },
     });
 
-    if (isLogin === "false" && !user) {
+    // Signup flow
+    if (isLogin === "false") {
+      if (user) {
+        return null; // User already exists
+      }
+
+      if (!name?.trim()) {
+        return null; // Name required for signup
+      }
+
       const hashedPassword = await bcrypt.hash(password, 12);
-      const result = await db.user.create({
-        data: { 
-          name, 
-          email, 
-          password: hashedPassword
+      const newUser = await db.user.create({
+        data: {
+          name: name.trim(),
+          email: email.toLowerCase().trim(),
+          password: hashedPassword,
         },
       });
 
-      if (result) return result;
-      return null;
-    } 
-    
-    if (user) {
-      const isHashed = user.password.startsWith("$2");
-      
-      if (isHashed) {
-        // Password is hashed - use bcrypt compare
-        const isValid = await bcrypt.compare(password, user.password);
-        if (isValid) return user;
-      } else {
-        // Password is plain text (old user) - compare directly
-        // Then auto-upgrade to hashed password
-        if (user.password === password) {
-          const hashedPassword = await bcrypt.hash(password, 12);
-          await db.user.update({
-            where: { id: user.id },
-            data: { password: hashedPassword }
-          });
-          return user;
-        }
-      }
+      return newUser;
     }
-    
-    return null;
+
+    // Login flow
+    if (!user) {
+      return null;
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return null;
+    }
+
+    return user;
   },
 });
 

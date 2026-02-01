@@ -1,64 +1,28 @@
-"use client";
-import { loginSignup } from "@/actions/user";
-import FormInput from "@/components/FormInput";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/use-toast";
-import Link from "next/link";
-import React, { useOptimistic } from "react";
+import { auth } from "../../../../auth";
+import { db } from "@/lib/db";
+import { redirect } from "next/navigation";
+import SignupForm from "./SignupForm";
 
-const Signup = () => {
-  const [loading, setLoading] = useOptimistic(false);
+const Signup = async () => {
+  const session = await auth();
 
-  const handleSubmit = async (formData: FormData) => {
-    setLoading(true);
-    const res = await loginSignup(formData, false);
-    if (res?.error) {
-      toast({ title: res?.error });
-    }
-    setLoading(false);
-  };
-  return (
-    <div className="grid place-content-center min-h-screen bg-gray-100">
-      <div className="flex flex-col justify-center gap-5 items-center py-10 w-[450px] shadow-lg rounded-lg bg-white">
-        <h1 className="text-center font-bold text-4xl">Sign Up</h1>
-        <form action={handleSubmit} className="w-full px-5">
-          <FormInput
-            name="name"
-            type="text"
-            placeholder="Enter your name"
-            label="Full Name"
-          />
-          <FormInput
-            name="email"
-            type="email"
-            placeholder="Enter the email"
-            label="Email"
-          />
-          <FormInput
-            name="password"
-            type="password"
-            placeholder="Enter the password"
-            label="Enter Password"
-          />
-          <Button
-            type="submit"
-            className={`${
-              loading && "disabled cursor-not-allowed"
-            } w-full bg-blue-500`}
-          >
-            {loading ? "loading..." : "Register"}
-          </Button>
-        </form>
-        <Link
-          href="/login"
-          className="text-center text-blue-800 cursor-pointer underline"
-        >
-          Already have and account? Login
-        </Link>
-      </div>
-    </div>
-  );
+  // Not logged in - redirect to login
+  if (!session?.user?.email) {
+    redirect("/login");
+  }
+
+  // Check if user is super admin
+  const user = await db.user.findUnique({
+    where: { email: session.user.email },
+    select: { isSuperAdmin: true },
+  });
+
+  // Not a super admin - redirect to dashboard
+  if (!user?.isSuperAdmin) {
+    redirect("/dashboard/inward");
+  }
+
+  return <SignupForm />;
 };
 
 export default Signup;
