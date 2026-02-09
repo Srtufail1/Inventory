@@ -1,58 +1,86 @@
 import React from "react";
-// import DashboardDataTable from "@/components/DashboardDataTable";
-// import { db } from "@/lib/db";
+import { db } from "@/lib/db";
+import DashboardSummary from "@/components/dashboard/DashboardSummary";
 
 const Dashboard = async () => {
-  // const [inventoryData, clients, inwardData] = await db.$transaction([
-  //   db.inventory.findMany(),
-  //   db.user.findMany(),
-  //   db.inward.findMany({
-  //     select: {
-  //       addDate: true,
-  //       quantity: true,
-  //       store_rate: true,
-  //       labour_rate: true,
-  //     },
-  //   }),
-  // ]);
+  const [inwardData, outwardData] = await Promise.all([
+    db.inward.findMany({
+      select: {
+        id: true,
+        addDate: true,
+        inumber: true,
+        customer: true,
+        item: true,
+        quantity: true,
+        store_rate: true,
+        labour_rate: true,
+      },
+      orderBy: { addDate: "desc" },
+    }),
+    db.outward.findMany({
+      select: {
+        id: true,
+        outDate: true,
+        onumber: true,
+        inumber: true,
+        customer: true,
+        item: true,
+        quantity: true,
+      },
+      orderBy: { outDate: "desc" },
+    }),
+  ]);
 
-  // const inventoryResponse = inventoryData?.map((inv) => {
-  //   return { ...inv, clients };
-  // });
+  const totalInwardRecords = inwardData.length;
+  const totalOutwardRecords = outwardData.length;
 
-  // // Process inward data for the chart
-  // const processedChartData = inwardData.map(item => {
-  //   const date = new Date(item.addDate);
-  //   const month = date.toLocaleString('default', { month: 'short' });
-  //   const year = date.getFullYear();
-  //   const monthYear = `${month} ${year}`;
-  //   const sales = 
-  //     parseFloat(item.quantity || '0') * parseFloat(item.store_rate || '0') +
-  //     parseFloat(item.labour_rate || '0') * parseFloat(item.quantity || '0');
+  const totalInwardQuantity = inwardData.reduce(
+    (sum, item) => sum + (parseInt(item.quantity) || 0),
+    0
+  );
+  const totalOutwardQuantity = outwardData.reduce(
+    (sum, item) => sum + (parseInt(item.quantity) || 0),
+    0
+  );
+  const currentStock = totalInwardQuantity - totalOutwardQuantity;
 
-  //   return { monthYear, sales };
-  // });
+  // Unique customers from inward
+  const uniqueCustomers = new Set(inwardData.map((item) => item.customer));
 
-  // // Aggregate sales by month and year
-  // const aggregatedChartData = processedChartData.reduce((acc, item) => {
-  //   const existingMonth = acc.find(i => i.monthYear === item.monthYear);
-  //   if (existingMonth) {
-  //     existingMonth.sales += item.sales;
-  //   } else {
-  //     acc.push(item);
-  //   }
-  //   return acc;
-  // }, [] as { monthYear: string, sales: number }[]);
+  // Recent 10 inward records
+  const recentInward = inwardData.slice(0, 10).map((item) => ({
+    id: item.id,
+    inumber: item.inumber,
+    addDate: item.addDate.toISOString(),
+    customer: item.customer,
+    item: item.item,
+    quantity: item.quantity,
+  }));
 
-  // // Sort the data by month and year
-  // const sortedChartData = aggregatedChartData.sort((a, b) => 
-  //   new Date(b.monthYear).getTime() - new Date(a.monthYear).getTime()
-  // );
+  // Recent 10 outward records
+  const recentOutward = outwardData.slice(0, 10).map((item) => ({
+    id: item.id,
+    onumber: item.onumber,
+    inumber: item.inumber,
+    outDate: item.outDate.toISOString(),
+    customer: item.customer,
+    item: item.item,
+    quantity: item.quantity,
+  }));
 
   return (
-    <>
-      {/* <DashboardDataTable data={inventoryResponse} chartData={sortedChartData}/> */}
-    </>
+    <DashboardSummary
+      stats={{
+        totalInwardRecords,
+        totalOutwardRecords,
+        totalInwardQuantity,
+        totalOutwardQuantity,
+        currentStock,
+        totalCustomers: uniqueCustomers.size,
+      }}
+      recentInward={recentInward}
+      recentOutward={recentOutward}
+    />
   );
 };
 

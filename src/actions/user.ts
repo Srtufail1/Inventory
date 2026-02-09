@@ -47,30 +47,6 @@ export const loginSignup = async (formData: FormData, isLogin: boolean) => {
   }
 };
 
-// update user
-export const updateUser = async (
-  id: string,
-  userId: string,
-  isAdmin: boolean
-) => {
-  let inventory;
-  try {
-    inventory = await db.inventory.update({
-      where: { id },
-      data: { userId },
-    });
-
-    if (!inventory) {
-      return { error: "failed to transfer" };
-    }
-  } catch (error) {
-    return { error: "failed to transfer" };
-  }
-
-  revalidatePath(`${isAdmin ? "/dashboard" : "/"}`);
-  return inventory;
-};
-
 // update user role
 export const updateUserRole = async (
   formData: FormData,
@@ -116,68 +92,9 @@ export const updateUserRole = async (
   return user;
 };
 
-// add/update inventory
-
-export const addUpdateInventory = async (formData: FormData, data: any) => {
-  const session = await auth();
-
-  const name = formData.get("name") as string;
-  const description = formData.get("description") as string;
-  const getCost = formData.get("cost") as string;
-  const cost = Number(getCost);
-
-  const user = await db.user.findUnique({
-    where: { email: session?.user?.email! },
-  });
-
-  if (!name || !description || !cost) {
-    return { error: "All fields are required" };
-  }
-
-  let inventory;
-  try {
-    if (data?.id) {
-      inventory = await db.inventory.update({
-        where: { id: data?.id },
-        data: { name, description, cost, userId: user?.id },
-      });
-    } else {
-      inventory = await db.inventory.create({
-        data: { name, description, cost, userId: user?.id },
-      });
-    }
-    if (!inventory) {
-      return { error: "failed to create inventory" };
-    }
-  } catch (error) {
-    return { error: "failed to create inventory" };
-  }
-
-  revalidatePath(`/dashboard`);
-  return inventory;
-};
-
-// delete inventory
-
-export const DeleteInventory = async (id: string) => {
-  try {
-    const result = await db.inventory.delete({
-      where: { id },
-    });
-    revalidatePath("/dashboard");
-    if (!result) {
-      return { error: "inventory not deleted" };
-    }
-  } catch (error) {
-    return { error: "inventory not deleted" };
-  }
-};
-
 // add/update inward
 
 export const addUpdateInward = async (formData: FormData, data: any) => {
-  const session = await auth();
-
   const inumber = formData.get("inumber") as string;
   const addDateString = formData.get("addDate") as string;
   const addDate = new Date(addDateString);
@@ -189,11 +106,7 @@ export const addUpdateInward = async (formData: FormData, data: any) => {
   const store_rate = formData.get("store_rate") as string;
   const labour_rate = formData.get("labour_rate") as string;
 
-  const user = await db.user.findUnique({
-    where: { email: session?.user?.email! },
-  });
-
-  if ( !inumber || !customer || !addDate || !customer || !item || !packing || !weight || !quantity || !store_rate || !labour_rate ) {
+  if (!inumber || !customer || !addDate || !item || !packing || !weight || !quantity || !store_rate || !labour_rate) {
     return { error: "All fields are required" };
   }
 
@@ -202,11 +115,11 @@ export const addUpdateInward = async (formData: FormData, data: any) => {
     if (data?.id) {
       inward = await db.inward.update({
         where: { id: data?.id },
-        data: { 
+        data: {
           inumber,
           addDate,
-          customer, 
-          item, 
+          customer,
+          item,
           packing,
           weight,
           quantity,
@@ -216,11 +129,11 @@ export const addUpdateInward = async (formData: FormData, data: any) => {
       });
     } else {
       inward = await db.inward.create({
-        data: { 
+        data: {
           inumber,
           addDate,
-          customer, 
-          item, 
+          customer,
+          item,
           packing,
           weight,
           quantity,
@@ -256,13 +169,9 @@ export const DeleteInward = async (id: string) => {
   }
 };
 
-
-
 // add/update outward
 
 export const addUpdateOutward = async (formData: FormData, data: any) => {
-  const session = await auth();
-
   const onumber = formData.get("onumber") as string;
   const inumber = formData.get("inumber") as string;
   const outDateString = formData.get("outDate") as string;
@@ -270,10 +179,6 @@ export const addUpdateOutward = async (formData: FormData, data: any) => {
   const customer = formData.get("customer") as string;
   const item = formData.get("item") as string;
   const quantity = formData.get("quantity") as string;
-
-  const user = await db.user.findUnique({
-    where: { email: session?.user?.email! },
-  });
 
   if (!onumber || !customer || !outDate || !item || !quantity || !inumber) {
     return { error: "All fields are required" };
@@ -284,7 +189,7 @@ export const addUpdateOutward = async (formData: FormData, data: any) => {
     if (data?.id) {
       outward = await db.outward.update({
         where: { id: data?.id },
-        data: { 
+        data: {
           onumber,
           inumber,
           outDate,
@@ -295,7 +200,7 @@ export const addUpdateOutward = async (formData: FormData, data: any) => {
       });
     } else {
       outward = await db.outward.create({
-        data: { 
+        data: {
           onumber,
           inumber,
           outDate,
