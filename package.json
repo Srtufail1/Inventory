@@ -10,12 +10,6 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@auth/prisma-adapter": "^2.4.1",
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
-    "@mui/material": "^6.2.0",
-    "@mui/system": "^6.2.0",
-    "@mui/x-charts": "^7.23.2",
     "@prisma/client": "^6.0.1",
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-checkbox": "^1.1.1",

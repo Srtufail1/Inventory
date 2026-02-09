@@ -44,26 +44,34 @@ export async function GET(request: NextRequest) {
     });
 
     // For outward records, we need to get the labour_rate from the corresponding inward record
-    const outwardWithLabourRate = await Promise.all(
-      outwardData.map(async (outward) => {
-        const inwardRecord = await db.inward.findFirst({
-          where: {
-            inumber: outward.inumber,
-          },
-          select: {
-            labour_rate: true,
-            customer: true,
-            item: true,
-          },
-        });
-        return {
-          ...outward,
-          labour_rate: inwardRecord?.labour_rate || '0',
-          inwardCustomer: inwardRecord?.customer || outward.customer,
-          inwardItem: inwardRecord?.item || outward.item,
-        };
-      })
+    // Batch fetch all needed inward records in a single query (fixes N+1)
+    const uniqueInumbers = Array.from(new Set(outwardData.map(o => o.inumber)));
+    const relatedInwardRecords = await db.inward.findMany({
+      where: {
+        inumber: { in: uniqueInumbers },
+      },
+      select: {
+        inumber: true,
+        labour_rate: true,
+        customer: true,
+        item: true,
+      },
+    });
+
+    // Build a lookup map for O(1) access
+    const inwardLookup = new Map(
+      relatedInwardRecords.map(r => [r.inumber, r])
     );
+
+    const outwardWithLabourRate = outwardData.map((outward) => {
+      const inwardRecord = inwardLookup.get(outward.inumber);
+      return {
+        ...outward,
+        labour_rate: inwardRecord?.labour_rate || '0',
+        inwardCustomer: inwardRecord?.customer || outward.customer,
+        inwardItem: inwardRecord?.item || outward.item,
+      };
+    });
 
     // Calculate labour costs for inward (quantity * labour_rate / 2)
     const inwardLabourData = inwardData.map((record) => {
