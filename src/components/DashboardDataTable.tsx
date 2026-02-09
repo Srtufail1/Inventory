@@ -50,7 +50,6 @@ import InventoryUpdate from "./InventoryUpdate";
 import { format, isValid } from 'date-fns';
 import { FaCalendarAlt } from 'react-icons/fa';
 import DarkModeToggle from './DarkModeToggle'
-import SimpleBarChart from './dashboard/SimpleBarChart'
 
 // Utility function to parse date
 const parseDate = (date: any): Date | null => {
@@ -273,7 +272,6 @@ const DashboardDataTable = ({ data, chartData }: any) => {
         <h1 className="text-3xl font-bold tracking-tight">
           Dashboard
         </h1>
-        <SimpleBarChart data={chartData} />
         <div className="flex item justify-between pt-3 pb-6">
           <h1 className="text-3xl font-bold tracking-tight">
             Test Inventories Data
