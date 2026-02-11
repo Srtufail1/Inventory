@@ -21,11 +21,12 @@ export async function GET() {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Fetch all collections
-    const [users, inwardData, outwardData] = await Promise.all([
+    // Fetch all collections (including notes)
+    const [users, inwardData, outwardData, notesData] = await Promise.all([
       db.user.findMany(),
       db.inward.findMany(),
       db.outward.findMany(),
+      db.note.findMany(),
     ]);
 
     // Remove passwords from user data for security
@@ -37,11 +38,13 @@ export async function GET() {
         users: sanitizedUsers,
         inward: inwardData,
         outward: outwardData,
+        notes: notesData,
       },
       counts: {
         users: sanitizedUsers.length,
         inward: inwardData.length,
         outward: outwardData.length,
+        notes: notesData.length,
       },
     };
 
