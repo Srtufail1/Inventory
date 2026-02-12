@@ -150,7 +150,7 @@ export const columns: ColumnDef<UserData>[] = [
           className={`px-2 py-1 rounded-full text-xs font-medium ${
             isAdmin
               ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
+              : "bg-muted text-muted-foreground"
           }`}
         >
           {isAdmin ? "True" : "False"}
@@ -168,7 +168,7 @@ export const columns: ColumnDef<UserData>[] = [
           className={`px-2 py-1 rounded-full text-xs font-medium ${
             isSuperAdmin
               ? "bg-purple-100 text-purple-800"
-              : "bg-gray-100 text-gray-800"
+              : "bg-muted text-muted-foreground"
           }`}
         >
           {isSuperAdmin ? "True" : "False"}
@@ -221,10 +221,10 @@ const ClientsData = ({ data }: { data: UserData[] }) => {
 
   return (
     <div className="w-full">
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
+      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
         <div className="flex items-center gap-3 w-full">
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search name..."
               value={

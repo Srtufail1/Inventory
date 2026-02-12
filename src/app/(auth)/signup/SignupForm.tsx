@@ -25,10 +25,10 @@ const SignupForm = () => {
   };
 
   return (
-    <div className="grid place-content-center min-h-screen bg-gray-100">
-      <div className="flex flex-col justify-center gap-5 items-center py-10 w-[450px] shadow-lg rounded-lg bg-white">
+    <div className="grid place-content-center min-h-screen bg-muted/30">
+      <div className="flex flex-col justify-center gap-5 items-center py-10 w-[450px] shadow-lg rounded-lg bg-card">
         <h1 className="text-center font-bold text-4xl">Create New User</h1>
-        <p className="text-gray-500 text-sm px-5 text-center">
+        <p className="text-muted-foreground text-sm px-5 text-center">
           Super Admin: Create a new user account
         </p>
         <form action={handleSubmit} className="w-full px-5">

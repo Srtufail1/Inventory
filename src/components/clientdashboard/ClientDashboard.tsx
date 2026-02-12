@@ -89,72 +89,72 @@ const ClientDashboard: React.FC<Props> = ({
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-foreground">
             Welcome, {userName}
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-muted-foreground mt-1">
             Here is an overview of your cold storage records.
           </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
+          <div className="bg-blue-500/10 dark:bg-blue-500/5 border border-blue-200 dark:border-blue-800 rounded-lg p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-sm font-medium text-muted-foreground">
                   Total Inward
                 </p>
-                <p className="text-2xl font-bold text-blue-800 mt-1">
+                <p className="text-2xl font-bold text-blue-800 dark:text-blue-400 mt-1">
                   {totalInwardQty.toLocaleString("en-IN")}
                 </p>
                 <p className="text-xs text-blue-600 mt-1">
                   {inwardData.length} record(s)
                 </p>
               </div>
-              <MonitorDown className="h-8 w-8 text-blue-800 opacity-80" />
+              <MonitorDown className="h-8 w-8 text-blue-800 dark:text-blue-400 opacity-80" />
             </div>
           </div>
 
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-5">
+          <div className="bg-orange-500/10 dark:bg-orange-500/5 border border-orange-200 dark:border-orange-800 rounded-lg p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-sm font-medium text-muted-foreground">
                   Total Outward
                 </p>
-                <p className="text-2xl font-bold text-orange-800 mt-1">
+                <p className="text-2xl font-bold text-orange-800 dark:text-orange-400 mt-1">
                   {totalOutwardQty.toLocaleString("en-IN")}
                 </p>
                 <p className="text-xs text-orange-600 mt-1">
                   {outwardData.length} record(s)
                 </p>
               </div>
-              <MonitorUp className="h-8 w-8 text-orange-800 opacity-80" />
+              <MonitorUp className="h-8 w-8 text-orange-800 dark:text-orange-400 opacity-80" />
             </div>
           </div>
 
-          <div className="bg-teal-50 border border-teal-200 rounded-lg p-5">
+          <div className="bg-teal-500/10 dark:bg-teal-500/5 border border-teal-200 dark:border-teal-800 rounded-lg p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-sm font-medium text-muted-foreground">
                   Current Stock
                 </p>
-                <p className="text-2xl font-bold text-teal-800 mt-1">
+                <p className="text-2xl font-bold text-teal-800 dark:text-teal-400 mt-1">
                   {currentStock.toLocaleString("en-IN")}
                 </p>
                 <p className="text-xs text-teal-600 mt-1">items in storage</p>
               </div>
-              <WarehouseIcon className="h-8 w-8 text-teal-800 opacity-80" />
+              <WarehouseIcon className="h-8 w-8 text-teal-800 dark:text-teal-400 opacity-80" />
             </div>
           </div>
         </div>
 
         {/* Tabs & Search */}
-        <div className="bg-white shadow rounded-lg overflow-hidden border">
+        <div className="bg-card shadow rounded-lg overflow-hidden border">
           <div className="flex items-center justify-between border-b px-4 py-3">
             <div className="flex gap-1">
               <button
@@ -162,7 +162,7 @@ const ClientDashboard: React.FC<Props> = ({
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   activeTab === "inward"
                     ? "bg-blue-100 text-blue-800"
-                    : "text-gray-600 hover:bg-gray-100"
+                    : "text-muted-foreground hover:bg-muted"
                 }`}
               >
                 <span className="flex items-center gap-2">
@@ -174,8 +174,8 @@ const ClientDashboard: React.FC<Props> = ({
                 onClick={() => setActiveTab("outward")}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   activeTab === "outward"
-                    ? "bg-orange-100 text-orange-800"
-                    : "text-gray-600 hover:bg-gray-100"
+                    ? "bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-400"
+                    : "text-muted-foreground hover:bg-muted"
                 }`}
               >
                 <span className="flex items-center gap-2">
@@ -185,7 +185,7 @@ const ClientDashboard: React.FC<Props> = ({
               </button>
             </div>
             <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search..."
                 value={searchTerm}
@@ -295,7 +295,7 @@ const ClientDashboard: React.FC<Props> = ({
         </div>
 
         {/* Info Note */}
-        <p className="text-center text-sm text-gray-400 mt-6">
+        <p className="text-center text-sm text-muted-foreground mt-6">
           Records are matched by your account name. If you don&apos;t see your
           data, please contact the administrator.
         </p>

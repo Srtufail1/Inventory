@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import DashboardSummary from "@/components/dashboard/DashboardSummary";
 
 const Dashboard = async () => {
-  const [inwardData, outwardData] = await Promise.all([
+  const [inwardData, outwardData, recentLogs] = await Promise.all([
     db.inward.findMany({
       select: {
         id: true,
@@ -29,6 +29,10 @@ const Dashboard = async () => {
       },
       orderBy: { outDate: "desc" },
     }),
+    db.auditLog.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
   ]);
 
   const totalInwardRecords = inwardData.length;
@@ -46,6 +50,17 @@ const Dashboard = async () => {
 
   // Unique customers from inward
   const uniqueCustomers = new Set(inwardData.map((item) => item.customer));
+
+  // Top 5 customers by inward quantity
+  const customerQuantities: Record<string, number> = {};
+  inwardData.forEach((item) => {
+    const qty = parseInt(item.quantity) || 0;
+    customerQuantities[item.customer] = (customerQuantities[item.customer] || 0) + qty;
+  });
+  const topCustomers = Object.entries(customerQuantities)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5)
+    .map(([customer, quantity]) => ({ customer, quantity }));
 
   // Recent 10 inward records
   const recentInward = inwardData.slice(0, 10).map((item) => ({
@@ -68,6 +83,12 @@ const Dashboard = async () => {
     quantity: item.quantity,
   }));
 
+  // Serialize audit logs
+  const serializedLogs = recentLogs.map((log) => ({
+    ...log,
+    createdAt: log.createdAt.toISOString(),
+  }));
+
   return (
     <DashboardSummary
       stats={{
@@ -80,6 +101,8 @@ const Dashboard = async () => {
       }}
       recentInward={recentInward}
       recentOutward={recentOutward}
+      topCustomers={topCustomers}
+      recentLogs={serializedLogs}
     />
   );
 };

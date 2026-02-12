@@ -108,7 +108,7 @@ export const columns: ColumnDef<NoteDataProps>[] = [
       const type = row.getValue("type") as string;
       const typeInfo = TYPE_LABELS[type] || {
         label: type,
-        color: "bg-gray-100 text-gray-800",
+        color: "bg-muted text-muted-foreground",
       };
       return (
         <span
@@ -145,7 +145,7 @@ export const columns: ColumnDef<NoteDataProps>[] = [
     header: "Description",
     cell: ({ row }) => (
       <div
-        className="max-w-[250px] truncate text-gray-600"
+        className="max-w-[250px] truncate text-muted-foreground"
         title={row.getValue("description")}
       >
         {row.getValue("description")}
@@ -201,7 +201,7 @@ export const columns: ColumnDef<NoteDataProps>[] = [
       </Button>
     ),
     cell: ({ row }) => (
-      <div className="text-gray-500 text-xs">
+      <div className="text-muted-foreground text-xs">
         {formatDate(row.getValue("createdAt"))}
       </div>
     ),
@@ -261,11 +261,11 @@ const NotesTable = ({ data }: { data: NoteDataProps[] }) => {
 
   return (
     <div>
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
+      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
         <div className="flex items-center gap-3 w-full">
           {/* Search by title */}
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search title..."
               value={
@@ -279,7 +279,7 @@ const NotesTable = ({ data }: { data: NoteDataProps[] }) => {
           </div>
           {/* Search by customer */}
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search customer..."
               value={
@@ -295,7 +295,7 @@ const NotesTable = ({ data }: { data: NoteDataProps[] }) => {
           </div>
           {/* Search by inward number */}
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search inward no..."
               value={
@@ -313,7 +313,7 @@ const NotesTable = ({ data }: { data: NoteDataProps[] }) => {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="block rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            className="block rounded-md border px-3 py-2 text-sm shadow-sm focus:border-primary focus:ring focus:ring-ring focus:ring-opacity-50 bg-background text-foreground"
           >
             <option value="all">All Types</option>
             <option value="old_inward">Old Inward</option>
@@ -363,7 +363,7 @@ const NotesTable = ({ data }: { data: NoteDataProps[] }) => {
               <StickyNote className="h-8 w-8" />
               Notes & Archive
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Store old records, memos, and notes without affecting billing
               calculations.
             </p>
@@ -373,27 +373,27 @@ const NotesTable = ({ data }: { data: NoteDataProps[] }) => {
 
         {/* Summary cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-            <p className="text-xs text-gray-600">Old Inward</p>
-            <p className="text-xl font-bold text-blue-800">
+          <div className="bg-blue-500/10 dark:bg-blue-500/5 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-center">
+            <p className="text-xs text-muted-foreground">Old Inward</p>
+            <p className="text-xl font-bold text-blue-800 dark:text-blue-400">
               {data.filter((d) => d.type === "old_inward").length}
             </p>
           </div>
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
-            <p className="text-xs text-gray-600">Old Outward</p>
-            <p className="text-xl font-bold text-orange-800">
+          <div className="bg-orange-500/10 dark:bg-orange-500/5 border border-orange-200 dark:border-orange-800 rounded-lg p-3 text-center">
+            <p className="text-xs text-muted-foreground">Old Outward</p>
+            <p className="text-xl font-bold text-orange-800 dark:text-orange-400">
               {data.filter((d) => d.type === "old_outward").length}
             </p>
           </div>
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-            <p className="text-xs text-gray-600">General</p>
-            <p className="text-xl font-bold text-green-800">
+          <div className="bg-green-500/10 dark:bg-green-500/5 border border-green-200 dark:border-green-800 rounded-lg p-3 text-center">
+            <p className="text-xs text-muted-foreground">General</p>
+            <p className="text-xl font-bold text-green-800 dark:text-green-400">
               {data.filter((d) => d.type === "general").length}
             </p>
           </div>
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-center">
-            <p className="text-xs text-gray-600">Memos</p>
-            <p className="text-xl font-bold text-purple-800">
+          <div className="bg-purple-500/10 dark:bg-purple-500/5 border border-purple-200 dark:border-purple-800 rounded-lg p-3 text-center">
+            <p className="text-xs text-muted-foreground">Memos</p>
+            <p className="text-xl font-bold text-purple-800 dark:text-purple-400">
               {data.filter((d) => d.type === "memo").length}
             </p>
           </div>
@@ -468,14 +468,14 @@ const NotesTable = ({ data }: { data: NoteDataProps[] }) => {
               {table.getFilteredRowModel().rows.length} row(s) selected.
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-700">Rows per page:</span>
+              <span className="text-sm text-muted-foreground">Rows per page:</span>
               <select
                 value={pageSize === data.length ? 100000000 : pageSize}
                 onChange={(e) => {
                   const newSize = Number(e.target.value);
                   setPageSize(newSize === 100000000 ? data.length : newSize);
                 }}
-                className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="block rounded-md border shadow-sm focus:border-primary focus:ring focus:ring-ring focus:ring-opacity-50 bg-background text-foreground"
               >
                 {[10, 20, 50, 100, 500, 1000, 100000000].map((size) => (
                   <option key={size} value={size}>

@@ -53,7 +53,7 @@ const BackupPage = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
+      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
         <div className="flex items-center gap-3 w-full"></div>
         <DarkModeToggle />
         <Button onClick={() => signOut()} type="submit">
@@ -70,18 +70,18 @@ const BackupPage = () => {
         </div>
 
         <div className="max-w-xl">
-          <div className="bg-gray-50 rounded-lg p-6 border">
+          <div className="bg-muted/50 rounded-lg p-6 border">
             <div className="flex items-center gap-3 mb-4">
               <DatabaseBackup className="h-8 w-8 text-blue-600" />
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Export Database</h2>
-                <p className="text-sm text-gray-500">
+                <h2 className="text-xl font-semibold text-foreground">Export Database</h2>
+                <p className="text-sm text-muted-foreground">
                   Download a complete JSON backup of all data
                 </p>
               </div>
             </div>
 
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               This will export all Users (without passwords), Inward records, and Outward records 
               as a single JSON file.
             </p>

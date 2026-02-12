@@ -263,7 +263,7 @@ const LabourBillPage = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
+      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
         <div className="flex items-center gap-3 w-full"></div>
         <DarkModeToggle />
         <Button onClick={() => signOut()} type="submit">
@@ -280,8 +280,8 @@ const LabourBillPage = () => {
         </div>
 
         {/* Search Section */}
-        <div className="mb-8 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
+        <div className="mb-8 p-4 bg-muted/50 rounded-lg">
+          <h3 className="text-lg font-medium text-foreground mb-3 flex items-center gap-2">
             <Calendar className="h-5 w-5" />
             Select Date
           </h3>
@@ -345,8 +345,8 @@ const LabourBillPage = () => {
 
             {/* Inward Table */}
             {labourData.inwardData.length > 0 && (
-              <div className="bg-white shadow rounded-lg overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200 bg-blue-50">
+              <div className="bg-card shadow rounded-lg overflow-hidden border">
+                <div className="px-6 py-4 border-b bg-blue-500/10 dark:bg-blue-500/5">
                   <h3 className="text-xl font-semibold text-blue-900 flex items-center gap-2">
                     <MonitorDown className="h-5 w-5" />
                     Inward Labour - {formatDate(labourData.searchDate)}
@@ -400,8 +400,8 @@ const LabourBillPage = () => {
 
             {/* Outward Table */}
             {labourData.outwardData.length > 0 && (
-              <div className="bg-white shadow rounded-lg overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200 bg-orange-50">
+              <div className="bg-card shadow rounded-lg overflow-hidden border">
+                <div className="px-6 py-4 border-b bg-orange-500/10 dark:bg-orange-500/5">
                   <h3 className="text-xl font-semibold text-orange-900 flex items-center gap-2">
                     <MonitorUp className="h-5 w-5" />
                     Outward Labour - {formatDate(labourData.searchDate)}
@@ -453,18 +453,18 @@ const LabourBillPage = () => {
 
             {/* No Data Messages */}
             {labourData.inwardData.length === 0 && labourData.outwardData.length === 0 && (
-              <div className="text-center py-12 bg-gray-50 rounded-lg">
-                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900">No Records Found</h3>
-                <p className="text-gray-500 mt-2">
+              <div className="text-center py-12 bg-muted/50 rounded-lg">
+                <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground">No Records Found</h3>
+                <p className="text-muted-foreground mt-2">
                   No inward or outward records found for {formatDate(labourData.searchDate)}
                 </p>
               </div>
             )}
 
             {/* Formula Note */}
-            <div className="bg-gray-100 rounded-lg p-4 text-center">
-              <p className="text-sm text-gray-600">
+            <div className="bg-muted rounded-lg p-4 text-center">
+              <p className="text-sm text-muted-foreground">
                 <strong>Formula:</strong> Labour Cost = Quantity × (Labour Rate ÷ 2)
               </p>
             </div>

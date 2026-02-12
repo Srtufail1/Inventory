@@ -99,10 +99,10 @@ const CustomerPage = ({ data }: { data: CustomerData[] }) => {
 
   return (
     <div>
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
+      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
         <div className="flex items-center gap-3 w-full">
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search Customer..."
               value={(table?.getColumn("customer")?.getFilterValue() as string) ?? ""}
@@ -147,8 +147,8 @@ const CustomerPage = ({ data }: { data: CustomerData[] }) => {
           <h1 className="text-3xl font-bold tracking-tight">
             Customer List
           </h1>
-          <div className="flex items-center space-x-2 text-sm font-medium bg-gray-100 rounded-full px-4 py-2 shadow-sm">
-  <span className="text-gray-700">Total Customers:</span>
+          <div className="flex items-center space-x-2 text-sm font-medium bg-muted rounded-full px-4 py-2 shadow-sm">
+  <span className="text-muted-foreground">Total Customers:</span>
   <span className="text-green-600 font-bold">{data.length}</span>
 </div>
         </div>

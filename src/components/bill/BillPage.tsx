@@ -40,12 +40,12 @@ type MonthSelectorProps = {
 
 const MonthSelector: React.FC<MonthSelectorProps> = ({ months, selectedMonth, onSelectMonth }) => (
   <div className="mb-6">
-    <label htmlFor="month-select" className="block text-sm font-medium text-gray-700 mb-2">Select Month</label>
+    <label htmlFor="month-select" className="block text-sm font-medium text-foreground mb-2">Select Month</label>
     <select
       id="month-select"
       value={selectedMonth || ''}
       onChange={(e) => onSelectMonth(e.target.value || null)}
-      className="block w-full px-3 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+      className="block w-full px-3 py-2 text-foreground bg-background border rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
     >
       <option value="">All Months</option>
       {months.map((month) => (
@@ -67,11 +67,11 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ current, total, label }) => {
   
   return (
     <div className="mt-3">
-      <div className="flex justify-between text-sm text-gray-600 mb-1">
+      <div className="flex justify-between text-sm text-muted-foreground mb-1">
         <span>{label || 'Progress'}</span>
         <span>{current} / {total} customers ({percentage}%)</span>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+      <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
         <div 
           className="bg-blue-600 h-3 rounded-full transition-all duration-300 ease-out"
           style={{ width: `${percentage}%` }}
@@ -395,7 +395,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
 
   return (
     <div>
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
+      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
         <div className="flex items-center gap-3 w-full"></div>
         <DarkModeToggle />
         <Button onClick={() => signOut()} type="submit">
@@ -414,27 +414,27 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
         {/* Search Section - Side by Side */}
         <div className={`mb-10 grid grid-cols-1 ${isSuperAdmin ? 'md:grid-cols-2' : ''} gap-6`}>
           {/* Customer Search */}
-          <div className="p-4 bg-gray-50 rounded-lg h-fit">
-            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
+          <div className="p-4 bg-muted/50 rounded-lg h-fit">
+            <h3 className="text-lg font-medium text-foreground mb-3 flex items-center gap-2">
               <Search className="h-5 w-5" />
               Search by Customer
             </h3>
             <div className="space-y-3">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   ref={searchRef}
                   placeholder="Search customer name..."
                   value={searchTerm}
                   onChange={handleInputChange}
-                  className="pl-10 pr-4 py-2 w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                  className="pl-10 pr-4 py-2 w-full"
                 />
                 {filteredCustomers.length > 0 && (
-                  <ul className="absolute z-10 w-full bg-white border border-gray-300 mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
+                  <ul className="absolute z-10 w-full bg-popover border mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
                     {filteredCustomers.map((customer, index) => (
                       <li 
                         key={index}
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        className="px-4 py-2 hover:bg-muted cursor-pointer text-popover-foreground"
                         onClick={() => handleCustomerSelect(customer)}
                       >
                         {customer}
@@ -455,8 +455,8 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
 
           {/* Month Search - Only visible to SuperAdmin */}
           {isSuperAdmin && (
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
+            <div className="p-4 bg-blue-500/10 dark:bg-blue-500/5 rounded-lg">
+              <h3 className="text-lg font-medium text-foreground mb-3 flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
                 Search by Month (All Customers)
               </h3>
@@ -464,7 +464,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
                 <select
                   value={selectedSearchMonth}
                   onChange={(e) => setSelectedSearchMonth(e.target.value)}
-                  className="block w-full px-3 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  className="block w-full px-3 py-2 text-foreground bg-background border rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value="">Select a month...</option>
                   {monthOptions.map((option) => (
@@ -498,7 +498,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
         {searchMode === 'customer' && customerName && (
           <>
             <div className="mb-6">
-              <h2 className="text-3xl font-bold text-gray-900">Customer: {customerName}</h2>
+              <h2 className="text-3xl font-bold text-foreground">Customer: {customerName}</h2>
             </div>
             
             {billData.length > 0 && (
@@ -510,13 +510,13 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
                 />
                 <div className="space-y-8">
                   {filteredBillData.map((entry, index) => (
-                    <div key={index} className="bg-white shadow rounded-lg overflow-hidden">
-                      <div className="px-6 py-4 border-b border-gray-200">
+                    <div key={index} className="bg-card shadow rounded-lg overflow-hidden border">
+                      <div className="px-6 py-4 border-b">
                         <div className="flex justify-between items-center">
-                          <h3 className="text-xl font-semibold text-gray-900">{entry.dueMonth}</h3>
+                          <h3 className="text-xl font-semibold text-foreground">{entry.dueMonth}</h3>
                           <div className="flex items-center space-x-4">
-                            <p className="text-l text-gray-900">Total Amount:</p>
-                            <p className="text-xl font-bold text-gray-900">{entry.totalAmount.toLocaleString('en-IN')}</p>
+                            <p className="text-l text-foreground">Total Amount:</p>
+                            <p className="text-xl font-bold text-foreground">{entry.totalAmount.toLocaleString('en-IN')}</p>
                             <Button
                               onClick={() => toggleMonthExpansion(entry.dueMonth)}
                               variant="outline"
@@ -538,28 +538,28 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
                       </div>
                       {expandedMonths.has(entry.dueMonth) && (
                         <div className="px-6 py-4 overflow-x-auto">
-                          <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                          <table className="min-w-full divide-y divide-border">
+                            <thead className="bg-muted/50">
                               <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inward Number</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date (From - To)</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stored Qty</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Labour Cost</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Inward Number</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Date (From - To)</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Item Name</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Stored Qty</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Rate</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Labour Cost</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Amount</th>
                               </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="divide-y divide-border">
                               {entry.items.map((item, itemIndex) => (
-                                <tr key={itemIndex} className={itemIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.inwardNumber}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.dateRange || '-'}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.itemName || '-'}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{(item.storedQuantity || 0).toLocaleString('en-IN')}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{(item.rate || 0).toLocaleString('en-IN')}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.labourCost.toLocaleString('en-IN')}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.sum.toLocaleString('en-IN')}</td>
+                                <tr key={itemIndex} className={itemIndex % 2 === 0 ? 'bg-muted/30' : ''}>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">{item.inwardNumber}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{item.dateRange || '-'}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{item.itemName || '-'}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{(item.storedQuantity || 0).toLocaleString('en-IN')}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{(item.rate || 0).toLocaleString('en-IN')}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{item.labourCost.toLocaleString('en-IN')}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{item.sum.toLocaleString('en-IN')}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -573,7 +573,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
             )}
             
             {billData.length === 0 && !isLoading && (
-              <p className="text-center text-gray-500 mt-8">No bill data found for this customer.</p>
+              <p className="text-center text-muted-foreground mt-8">No bill data found for this customer.</p>
             )}
           </>
         )}
@@ -586,7 +586,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
               <div className="flex justify-end mb-8">
                 <Button 
                   onClick={handlePrint}
-                  className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900"
+                  className="flex items-center gap-2"
                 >
                   <Printer className="h-4 w-4" />
                   Print Summary
@@ -595,49 +595,49 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
             )}
             {/* Printable Content */}
             <div ref={printRef}>
-              <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">Monthly Bill Summary</h1>
-              <p className="text-center text-gray-600 mb-6">{searchedMonth} - {monthBillData.length} customer(s)</p>
+              <h1 className="text-2xl font-bold text-center text-foreground mb-2">Monthly Bill Summary</h1>
+              <p className="text-center text-muted-foreground mb-6">{searchedMonth} - {monthBillData.length} customer(s)</p>
               
               {monthBillData.length > 0 && (
                 <>
                   {/* Monthly Total Summary */}
-                  <div className="bg-green-50 border-2 border-green-500 rounded-lg p-6 mb-6">
+                  <div className="bg-green-500/10 dark:bg-green-500/5 border-2 border-green-500 dark:border-green-600 rounded-lg p-6 mb-6">
                     <div className="flex justify-between items-center">
                       <div>
-                        <h3 className="text-xl font-bold text-green-800">{searchedMonth} - Total Bill</h3>
-                        <p className="text-green-600 text-sm mt-1">Sum of all {monthBillData.length} customer bills</p>
+                        <h3 className="text-xl font-bold text-green-700 dark:text-green-400">{searchedMonth} - Total Bill</h3>
+                        <p className="text-green-600 dark:text-green-500 text-sm mt-1">Sum of all {monthBillData.length} customer bills</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-3xl font-bold text-green-800">{monthTotal.toLocaleString('en-IN')}</p>
+                        <p className="text-3xl font-bold text-green-700 dark:text-green-400">{monthTotal.toLocaleString('en-IN')}</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Summary Table */}
-                  <div className="bg-white shadow rounded-lg overflow-hidden mb-6">
-                    <div className="px-6 py-4 bg-gray-100 border-b border-gray-200">
-                      <h3 className="text-lg font-semibold text-gray-900">Customer Bills - {searchedMonth}</h3>
+                  <div className="bg-card shadow rounded-lg overflow-hidden mb-6 border">
+                    <div className="px-6 py-4 bg-muted/50 border-b">
+                      <h3 className="text-lg font-semibold text-foreground">Customer Bills - {searchedMonth}</h3>
                     </div>
                     <div className="px-6 py-4 overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                      <table className="min-w-full divide-y divide-border">
+                        <thead className="bg-muted/50">
                           <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
-                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Bill Amount</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">S.No</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Customer Name</th>
+                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Bill Amount</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="divide-y divide-border">
                           {monthBillData.map((customerBill, index) => (
-                            <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{customerBill.customerName}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">{customerBill.totalAmount.toLocaleString('en-IN')}</td>
+                            <tr key={index} className={index % 2 === 0 ? 'bg-muted/30' : ''}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{index + 1}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">{customerBill.customerName}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground text-right">{customerBill.totalAmount.toLocaleString('en-IN')}</td>
                             </tr>
                           ))}
-                          <tr className="bg-green-100 font-bold">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" colSpan={2}>TOTAL</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-green-800 text-right">{monthTotal.toLocaleString('en-IN')}</td>
+                          <tr className="bg-green-500/10 dark:bg-green-500/5 font-bold">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground" colSpan={2}>TOTAL</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-green-700 dark:text-green-400 text-right">{monthTotal.toLocaleString('en-IN')}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -649,7 +649,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
 
             
             {monthBillData.length === 0 && (
-              <p className="text-center text-gray-500 mt-8">No bill data found for {searchedMonth}.</p>
+              <p className="text-center text-muted-foreground mt-8">No bill data found for {searchedMonth}.</p>
             )}
           </>
         )}

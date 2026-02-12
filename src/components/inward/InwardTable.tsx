@@ -139,7 +139,7 @@ export const columns: ColumnDef<InwardDataProps>[] = [
       
       return (
         <div className="flex items-center">
-          <FaCalendarAlt className="mr-2 text-gray-500" />
+          <FaCalendarAlt className="mr-2 text-muted-foreground" />
           <div className="capitalize">{formattedDate}</div>
         </div>
       );
@@ -281,10 +281,10 @@ const InwardTable = ({ data }: any) => {
 
   return (
     <div>
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
+      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
         <div className="flex items-center gap-3 w-full">
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search Inward Number..."
               value={(table?.getColumn("inumber")?.getFilterValue() as string) ?? ""}
@@ -293,7 +293,7 @@ const InwardTable = ({ data }: any) => {
             />
           </div>
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search Customer..."
               value={(table?.getColumn("customer")?.getFilterValue() as string) ?? ""}
@@ -412,14 +412,14 @@ const InwardTable = ({ data }: any) => {
               {table.getFilteredRowModel().rows.length} row(s) selected.
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-700">Rows per page:</span>
+              <span className="text-sm text-muted-foreground">Rows per page:</span>
               <select
                 value={pageSize === data.length ? 100000000 : pageSize}
                 onChange={e => {
                   const newSize = Number(e.target.value);
                   setPageSize(newSize === 100000000 ? data.length : newSize);
                 }}
-                className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="block rounded-md border shadow-sm focus:border-primary focus:ring focus:ring-ring focus:ring-opacity-50 bg-background text-foreground"
               >
                 {[10, 20, 50, 100, 500, 1000, 100000000].map(size => (
                   <option key={size} value={size}>
