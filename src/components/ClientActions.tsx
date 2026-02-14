@@ -108,7 +108,7 @@ const ClientActions = ({ row }: any) => {
 
             {/* Permissions Section */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium text-gray-700">
+              <Label className="text-sm font-medium text-foreground">
                 Permissions
               </Label>
 
@@ -129,7 +129,7 @@ const ClientActions = ({ row }: any) => {
 
 
               {/* Super Admin Toggle */}
-              <div className="flex items-center justify-between rounded-lg border border-purple-200 bg-purple-50 p-3">
+              <div className="flex items-center justify-between rounded-lg border border-purple-300 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30 p-3">
                 <Label htmlFor="isSuperAdmin" className="text-sm font-medium cursor-pointer">
                   Super Admin
                 </Label>
@@ -143,7 +143,7 @@ const ClientActions = ({ row }: any) => {
 
             {/* Access Type Section */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium text-gray-700">
+              <Label className="text-sm font-medium text-foreground">
                 Access Type
               </Label>
               <Select

@@ -14,6 +14,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown, Search, KeyRound, UserPlus } from "lucide-react";
+import DarkModeToggle from "./DarkModeToggle";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -73,8 +74,8 @@ const AccessCell = ({ loginToken }: { loginToken: string | null | boolean }) => 
       <span
         className={`px-2 py-1 rounded-full text-xs font-medium ${
           isWorldWide
-            ? "bg-blue-100 text-blue-800"
-            : "bg-orange-100 text-orange-800"
+            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+            : "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300"
         }`}
       >
         {isWorldWide ? "World Wide" : "Token Based"}
@@ -149,8 +150,8 @@ export const columns: ColumnDef<UserData>[] = [
         <span
           className={`px-2 py-1 rounded-full text-xs font-medium ${
             isAdmin
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
+              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+              : "bg-muted text-muted-foreground"
           }`}
         >
           {isAdmin ? "True" : "False"}
@@ -167,8 +168,8 @@ export const columns: ColumnDef<UserData>[] = [
         <span
           className={`px-2 py-1 rounded-full text-xs font-medium ${
             isSuperAdmin
-              ? "bg-purple-100 text-purple-800"
-              : "bg-gray-100 text-gray-800"
+              ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
+              : "bg-muted text-muted-foreground"
           }`}
         >
           {isSuperAdmin ? "True" : "False"}
@@ -221,10 +222,10 @@ const ClientsData = ({ data }: { data: UserData[] }) => {
 
   return (
     <div className="w-full">
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
+      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
         <div className="flex items-center gap-3 w-full">
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search name..."
               value={
@@ -271,6 +272,7 @@ const ClientsData = ({ data }: { data: UserData[] }) => {
             Create User
           </Button>
         </Link>
+        <DarkModeToggle />
         <Button
           onClick={(e) => {
             e.preventDefault();
@@ -312,7 +314,7 @@ const ClientsData = ({ data }: { data: UserData[] }) => {
                       data-state={row.getIsSelected() && "selected"}
                       className={
                         isSuperAdmin
-                          ? "bg-purple-50 hover:bg-purple-100"
+                          ? "bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/30 dark:hover:bg-purple-950/50"
                           : undefined
                       }
                     >

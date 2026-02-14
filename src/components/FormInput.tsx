@@ -12,11 +12,11 @@ type Props = {
 const FormInput = ({ name, type, placeholder, label, defaultValue }: Props) => {
   return (
     <div className="mb-4">
-      <Label htmlFor="name" className="mb-2 text-sm font-medium text-gray-700">
+      <Label htmlFor="name" className="mb-2 text-sm font-medium text-foreground">
         {label}
       </Label>
       <Input
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-200"
+        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-ring"
         type={type}
         name={name}
         placeholder={placeholder}

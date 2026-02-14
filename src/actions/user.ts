@@ -110,9 +110,14 @@ export const addUpdateInward = async (formData: FormData, data: any) => {
     return { error: "All fields are required" };
   }
 
+  const session = await auth();
+  const userEmail = session?.user?.email || "unknown";
+  const userName = session?.user?.name || "unknown";
+
   let inward;
   try {
     if (data?.id) {
+      const oldRecord = await db.inward.findUnique({ where: { id: data.id } });
       inward = await db.inward.update({
         where: { id: data?.id },
         data: {
@@ -125,6 +130,33 @@ export const addUpdateInward = async (formData: FormData, data: any) => {
           quantity,
           store_rate,
           labour_rate,
+        },
+      });
+      // Audit log for update
+      const changes: Record<string, { old: any; new: any }> = {};
+      if (oldRecord) {
+        if (oldRecord.inumber !== inumber) changes.inumber = { old: oldRecord.inumber, new: inumber };
+        if (oldRecord.customer !== customer) changes.customer = { old: oldRecord.customer, new: customer };
+        if (oldRecord.item !== item) changes.item = { old: oldRecord.item, new: item };
+        if (oldRecord.packing !== packing) changes.packing = { old: oldRecord.packing, new: packing };
+        if (oldRecord.weight !== weight) changes.weight = { old: oldRecord.weight, new: weight };
+        if (oldRecord.quantity !== quantity) changes.quantity = { old: oldRecord.quantity, new: quantity };
+        if (oldRecord.store_rate !== store_rate) changes.store_rate = { old: oldRecord.store_rate, new: store_rate };
+        if (oldRecord.labour_rate !== labour_rate) changes.labour_rate = { old: oldRecord.labour_rate, new: labour_rate };
+        if (oldRecord.addDate.toISOString() !== addDate.toISOString()) changes.addDate = { old: oldRecord.addDate.toISOString(), new: addDate.toISOString() };
+      }
+      await db.auditLog.create({
+        data: {
+          action: "update",
+          entity: "inward",
+          entityId: data.id,
+          user: userEmail,
+          userName,
+          customer,
+          inumber,
+          item,
+          quantity,
+          changes: JSON.stringify(changes),
         },
       });
     } else {
@@ -141,6 +173,20 @@ export const addUpdateInward = async (formData: FormData, data: any) => {
           labour_rate,
         },
       });
+      // Audit log for create
+      await db.auditLog.create({
+        data: {
+          action: "create",
+          entity: "inward",
+          entityId: inward.id,
+          user: userEmail,
+          userName,
+          customer,
+          inumber,
+          item,
+          quantity,
+        },
+      });
     }
     if (!inward) {
       return { error: "failed to create inward data" };
@@ -150,6 +196,7 @@ export const addUpdateInward = async (formData: FormData, data: any) => {
   }
 
   revalidatePath(`/dashboard/inward`);
+  revalidatePath(`/dashboard/logs`);
   return inward;
 };
 
@@ -157,10 +204,34 @@ export const addUpdateInward = async (formData: FormData, data: any) => {
 
 export const DeleteInward = async (id: string) => {
   try {
+    const session = await auth();
+    const userEmail = session?.user?.email || "unknown";
+    const userName = session?.user?.name || "unknown";
+
+    const record = await db.inward.findUnique({ where: { id } });
     const result = await db.inward.delete({
       where: { id },
     });
+
+    // Audit log for delete
+    if (record) {
+      await db.auditLog.create({
+        data: {
+          action: "delete",
+          entity: "inward",
+          entityId: id,
+          user: userEmail,
+          userName,
+          customer: record.customer,
+          inumber: record.inumber,
+          item: record.item,
+          quantity: record.quantity,
+        },
+      });
+    }
+
     revalidatePath("/dashboard/inward");
+    revalidatePath("/dashboard/logs");
     if (!result) {
       return { error: "inward not deleted" };
     }
@@ -184,9 +255,14 @@ export const addUpdateOutward = async (formData: FormData, data: any) => {
     return { error: "All fields are required" };
   }
 
+  const session = await auth();
+  const userEmail = session?.user?.email || "unknown";
+  const userName = session?.user?.name || "unknown";
+
   let outward;
   try {
     if (data?.id) {
+      const oldRecord = await db.outward.findUnique({ where: { id: data.id } });
       outward = await db.outward.update({
         where: { id: data?.id },
         data: {
@@ -196,6 +272,30 @@ export const addUpdateOutward = async (formData: FormData, data: any) => {
           customer,
           item,
           quantity,
+        },
+      });
+      // Audit log for update
+      const changes: Record<string, { old: any; new: any }> = {};
+      if (oldRecord) {
+        if (oldRecord.onumber !== onumber) changes.onumber = { old: oldRecord.onumber, new: onumber };
+        if (oldRecord.inumber !== inumber) changes.inumber = { old: oldRecord.inumber, new: inumber };
+        if (oldRecord.customer !== customer) changes.customer = { old: oldRecord.customer, new: customer };
+        if (oldRecord.item !== item) changes.item = { old: oldRecord.item, new: item };
+        if (oldRecord.quantity !== quantity) changes.quantity = { old: oldRecord.quantity, new: quantity };
+        if (oldRecord.outDate.toISOString() !== outDate.toISOString()) changes.outDate = { old: oldRecord.outDate.toISOString(), new: outDate.toISOString() };
+      }
+      await db.auditLog.create({
+        data: {
+          action: "update",
+          entity: "outward",
+          entityId: data.id,
+          user: userEmail,
+          userName,
+          customer,
+          inumber,
+          item,
+          quantity,
+          changes: JSON.stringify(changes),
         },
       });
     } else {
@@ -209,6 +309,20 @@ export const addUpdateOutward = async (formData: FormData, data: any) => {
           quantity,
         },
       });
+      // Audit log for create
+      await db.auditLog.create({
+        data: {
+          action: "create",
+          entity: "outward",
+          entityId: outward.id,
+          user: userEmail,
+          userName,
+          customer,
+          inumber,
+          item,
+          quantity,
+        },
+      });
     }
     if (!outward) {
       return { error: "failed to create outward data" };
@@ -218,6 +332,7 @@ export const addUpdateOutward = async (formData: FormData, data: any) => {
   }
 
   revalidatePath(`/dashboard/outward`);
+  revalidatePath(`/dashboard/logs`);
   return outward;
 };
 
@@ -225,14 +340,78 @@ export const addUpdateOutward = async (formData: FormData, data: any) => {
 
 export const DeleteOutward = async (id: string) => {
   try {
+    const session = await auth();
+    const userEmail = session?.user?.email || "unknown";
+    const userName = session?.user?.name || "unknown";
+
+    const record = await db.outward.findUnique({ where: { id } });
     const result = await db.outward.delete({
       where: { id },
     });
+
+    // Audit log for delete
+    if (record) {
+      await db.auditLog.create({
+        data: {
+          action: "delete",
+          entity: "outward",
+          entityId: id,
+          user: userEmail,
+          userName,
+          customer: record.customer,
+          inumber: record.inumber,
+          item: record.item,
+          quantity: record.quantity,
+        },
+      });
+    }
+
     revalidatePath("/dashboard/outward");
+    revalidatePath("/dashboard/logs");
     if (!result) {
       return { error: "outward not deleted" };
     }
   } catch (error) {
     return { error: "outward not deleted" };
+  }
+};
+
+// delete a single audit log
+export const deleteAuditLog = async (id: string) => {
+  try {
+    const result = await db.auditLog.delete({
+      where: { id },
+    });
+    revalidatePath("/dashboard/logs");
+    if (!result) {
+      return { error: "Audit log not deleted" };
+    }
+  } catch (error) {
+    return { error: "Audit log not deleted" };
+  }
+};
+
+// delete all audit logs for a specific date
+export const deleteAuditLogsByDate = async (dateString: string) => {
+  try {
+    const date = new Date(dateString);
+    const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+
+    const result = await db.auditLog.deleteMany({
+      where: {
+        createdAt: {
+          gte: startOfDay,
+          lt: endOfDay,
+        },
+      },
+    });
+    revalidatePath("/dashboard/logs");
+    if (!result) {
+      return { error: "Audit logs not deleted" };
+    }
+    return { deleted: result.count };
+  } catch (error) {
+    return { error: "Audit logs not deleted" };
   }
 };

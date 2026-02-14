@@ -111,11 +111,11 @@ const OutwardData = ({ title, data }: Props) => {
                     className="mt-2"
                   />
                   {filteredCustomers.length > 0 && (
-                    <ul className="z-10 w-full bg-white border border-gray-300 mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
+                    <ul className="z-10 w-full bg-popover border mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
                       {filteredCustomers.map((customer, index) => (
                         <li 
                           key={index}
-                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                          className="px-4 py-2 hover:bg-muted cursor-pointer text-popover-foreground"
                           onClick={() => handleCustomerSelect(customer)}
                         >
                           {customer}

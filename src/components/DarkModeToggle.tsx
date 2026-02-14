@@ -13,7 +13,7 @@ const DarkModeToggle = () => {
 
   return (
     <button
-      className="bg-gray-200 dark:bg-gray-800 rounded-full p-2"
+      className="bg-muted rounded-full p-2"
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
     >
       {theme === 'dark' ? '🌞' : '🌙'}

@@ -263,7 +263,7 @@ const LabourBillPage = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
+      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
         <div className="flex items-center gap-3 w-full"></div>
         <DarkModeToggle />
         <Button onClick={() => signOut()} type="submit">
@@ -280,8 +280,8 @@ const LabourBillPage = () => {
         </div>
 
         {/* Search Section */}
-        <div className="mb-8 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
+        <div className="mb-8 p-4 bg-muted/50 rounded-lg">
+          <h3 className="text-lg font-medium text-foreground mb-3 flex items-center gap-2">
             <Calendar className="h-5 w-5" />
             Select Date
           </h3>
@@ -310,34 +310,34 @@ const LabourBillPage = () => {
           <div className="space-y-8">
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-blue-800 mb-2">
+              <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300 mb-2">
                   <MonitorDown className="h-5 w-5" />
                   <h4 className="font-semibold">Inward Labour</h4>
                 </div>
-                <p className="text-2xl font-bold text-blue-900">
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
                   Rs. {labourData.inwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </p>
-                <p className="text-sm text-blue-600">{labourData.inwardData.length} record(s)</p>
+                <p className="text-sm text-blue-600 dark:text-blue-400">{labourData.inwardData.length} record(s)</p>
               </div>
 
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-orange-800 mb-2">
+              <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-orange-800 dark:text-orange-300 mb-2">
                   <MonitorUp className="h-5 w-5" />
                   <h4 className="font-semibold">Outward Labour</h4>
                 </div>
-                <p className="text-2xl font-bold text-orange-900">
+                <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
                   Rs. {labourData.outwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </p>
-                <p className="text-sm text-orange-600">{labourData.outwardData.length} record(s)</p>
+                <p className="text-sm text-orange-600 dark:text-orange-400">{labourData.outwardData.length} record(s)</p>
               </div>
 
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h4 className="font-semibold text-green-800 mb-2">Grand Total</h4>
-                <p className="text-2xl font-bold text-green-900">
+              <div className="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                <h4 className="font-semibold text-green-800 dark:text-green-300 mb-2">Grand Total</h4>
+                <p className="text-2xl font-bold text-green-900 dark:text-green-100">
                   Rs. {labourData.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </p>
-                <p className="text-sm text-green-600">
+                <p className="text-sm text-green-600 dark:text-green-400">
                   {labourData.inwardData.length + labourData.outwardData.length} total record(s)
                 </p>
               </div>
@@ -345,13 +345,13 @@ const LabourBillPage = () => {
 
             {/* Inward Table */}
             {labourData.inwardData.length > 0 && (
-              <div className="bg-white shadow rounded-lg overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200 bg-blue-50">
-                  <h3 className="text-xl font-semibold text-blue-900 flex items-center gap-2">
+              <div className="bg-card shadow rounded-lg overflow-hidden border">
+                <div className="px-6 py-4 border-b bg-blue-500/10 dark:bg-blue-500/5">
+                  <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-200 flex items-center gap-2">
                     <MonitorDown className="h-5 w-5" />
                     Inward Labour - {formatDate(labourData.searchDate)}
                   </h3>
-                  <p className="text-sm text-blue-600 mt-1">Items received on this date</p>
+                  <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">Items received on this date</p>
                 </div>
                 <div className="px-6 py-4 overflow-x-auto">
                   <Table>
@@ -384,11 +384,11 @@ const LabourBillPage = () => {
                           </TableCell>
                         </TableRow>
                       ))}
-                      <TableRow className="bg-blue-100">
+                      <TableRow className="bg-blue-100 dark:bg-blue-950/50">
                         <TableCell colSpan={8} className="text-right font-bold">
                           Inward Total:
                         </TableCell>
-                        <TableCell className="text-right font-bold text-blue-900">
+                        <TableCell className="text-right font-bold text-blue-900 dark:text-blue-200">
                           Rs. {labourData.inwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </TableCell>
                       </TableRow>
@@ -400,13 +400,13 @@ const LabourBillPage = () => {
 
             {/* Outward Table */}
             {labourData.outwardData.length > 0 && (
-              <div className="bg-white shadow rounded-lg overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200 bg-orange-50">
-                  <h3 className="text-xl font-semibold text-orange-900 flex items-center gap-2">
+              <div className="bg-card shadow rounded-lg overflow-hidden border">
+                <div className="px-6 py-4 border-b bg-orange-500/10 dark:bg-orange-500/5">
+                  <h3 className="text-xl font-semibold text-orange-900 dark:text-orange-200 flex items-center gap-2">
                     <MonitorUp className="h-5 w-5" />
                     Outward Labour - {formatDate(labourData.searchDate)}
                   </h3>
-                  <p className="text-sm text-orange-600 mt-1">Items dispatched on this date</p>
+                  <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">Items dispatched on this date</p>
                 </div>
                 <div className="px-6 py-4 overflow-x-auto">
                   <Table>
@@ -437,11 +437,11 @@ const LabourBillPage = () => {
                           </TableCell>
                         </TableRow>
                       ))}
-                      <TableRow className="bg-orange-100">
+                      <TableRow className="bg-orange-100 dark:bg-orange-950/50">
                         <TableCell colSpan={7} className="text-right font-bold">
                           Outward Total:
                         </TableCell>
-                        <TableCell className="text-right font-bold text-orange-900">
+                        <TableCell className="text-right font-bold text-orange-900 dark:text-orange-200">
                           Rs. {labourData.outwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </TableCell>
                       </TableRow>
@@ -453,18 +453,18 @@ const LabourBillPage = () => {
 
             {/* No Data Messages */}
             {labourData.inwardData.length === 0 && labourData.outwardData.length === 0 && (
-              <div className="text-center py-12 bg-gray-50 rounded-lg">
-                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900">No Records Found</h3>
-                <p className="text-gray-500 mt-2">
+              <div className="text-center py-12 bg-muted/50 rounded-lg">
+                <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground">No Records Found</h3>
+                <p className="text-muted-foreground mt-2">
                   No inward or outward records found for {formatDate(labourData.searchDate)}
                 </p>
               </div>
             )}
 
             {/* Formula Note */}
-            <div className="bg-gray-100 rounded-lg p-4 text-center">
-              <p className="text-sm text-gray-600">
+            <div className="bg-muted rounded-lg p-4 text-center">
+              <p className="text-sm text-muted-foreground">
                 <strong>Formula:</strong> Labour Cost = Quantity × (Labour Rate ÷ 2)
               </p>
             </div>

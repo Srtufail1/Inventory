@@ -3,8 +3,8 @@ import React from "react";
 
 const AuthDesign = () => {
   return (
-    <div className="flex justify-center items-center min-h-[90vh] bg-gray-50">
-      <div className="flex flex-col items-center justify-center py-12 px-6 sm:px-10 text-gray-800 w-full max-w-md bg-white shadow-xl rounded-xl transition-all duration-300 ease-in-out transform hover:scale-105">
+    <div className="flex justify-center items-center min-h-[90vh] bg-muted/30">
+      <div className="flex flex-col items-center justify-center py-12 px-6 sm:px-10 text-foreground w-full max-w-md bg-card shadow-xl rounded-xl transition-all duration-300 ease-in-out transform hover:scale-105">
         <h2 className="text-2xl font-bold text-center mb-6">
           Welcome to ZamZam Cold Storage
         </h2>
@@ -19,7 +19,7 @@ const AuthDesign = () => {
             Sign Up
           </Link>
           <div className="my-4 text-center">
-            <span className="px-3 text-sm text-gray-500 font-semibold">OR</span>
+            <span className="px-3 text-sm text-muted-foreground font-semibold">OR</span>
           </div>
           <Link
             href="/login"

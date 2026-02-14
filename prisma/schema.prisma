@@ -67,3 +67,23 @@ model Note {
   @@index([type])
   @@index([inumber])
 }
+
+model AuditLog {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  action      String   // "create", "update", "delete"
+  entity      String   // "inward", "outward"
+  entityId    String   // ID of the affected record
+  user        String   // email of the user who performed the action
+  userName    String   // name of the user
+  customer    String?  // customer name from the record
+  inumber     String?  // inward number from the record
+  item        String?  // item from the record
+  quantity    String?  // quantity from the record
+  changes     String?  // JSON string of old vs new values for updates
+  createdAt   DateTime @default(now())
+
+  @@index([entity])
+  @@index([action])
+  @@index([user])
+  @@index([createdAt])
+}

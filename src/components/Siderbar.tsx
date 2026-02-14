@@ -31,26 +31,24 @@ const Sidebar = ({ isSuperAdmin = false }: SidebarProps) => {
     <div>
       <div className="flex h-full max-h-screen flex-col gap-2">
         <div className="flex h-16 items-center border-b px-6">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
-            <LogsIcon /> ZamZam Cold Storage
+          <Link href="/" className="flex items-center gap-2 font-semibold text-foreground">
+            <LogsIcon className="h-5 w-5" /> ZamZam Cold Storage
           </Link>
         </div>
         <div className="flex-1 overflow-auto py-2">
-          <nav className="grid items-start px-4 text-sm font-medium">
+          <nav className="grid items-start px-3 text-sm font-medium">
             {filteredSidebar.map((item, index) => (
               <Link
                 href={item.link}
                 key={index}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-gray-900"
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all text-muted-foreground hover:text-foreground hover:bg-muted ${
+                  pathname === item.link
+                    ? "bg-muted text-foreground font-semibold"
+                    : ""
+                }`}
               >
-                <span
-                  className={`flex p-2 items-center gap-2 hover:bg-gray-100/50 ${
-                    pathname === item.link && "bg-gray-100/90"
-                  }`}
-                >
-                  {item.icon}
-                  {item.title}
-                </span>
+                <span className="h-4 w-4">{item.icon}</span>
+                <span>{item.title}</span>
               </Link>
             ))}
           </nav>

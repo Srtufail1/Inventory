@@ -309,7 +309,7 @@ const LedgerPage = () => {
 
   return (
     <div>
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
+      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
         <div className="w-full"></div>
         <DarkModeToggle />
         <Button onClick={() => signOut()} type="submit">
@@ -324,7 +324,7 @@ const LedgerPage = () => {
         </div>
         <div className="relative w-full flex items-center">
           <div className="relative w-1/4 mr-2">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               ref={searchRef}
               placeholder="Search customer name..."
@@ -333,11 +333,11 @@ const LedgerPage = () => {
               className="pl-8"
             />
             {filteredCustomers.length > 0 && (
-              <ul className="absolute z-10 w-full bg-white border border-gray-300 mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
+              <ul className="absolute z-10 w-full bg-popover border mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
                 {filteredCustomers.map((customer, index) => (
                   <li 
                     key={index}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    className="px-4 py-2 hover:bg-muted cursor-pointer text-popover-foreground"
                     onClick={() => handleCustomerSelect(customer)}
                   >
                     {customer}

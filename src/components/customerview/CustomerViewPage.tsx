@@ -94,10 +94,10 @@ const CustomerViewPage = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-gray-100/40 px-6">
+      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
         <div className="flex items-center gap-3 w-full">
-          <Eye className="h-5 w-5 text-gray-500" />
-          <span className="font-medium text-gray-700">Customer View</span>
+          <Eye className="h-5 w-5 text-muted-foreground" />
+          <span className="font-medium text-foreground">Customer View</span>
         </div>
         <DarkModeToggle />
         <Button onClick={() => signOut()} type="submit">
@@ -111,32 +111,32 @@ const CustomerViewPage = () => {
         </div>
 
         {/* Search Section */}
-        <div className="mb-8 p-4 bg-gray-50 rounded-lg max-w-xl">
-          <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
+        <div className="mb-8 p-4 bg-muted/50 rounded-lg max-w-xl">
+          <h3 className="text-lg font-medium text-foreground mb-3 flex items-center gap-2">
             <Search className="h-5 w-5" />
             Search Customer
           </h3>
-          <p className="text-sm text-gray-500 mb-3">
+          <p className="text-sm text-muted-foreground mb-3">
             Search for a customer to see their dashboard view (same view they
             see when they log in).
           </p>
           <div className="space-y-3">
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 ref={searchRef}
                 placeholder="Type customer name..."
                 value={searchTerm}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                className="pl-10 pr-4 py-2 w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                className="pl-10 pr-4 py-2 w-full"
               />
               {filteredCustomers.length > 0 && (
-                <ul className="absolute z-10 w-full bg-white border border-gray-300 mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
+                <ul className="absolute z-10 w-full bg-popover border mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
                   {filteredCustomers.map((customer, index) => (
                     <li
                       key={index}
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      className="px-4 py-2 hover:bg-muted cursor-pointer text-popover-foreground"
                       onClick={() => handleCustomerSelect(customer)}
                     >
                       {customer}
@@ -177,7 +177,7 @@ const CustomerViewPage = () => {
           !isLoading &&
           inwardData.length === 0 &&
           outwardData.length === 0 && (
-            <p className="text-center text-gray-500 mt-4">
+            <p className="text-center text-muted-foreground mt-4">
               No inward or outward records found for this customer.
             </p>
           )}
