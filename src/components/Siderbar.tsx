@@ -16,7 +16,9 @@ const Sidebar = ({ isSuperAdmin = false }: SidebarProps) => {
   const filteredSidebar = sidebar.filter((item) => {
     // Hide super-admin-only links for non-super-admins
     if (
-      (item.link === "/dashboard/clients" || 
+      (item.link === "/dashboard" ||
+       item.link === "/dashboard/logs" ||
+       item.link === "/dashboard/clients" || 
        item.link === "/dashboard/labour" || 
        item.link === "/dashboard/backup" ||
        item.link === "/dashboard/customerview") && 

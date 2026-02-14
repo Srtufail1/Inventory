@@ -1,8 +1,22 @@
 import React from "react";
 import { db } from "@/lib/db";
+import { auth } from "../../../auth";
+import { redirect } from "next/navigation";
 import DashboardSummary from "@/components/dashboard/DashboardSummary";
 
 const Dashboard = async () => {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/login");
+
+  const user = await db.user.findUnique({
+    where: { email: session.user.email },
+    select: { isSuperAdmin: true },
+  });
+
+  if (!user?.isSuperAdmin) {
+    redirect("/dashboard/inward");
+  }
+
   const [inwardData, outwardData, recentLogs] = await Promise.all([
     db.inward.findMany({
       select: {
