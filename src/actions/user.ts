@@ -375,3 +375,43 @@ export const DeleteOutward = async (id: string) => {
     return { error: "outward not deleted" };
   }
 };
+
+// delete a single audit log
+export const deleteAuditLog = async (id: string) => {
+  try {
+    const result = await db.auditLog.delete({
+      where: { id },
+    });
+    revalidatePath("/dashboard/logs");
+    if (!result) {
+      return { error: "Audit log not deleted" };
+    }
+  } catch (error) {
+    return { error: "Audit log not deleted" };
+  }
+};
+
+// delete all audit logs for a specific date
+export const deleteAuditLogsByDate = async (dateString: string) => {
+  try {
+    const date = new Date(dateString);
+    const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+
+    const result = await db.auditLog.deleteMany({
+      where: {
+        createdAt: {
+          gte: startOfDay,
+          lt: endOfDay,
+        },
+      },
+    });
+    revalidatePath("/dashboard/logs");
+    if (!result) {
+      return { error: "Audit logs not deleted" };
+    }
+    return { deleted: result.count };
+  } catch (error) {
+    return { error: "Audit logs not deleted" };
+  }
+};
