@@ -16,7 +16,7 @@ const Dashboard = async () => {
   const todayStart = startOfDay(now);
   const todayEnd = endOfDay(now);
 
-  const [inwardData, outwardData, recentLogs, allAuditLogs] = await Promise.all([
+  const [inwardData, outwardData, allAuditLogs] = await Promise.all([
     db.inward.findMany({
       select: {
         id: true,
@@ -41,10 +41,6 @@ const Dashboard = async () => {
         quantity: true,
       },
       orderBy: { outDate: "desc" },
-    }),
-    db.auditLog.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 5,
     }),
     db.auditLog.findMany({
       where: {
@@ -102,8 +98,8 @@ const Dashboard = async () => {
     quantity: item.quantity,
   }));
 
-  // Serialize audit logs
-  const serializedLogs = recentLogs.map((log) => ({
+  // Serialize audit logs — take 5 most recent from the already-fetched 30-day logs
+  const serializedLogs = allAuditLogs.slice(0, 5).map((log) => ({
     ...log,
     createdAt: log.createdAt.toISOString(),
   }));
