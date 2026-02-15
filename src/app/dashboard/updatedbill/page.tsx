@@ -13,10 +13,10 @@ const UpdatedBill = async () => {
 
   const user = await db.user.findUnique({
     where: { email: session.user.email },
-    select: { isAdmin: true }
+    select: { isSuperAdmin: true }
   });
 
-  return <UpdatedBillPage isSuperAdmin={user?.isAdmin === true} />;
+  return <UpdatedBillPage isSuperAdmin={user?.isSuperAdmin === true} />;
 };
 
 export default UpdatedBill;

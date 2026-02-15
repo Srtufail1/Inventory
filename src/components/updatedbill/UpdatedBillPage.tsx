@@ -217,7 +217,7 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
           storeCost: entry.amount,
           labourCost: 0,
           sum: entry.amount,
-          dateRange: entry.dates,
+          dateRange: nextPeriodQty === 0 ? `${entry.dates} (NIL)` : entry.dates,
           itemName: itemName,
           storedQuantity: parseInt(entry.quantity) || 0,
           rate: parseFloat(entry.storeRate) || 0,
@@ -443,9 +443,6 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
             <h1 className="text-3xl font-bold tracking-tight">
               Updated Bill
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Bills are pulled back one month when stored quantity becomes zero.
-            </p>
           </div>
         </div>
       </div>
