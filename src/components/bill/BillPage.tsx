@@ -38,6 +38,9 @@ type MonthSelectorProps = {
   onSelectMonth: (month: string | null) => void;
 };
 
+// Item translation map type
+export type ItemTranslationMap = Map<string, string>;
+
 const MonthSelector: React.FC<MonthSelectorProps> = ({ months, selectedMonth, onSelectMonth }) => (
   <div className="mb-6">
     <label htmlFor="month-select" className="block text-sm font-medium text-foreground mb-2">Select Month</label>
@@ -126,7 +129,31 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
   const [searchProgress, setSearchProgress] = useState({ current: 0, total: 0 });
   const [isMonthSearching, setIsMonthSearching] = useState(false);
 
+  // Item translations state
+  const [itemTranslations, setItemTranslations] = useState<ItemTranslationMap>(new Map());
+
   const monthOptions = generateMonthOptions();
+
+  // Fetch item translations on mount
+  useEffect(() => {
+    const fetchTranslations = async () => {
+      try {
+        const res = await fetch('/api/item-translations');
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          const map = new Map<string, string>();
+          data.forEach((item: { englishName: string; urduName: string }) => {
+            map.set(item.englishName.toLowerCase().trim(), item.urduName);
+          });
+          setItemTranslations(map);
+          console.log('Item translations loaded:', map.size, 'entries', Object.fromEntries(map));
+        }
+      } catch (error) {
+        console.error('Failed to fetch item translations:', error);
+      }
+    };
+    fetchTranslations();
+  }, []);
 
   useEffect(() => {
     if (!searchTerm || loading || hasSelected) {
@@ -360,7 +387,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
     const billEntry = billData.find(e => e.dueMonth === month);
     
     if (items && billEntry) {
-      generateCustomerPdf(items, billEntry.totalAmount, customerName, month);
+      generateCustomerPdf(items, billEntry.totalAmount, customerName, month, itemTranslations);
     }
   };
 
@@ -385,6 +412,13 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
   const getUniqueMonths = (data: BillEntry[]): string[] => {
     const monthSet = new Set(data.map(entry => entry.dueMonth));
     return Array.from(monthSet).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+  };
+
+  // Helper to get translated item name for display
+  const getTranslatedItemName = (englishName: string | undefined): string => {
+    if (!englishName) return '-';
+    const urdu = itemTranslations.get(englishName.toLowerCase());
+    return urdu || englishName;
   };
 
   const uniqueMonths = getUniqueMonths(billData);

@@ -1,4 +1,4 @@
-import { BillItemEntry } from './BillPage';
+import { BillItemEntry, ItemTranslationMap } from './BillPage';
 
 // Helper function to escape HTML special characters (prevents XSS)
 const escapeHtml = (value: string): string =>
@@ -20,6 +20,17 @@ const escapeHtml = (value: string): string =>
         return char;
     }
   });
+
+// Helper to get translated item name (Urdu if available, else English)
+const getTranslatedItemName = (
+  englishName: string | undefined,
+  translations: ItemTranslationMap
+): string => {
+  if (!englishName || englishName === 'N/A') return englishName || 'N/A';
+  const key = englishName.toLowerCase().trim();
+  const urdu = translations.get(key);
+  return urdu || englishName;
+};
 
 // Number to words function (Pakistani numbering system)
 const numberToWords = (num: number): string => {
@@ -91,7 +102,8 @@ export const generateCustomerPdf = (
   items: BillItemEntry[],
   totalAmount: number,
   customerName: string,
-  month: string
+  month: string,
+  itemTranslations: ItemTranslationMap = new Map()
 ) => {
   if (!items || items.length === 0) return;
 
@@ -106,18 +118,29 @@ export const generateCustomerPdf = (
     year: 'numeric'
   });
 
-  const tableRows = items.map((item, index) => `
+  // Check if any item has an Urdu translation
+  const hasUrduItems = items.some(item => {
+    if (!item.itemName || item.itemName === 'N/A') return false;
+    return itemTranslations.has(item.itemName.toLowerCase());
+  });
+
+  const tableRows = items.map((item, index) => {
+    const translatedName = getTranslatedItemName(item.itemName, itemTranslations);
+    const isUrdu = item.itemName && item.itemName !== 'N/A' && itemTranslations.has(item.itemName.toLowerCase());
+    
+    return `
     <tr>
       <td>${index + 1}</td>
       <td>${escapeHtml(item.inwardNumber)}</td>
       <td>${escapeHtml(item.dateRange || '')}</td>
-      <td>${escapeHtml(item.itemName || 'N/A')}</td>
+      <td ${isUrdu ? 'dir="rtl" class="urdu-text"' : ''}>${escapeHtml(translatedName)}</td>
       <td class="text-right">${(item.storedQuantity || 0).toLocaleString('en-PK')}</td>
       <td class="text-right">${(item.rate || 0).toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
       <td class="text-right">${(item.labourCost || 0).toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
       <td class="text-right">${(item.sum || 0).toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 
   const amountInWords = numberToWords(totalAmount);
 
@@ -148,6 +171,13 @@ export const generateCustomerPdf = (
             min-height: 297mm;
             padding: 8mm 10mm;
             margin: 0 auto;
+          }
+
+          /* Urdu font support */
+          .urdu-text {
+            font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Urdu Typesetting', 'Segoe UI', Tahoma, sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
           }
           
           /* PRINT OPTIMIZATION */

@@ -1,28 +1,26 @@
 import React from "react";
-import LabourBillPage from "@/components/labour/LabourBillPage";
+import ItemTranslationsPage from "@/components/item-translations/ItemTranslationsPage";
 import { auth } from "../../../../auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 
-const Labour = async () => {
+const ItemTranslations = async () => {
   const session = await auth();
-  
+
   if (!session?.user?.email) {
     redirect("/login");
   }
 
-  // Check if user is admin
   const user = await db.user.findUnique({
     where: { email: session.user.email },
-    select: { isAdmin: true },
+    select: { isSuperAdmin: true },
   });
 
-  // Not an admin - redirect
-  if (!user?.isAdmin) {
+  if (!user?.isSuperAdmin) {
     redirect("/dashboard/inward");
   }
 
-  return <LabourBillPage />;
+  return <ItemTranslationsPage />;
 };
 
-export default Labour;
+export default ItemTranslations;
