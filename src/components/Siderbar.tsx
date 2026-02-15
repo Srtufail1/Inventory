@@ -21,7 +21,8 @@ const Sidebar = ({ isSuperAdmin = false }: SidebarProps) => {
        item.link === "/dashboard/clients" || 
        item.link === "/dashboard/labour" || 
        item.link === "/dashboard/backup" ||
-       item.link === "/dashboard/customerview") && 
+       item.link === "/dashboard/customerview" ||
+       item.link === "/dashboard/item-translations") && 
       !isSuperAdmin
     ) {
       return false;
