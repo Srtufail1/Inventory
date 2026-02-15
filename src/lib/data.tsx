@@ -1,4 +1,4 @@
-import { LayoutDashboard, User, MonitorDown, MonitorUp, SquareLibrary, ReceiptText, Users, Hammer, DatabaseBackup, Eye, StickyNote, ClipboardList, Languages } from "lucide-react";
+import { LayoutDashboard, User, MonitorDown, MonitorUp, SquareLibrary, ReceiptText, Users, Hammer, DatabaseBackup, Eye, StickyNote, ClipboardList, Languages, ReceiptIcon } from "lucide-react";
 
 export const sidebar = [
   { title: "Dashboard", link: "/dashboard", icon: <LayoutDashboard /> },
@@ -7,6 +7,7 @@ export const sidebar = [
   { title: "Ledger", link: "/dashboard/ledger", icon: <SquareLibrary /> },
   { title: "Customers", link: "/dashboard/customer", icon: <Users /> },
   { title: "Bill", link: "/dashboard/bill", icon: <ReceiptText /> },
+  { title: "Updated Bill", link: "/dashboard/updatedbill", icon: <ReceiptIcon /> },
   { title: "Notes & Archive", link: "/dashboard/notes", icon: <StickyNote /> },
   { title: "Audit Logs", link: "/dashboard/logs", icon: <ClipboardList /> },
   { title: "Customer View", link: "/dashboard/customerview", icon: <Eye /> },
