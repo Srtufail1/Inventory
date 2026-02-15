@@ -145,6 +145,12 @@ export async function GET(request: NextRequest) {
         const addDate = new Date(item.addDate);
         const dueDate = new Date(addDate);
         dueDate.setMonth(dueDate.getMonth() + 1);
+        // Fix: Check if the month overflowed (same logic as generateLedgerData)
+        const expectedMonth = (addDate.getMonth() + 1) % 12;
+        if (dueDate.getMonth() !== expectedMonth) {
+          // If it did, set to the last day of the intended month
+          dueDate.setDate(0);
+        }
 
         return {
           addDate: formatDate(addDate),
