@@ -16,7 +16,7 @@ const Page = async () => {
   });
 
   if (!user?.isSuperAdmin) {
-    redirect("/dashboard");
+    redirect("/dashboard/inward");
   }
 
   return <CustomerViewPage />;

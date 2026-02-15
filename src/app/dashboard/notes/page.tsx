@@ -26,7 +26,7 @@ const NotesPage = async () => {
   });
 
   if (!user?.isAdmin) {
-    redirect("/");
+    redirect("/dashboard/inward");
   }
 
   return (

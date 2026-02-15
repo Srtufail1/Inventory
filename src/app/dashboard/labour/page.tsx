@@ -11,14 +11,14 @@ const Labour = async () => {
     redirect("/login");
   }
 
-  // Check if user is super admin
+  // Check if user is admin
   const user = await db.user.findUnique({
     where: { email: session.user.email },
-    select: { isSuperAdmin: true },
+    select: { isAdmin: true },
   });
 
-  // Not a super admin - redirect to dashboard
-  if (!user?.isSuperAdmin) {
+  // Not an admin - redirect
+  if (!user?.isAdmin) {
     redirect("/dashboard/inward");
   }
 
