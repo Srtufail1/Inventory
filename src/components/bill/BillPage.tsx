@@ -146,7 +146,6 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
             map.set(item.englishName.toLowerCase().trim(), item.urduName);
           });
           setItemTranslations(map);
-          console.log('Item translations loaded:', map.size, 'entries', Object.fromEntries(map));
         }
       } catch (error) {
         console.error('Failed to fetch item translations:', error);
