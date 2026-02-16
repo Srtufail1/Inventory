@@ -1,7 +1,9 @@
+import React, { Suspense } from "react";
 import { db } from "@/lib/db";
 import CustomerPage from "@/components/customer/CustomerPage";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default async function CustomersPage() {
+async function CustomerData() {
   const customerData = await db.inward.groupBy({
     by: ['customer'],
     _count: {
@@ -19,3 +21,21 @@ export default async function CustomersPage() {
 
   return <CustomerPage data={formattedData} />;
 }
+
+// Main page component with Suspense
+const CustomersPage = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 space-y-4">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-[400px] w-full rounded-lg" />
+        </div>
+      }
+    >
+      <CustomerData />
+    </Suspense>
+  );
+};
+
+export default CustomersPage;

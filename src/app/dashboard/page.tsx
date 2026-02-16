@@ -1,6 +1,7 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { db } from "@/lib/db";
 import DashboardSummary from "@/components/dashboard/DashboardSummary";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   startOfDay,
   endOfDay,
@@ -11,7 +12,7 @@ import {
   format,
 } from "date-fns";
 
-const Dashboard = async () => {
+async function DashboardData() {
   const now = new Date();
   const todayStart = startOfDay(now);
   const todayEnd = endOfDay(now);
@@ -641,6 +642,30 @@ const Dashboard = async () => {
       missingRateAlerts={missingRateAlerts}
       rateChangeLogs={rateChangeLogs}
     />
+  );
+}
+
+// Main page component with Suspense
+const Dashboard = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-28 rounded-lg" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Skeleton className="h-[300px] rounded-lg" />
+            <Skeleton className="h-[300px] rounded-lg" />
+          </div>
+          <Skeleton className="h-[400px] w-full rounded-lg" />
+        </div>
+      }
+    >
+      <DashboardData />
+    </Suspense>
   );
 };
 

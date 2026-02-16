@@ -1,12 +1,13 @@
-import React from "react";
+import React, { Suspense } from "react";
 import ClientsData from "@/components/ClientsData";
 import { auth } from "../../../../auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const ClientsPage = async () => {
+async function ClientsPageData() {
   const session = await auth();
-  
+
   if (!session?.user?.email) {
     redirect("/login");
   }
@@ -22,8 +23,24 @@ const ClientsPage = async () => {
   }
 
   const users = await db.user.findMany({});
-  
+
   return <ClientsData data={users} />;
+}
+
+// Main page component with Suspense
+const ClientsPage = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 space-y-4">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-[400px] w-full rounded-lg" />
+        </div>
+      }
+    >
+      <ClientsPageData />
+    </Suspense>
+  );
 };
 
 export default ClientsPage;

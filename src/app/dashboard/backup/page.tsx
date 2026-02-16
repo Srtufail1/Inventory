@@ -1,10 +1,11 @@
-import React from "react";
+import React, { Suspense } from "react";
 import BackupPage from "@/components/backup/BackupPage";
 import { auth } from "../../../../auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const Backup = async () => {
+async function BackupData() {
   const session = await auth();
 
   if (!session?.user?.email) {
@@ -23,6 +24,22 @@ const Backup = async () => {
   }
 
   return <BackupPage />;
+}
+
+// Main page component with Suspense
+const Backup = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 space-y-4">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-[400px] w-full rounded-lg" />
+        </div>
+      }
+    >
+      <BackupData />
+    </Suspense>
+  );
 };
 
 export default Backup;
