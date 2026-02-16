@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import CollapsibleSection from "./CollapsibleSection";
-import { formatDate } from "./dashboard-utils";
+import { formatDate, Badge, EntityBadge } from "./dashboard-utils";
 import type {
   DuplicateAlert,
   QuantityMismatch,
@@ -26,6 +26,45 @@ import type {
   EmptyQuantityFlag,
   MissingRateAlert,
 } from "./types";
+
+// ── Alert summary card config ───────────────────────────────────────
+
+type AlertCardConfig = {
+  icon: React.ReactNode;
+  label: string;
+  count: number;
+  color: string;
+};
+
+const buildAlertCards = (
+  duplicateAlerts: DuplicateAlert[],
+  quantityMismatches: QuantityMismatch[],
+  orphanedOutward: OrphanedOutward[],
+  staleRecords: StaleRecord[],
+  emptyQuantityFlags: EmptyQuantityFlag[],
+  missingRateAlerts: MissingRateAlert[]
+): AlertCardConfig[] => [
+  { icon: <Copy className="h-4 w-4" />, label: "Duplicates", count: duplicateAlerts.length, color: "orange" },
+  { icon: <Scale className="h-4 w-4" />, label: "Qty Mismatch", count: quantityMismatches.length, color: "red" },
+  { icon: <Unlink className="h-4 w-4" />, label: "Orphaned", count: orphanedOutward.length, color: "red" },
+  { icon: <Clock className="h-4 w-4" />, label: "Stale Records", count: staleRecords.length, color: "amber" },
+  { icon: <Ban className="h-4 w-4" />, label: "Empty Qty", count: emptyQuantityFlags.length, color: "red" },
+  { icon: <Wallet className="h-4 w-4" />, label: "Missing Rates", count: missingRateAlerts.length, color: "orange" },
+];
+
+// ── Stale record age display ────────────────────────────────────────
+
+const AgeDisplay = ({ days }: { days: number }) => {
+  const color =
+    days > 730 ? "red" : days > 547 ? "orange" : "amber";
+  const label =
+    days > 365
+      ? `${Math.floor(days / 365)}y ${Math.floor((days % 365) / 30)}m`
+      : `${days}d`;
+  return <Badge color={color as any}>{label}</Badge>;
+};
+
+// ── Main Component ──────────────────────────────────────────────────
 
 const AlertsTab = ({
   totalAlerts,
@@ -44,6 +83,15 @@ const AlertsTab = ({
   emptyQuantityFlags: EmptyQuantityFlag[];
   missingRateAlerts: MissingRateAlert[];
 }) => {
+  const alertCards = buildAlertCards(
+    duplicateAlerts,
+    quantityMismatches,
+    orphanedOutward,
+    staleRecords,
+    emptyQuantityFlags,
+    missingRateAlerts
+  );
+
   return (
     <>
       {/* Alert Summary */}
@@ -51,31 +99,44 @@ const AlertsTab = ({
         <div className="border rounded-xl p-4 bg-card">
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle className="h-4 w-4 text-red-500" />
-            <h3 className="text-sm font-semibold text-foreground">Alert Summary</h3>
-            <span className="ml-auto text-xs text-muted-foreground">{totalAlerts} total issues found</span>
+            <h3 className="text-sm font-semibold text-foreground">
+              Alert Summary
+            </h3>
+            <span className="ml-auto text-xs text-muted-foreground">
+              {totalAlerts} total issues found
+            </span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-            {[
-              { icon: <Copy className="h-4 w-4" />, label: "Duplicates", count: duplicateAlerts.length, bg: "bg-orange-500/10 border-orange-500/30", text: "text-orange-600 dark:text-orange-400", dot: "bg-orange-500" },
-              { icon: <Scale className="h-4 w-4" />, label: "Qty Mismatch", count: quantityMismatches.length, bg: "bg-red-500/10 border-red-500/30", text: "text-red-600 dark:text-red-400", dot: "bg-red-500" },
-              { icon: <Unlink className="h-4 w-4" />, label: "Orphaned", count: orphanedOutward.length, bg: "bg-red-500/10 border-red-500/30", text: "text-red-600 dark:text-red-400", dot: "bg-red-500" },
-              { icon: <Clock className="h-4 w-4" />, label: "Stale Records", count: staleRecords.length, bg: "bg-amber-500/10 border-amber-500/30", text: "text-amber-600 dark:text-amber-400", dot: "bg-amber-500" },
-              { icon: <Ban className="h-4 w-4" />, label: "Empty Qty", count: emptyQuantityFlags.length, bg: "bg-red-500/10 border-red-500/30", text: "text-red-600 dark:text-red-400", dot: "bg-red-500" },
-              { icon: <Wallet className="h-4 w-4" />, label: "Missing Rates", count: missingRateAlerts.length, bg: "bg-orange-500/10 border-orange-500/30", text: "text-orange-600 dark:text-orange-400", dot: "bg-orange-500" },
-            ].map((a) => (
+            {alertCards.map((a) => (
               <div
                 key={a.label}
                 className={`border rounded-lg p-3 text-center transition-colors ${
-                  a.count > 0 ? a.bg : "bg-muted/30 border-border"
+                  a.count > 0
+                    ? `bg-${a.color}-500/10 border-${a.color}-500/30`
+                    : "bg-muted/30 border-border"
                 }`}
               >
-                <div className={`mx-auto mb-1.5 flex justify-center ${a.count > 0 ? a.text : "text-muted-foreground"}`}>
+                <div
+                  className={`mx-auto mb-1.5 flex justify-center ${
+                    a.count > 0
+                      ? `text-${a.color}-600 dark:text-${a.color}-400`
+                      : "text-muted-foreground"
+                  }`}
+                >
                   {a.icon}
                 </div>
-                <p className={`text-xl font-bold ${a.count > 0 ? a.text : "text-muted-foreground"}`}>
+                <p
+                  className={`text-xl font-bold ${
+                    a.count > 0
+                      ? `text-${a.color}-600 dark:text-${a.color}-400`
+                      : "text-muted-foreground"
+                  }`}
+                >
                   {a.count}
                 </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">{a.label}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {a.label}
+                </p>
               </div>
             ))}
           </div>
@@ -88,11 +149,7 @@ const AlertsTab = ({
           title="Duplicate Inward Alerts"
           icon={<Copy className="h-4 w-4 text-orange-600 dark:text-orange-400" />}
           defaultOpen={false}
-          badge={
-            <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-400">
-              {duplicateAlerts.length}
-            </span>
-          }
+          badge={<Badge color="orange" className="ml-2">{duplicateAlerts.length}</Badge>}
           wrapperClassName="border-orange-500/30 bg-orange-500/5"
           headerClassName="border-orange-500/20 bg-orange-500/10"
         >
@@ -110,50 +167,28 @@ const AlertsTab = ({
               <TableBody>
                 {duplicateAlerts.map((dup) => (
                   <TableRow key={dup.inumber}>
-                    <TableCell className="font-medium">
-                      {dup.inumber}
-                    </TableCell>
+                    <TableCell className="font-medium">{dup.inumber}</TableCell>
                     <TableCell>{dup.count}</TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {dup.customers.map((c, i) => (
-                          <span
-                            key={i}
-                            className="px-1.5 py-0.5 rounded text-[11px] bg-muted"
-                          >
-                            {c}
-                          </span>
+                          <span key={i} className="px-1.5 py-0.5 rounded text-[11px] bg-muted">{c}</span>
                         ))}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {dup.items.map((it, i) => (
-                          <span
-                            key={i}
-                            className="px-1.5 py-0.5 rounded text-[11px] bg-muted"
-                          >
-                            {it}
-                          </span>
+                          <span key={i} className="px-1.5 py-0.5 rounded text-[11px] bg-muted">{it}</span>
                         ))}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
-                        {dup.hasDifferentCustomers && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400">
-                            Different Customers
-                          </span>
-                        )}
-                        {dup.hasDifferentItems && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400">
-                            Different Items
-                          </span>
-                        )}
+                        {dup.hasDifferentCustomers && <Badge color="red">Different Customers</Badge>}
+                        {dup.hasDifferentItems && <Badge color="amber">Different Items</Badge>}
                         {!dup.hasDifferentCustomers && !dup.hasDifferentItems && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-400">
-                            Duplicate Entry
-                          </span>
+                          <Badge color="yellow">Duplicate Entry</Badge>
                         )}
                       </div>
                     </TableCell>
@@ -171,11 +206,7 @@ const AlertsTab = ({
           title="Quantity Mismatch Alerts"
           icon={<Scale className="h-4 w-4 text-red-600 dark:text-red-400" />}
           defaultOpen={false}
-          badge={
-            <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400">
-              {quantityMismatches.length}
-            </span>
-          }
+          badge={<Badge color="red" className="ml-2">{quantityMismatches.length}</Badge>}
           wrapperClassName="border-red-500/30 bg-red-500/5"
           headerClassName="border-red-500/20 bg-red-500/10"
         >
@@ -194,21 +225,13 @@ const AlertsTab = ({
               <TableBody>
                 {quantityMismatches.map((mm) => (
                   <TableRow key={mm.inumber}>
-                    <TableCell className="font-medium">
-                      {mm.inumber}
-                    </TableCell>
+                    <TableCell className="font-medium">{mm.inumber}</TableCell>
                     <TableCell>{mm.customer}</TableCell>
                     <TableCell>{mm.item}</TableCell>
+                    <TableCell className="text-right">{mm.totalInward.toLocaleString("en-IN")}</TableCell>
+                    <TableCell className="text-right">{mm.totalOutward.toLocaleString("en-IN")}</TableCell>
                     <TableCell className="text-right">
-                      {mm.totalInward.toLocaleString("en-IN")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {mm.totalOutward.toLocaleString("en-IN")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400">
-                        +{mm.excess.toLocaleString("en-IN")}
-                      </span>
+                      <Badge color="red">+{mm.excess.toLocaleString("en-IN")}</Badge>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -247,21 +270,13 @@ const AlertsTab = ({
               <TableBody>
                 {orphanedOutward.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium">
-                      {item.onumber}
-                    </TableCell>
-                    <TableCell>
-                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400">
-                        {item.inumber}
-                      </span>
-                    </TableCell>
+                    <TableCell className="font-medium">{item.onumber}</TableCell>
+                    <TableCell><Badge color="red">{item.inumber}</Badge></TableCell>
                     <TableCell>{formatDate(item.outDate)}</TableCell>
                     <TableCell>{item.customer}</TableCell>
                     <TableCell>{item.item}</TableCell>
                     <TableCell className="text-right">
-                      {parseInt(item.quantity || "0").toLocaleString(
-                        "en-IN"
-                      )}
+                      {parseInt(item.quantity || "0").toLocaleString("en-IN")}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -276,11 +291,7 @@ const AlertsTab = ({
         <CollapsibleSection
           title="Stale Records"
           icon={<Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />}
-          badge={
-            <span className="ml-2 text-xs bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400 px-2 py-0.5 rounded-full">
-              {staleRecords.length}
-            </span>
-          }
+          badge={<Badge color="amber" className="ml-2">{staleRecords.length}</Badge>}
           defaultOpen={false}
         >
           <div className="p-3">
@@ -313,17 +324,7 @@ const AlertsTab = ({
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                          record.ageInDays > 730
-                            ? "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400"
-                            : record.ageInDays > 547
-                            ? "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-400"
-                            : "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400"
-                        }`}>
-                          {record.ageInDays > 365
-                            ? `${Math.floor(record.ageInDays / 365)}y ${Math.floor((record.ageInDays % 365) / 30)}m`
-                            : `${record.ageInDays}d`}
-                        </span>
+                        <AgeDisplay days={record.ageInDays} />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -339,11 +340,7 @@ const AlertsTab = ({
         <CollapsibleSection
           title="Empty/Zero Quantity Records"
           icon={<Ban className="h-4 w-4 text-red-600 dark:text-red-400" />}
-          badge={
-            <span className="ml-2 text-xs bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400 px-2 py-0.5 rounded-full">
-              {emptyQuantityFlags.length}
-            </span>
-          }
+          badge={<Badge color="red" className="ml-2">{emptyQuantityFlags.length}</Badge>}
           defaultOpen={false}
         >
           <div className="p-3">
@@ -365,23 +362,11 @@ const AlertsTab = ({
                 <TableBody>
                   {emptyQuantityFlags.map((flag) => (
                     <TableRow key={flag.id}>
-                      <TableCell>
-                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                          flag.type === "inward"
-                            ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-400"
-                            : "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-400"
-                        }`}>
-                          {flag.type}
-                        </span>
-                      </TableCell>
+                      <TableCell><EntityBadge entity={flag.type} /></TableCell>
                       <TableCell className="font-medium">{flag.number}</TableCell>
                       <TableCell>{flag.customer}</TableCell>
                       <TableCell>{flag.item}</TableCell>
-                      <TableCell>
-                        <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400">
-                          {flag.quantity || "empty"}
-                        </span>
-                      </TableCell>
+                      <TableCell><Badge color="red">{flag.quantity || "empty"}</Badge></TableCell>
                       <TableCell>{formatDate(flag.date)}</TableCell>
                     </TableRow>
                   ))}
@@ -397,11 +382,7 @@ const AlertsTab = ({
         <CollapsibleSection
           title="Missing Rate Alerts"
           icon={<Wallet className="h-4 w-4 text-orange-600 dark:text-orange-400" />}
-          badge={
-            <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-400">
-              {missingRateAlerts.length}
-            </span>
-          }
+          badge={<Badge color="orange" className="ml-2">{missingRateAlerts.length}</Badge>}
           wrapperClassName="border-orange-500/30 bg-orange-500/5"
           headerClassName="border-orange-500/20 bg-orange-500/10"
           defaultOpen={false}
@@ -432,34 +413,22 @@ const AlertsTab = ({
                       <TableCell>{formatDate(alert.addDate)}</TableCell>
                       <TableCell className="text-center">
                         {alert.missingStore ? (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400">
-                            {alert.store_rate || "empty"}
-                          </span>
+                          <Badge color="red">{alert.store_rate || "empty"}</Badge>
                         ) : (
                           <span className="text-xs text-muted-foreground">{alert.store_rate}</span>
                         )}
                       </TableCell>
                       <TableCell className="text-center">
                         {alert.missingLabour ? (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400">
-                            {alert.labour_rate || "empty"}
-                          </span>
+                          <Badge color="red">{alert.labour_rate || "empty"}</Badge>
                         ) : (
                           <span className="text-xs text-muted-foreground">{alert.labour_rate}</span>
                         )}
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {alert.missingStore && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-400">
-                              No Store Rate
-                            </span>
-                          )}
-                          {alert.missingLabour && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-400">
-                              No Labour Rate
-                            </span>
-                          )}
+                          {alert.missingStore && <Badge color="orange">No Store Rate</Badge>}
+                          {alert.missingLabour && <Badge color="orange">No Labour Rate</Badge>}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -475,7 +444,9 @@ const AlertsTab = ({
         <div className="border rounded-xl p-8 bg-card text-center">
           <AlertTriangle className="h-8 w-8 text-green-500 mx-auto mb-3" />
           <p className="text-sm font-medium text-foreground">All Clear</p>
-          <p className="text-xs text-muted-foreground mt-1">No data integrity issues found.</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            No data integrity issues found.
+          </p>
         </div>
       )}
     </>

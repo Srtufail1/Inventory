@@ -55,6 +55,14 @@ const DashboardSummary: React.FC<Props> = ({
     );
   }, [duplicateAlerts, quantityMismatches, orphanedOutward, staleRecords, emptyQuantityFlags, missingRateAlerts]);
 
+  const tabs = [
+    { key: "overview" as const, label: "Overview", icon: <BarChart3 className="h-3.5 w-3.5" /> },
+    { key: "analytics" as const, label: "Analytics", icon: <TrendingUp className="h-3.5 w-3.5" /> },
+    { key: "alerts" as const, label: "Alerts", icon: <AlertTriangle className="h-3.5 w-3.5" />, badge: totalAlerts },
+    { key: "monitoring" as const, label: "Monitoring", icon: <Shield className="h-3.5 w-3.5" /> },
+    { key: "activity" as const, label: "Activity", icon: <Activity className="h-3.5 w-3.5" /> },
+  ];
+
   return (
     <div>
       {/* Header */}
@@ -76,46 +84,25 @@ const DashboardSummary: React.FC<Props> = ({
 
         {/* Tab Navigation */}
         <div className="flex gap-1 p-1 bg-muted/50 rounded-lg border sticky top-0 z-10">
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${activeTab === "overview" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-background/50"}`}
-          >
-            <BarChart3 className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Overview</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("analytics")}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${activeTab === "analytics" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-background/50"}`}
-          >
-            <TrendingUp className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Analytics</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("alerts")}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${activeTab === "alerts" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-background/50"}`}
-          >
-            <AlertTriangle className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Alerts</span>
-            {totalAlerts > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400">
-                {totalAlerts}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("monitoring")}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${activeTab === "monitoring" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-background/50"}`}
-          >
-            <Shield className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Monitoring</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("activity")}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${activeTab === "activity" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-background/50"}`}
-          >
-            <Activity className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Activity</span>
-          </button>
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                activeTab === tab.key
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+              }`}
+            >
+              {tab.icon}
+              <span className="hidden sm:inline">{tab.label}</span>
+              {tab.badge !== undefined && tab.badge > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400">
+                  {tab.badge}
+                </span>
+              )}
+            </button>
+          ))}
         </div>
 
         {activeTab === "overview" && (

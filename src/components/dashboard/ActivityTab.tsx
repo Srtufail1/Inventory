@@ -20,7 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import CollapsibleSection from "./CollapsibleSection";
-import { formatDate, actionColors } from "./dashboard-utils";
+import { formatDate, actionColors, Badge } from "./dashboard-utils";
 import type { RecentLog, RecentInward, RecentOutward } from "./types";
 
 const ActivityTab = ({
@@ -58,13 +58,37 @@ const ActivityTab = ({
     );
   }, [recentOutward, outwardSearch]);
 
+  const actionDotColor: Record<string, string> = {
+    create: "bg-green-500",
+    update: "bg-yellow-500",
+    delete: "bg-red-500",
+  };
+
+  const actionVerb: Record<string, string> = {
+    create: "created",
+    update: "updated",
+    delete: "deleted",
+  };
+
+  const ViewAllLink = ({ href }: { href: string }) => (
+    <Link
+      href={href}
+      className="ml-auto text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+      onClick={(e) => e.stopPropagation()}
+    >
+      View all <ArrowRight className="h-3 w-3" />
+    </Link>
+  );
+
   return (
     <>
       {/* Activity Summary Bar */}
       <div className="border rounded-xl overflow-hidden bg-card">
         <div className="px-4 py-2.5 border-b bg-muted/50 flex items-center gap-2">
           <Activity className="h-4 w-4 text-green-500" />
-          <h3 className="text-sm font-semibold text-foreground">Activity Summary</h3>
+          <h3 className="text-sm font-semibold text-foreground">
+            Activity Summary
+          </h3>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 divide-x">
           <div className="p-3 text-center">
@@ -73,19 +97,19 @@ const ActivityTab = ({
           </div>
           <div className="p-3 text-center">
             <p className="text-lg font-bold text-green-600 dark:text-green-400">
-              {recentLogs.filter(l => l.action === "create").length}
+              {recentLogs.filter((l) => l.action === "create").length}
             </p>
             <p className="text-[11px] text-muted-foreground">Creates</p>
           </div>
           <div className="p-3 text-center">
             <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
-              {recentLogs.filter(l => l.action === "update").length}
+              {recentLogs.filter((l) => l.action === "update").length}
             </p>
             <p className="text-[11px] text-muted-foreground">Updates</p>
           </div>
           <div className="p-3 text-center">
             <p className="text-lg font-bold text-red-600 dark:text-red-400">
-              {recentLogs.filter(l => l.action === "delete").length}
+              {recentLogs.filter((l) => l.action === "delete").length}
             </p>
             <p className="text-[11px] text-muted-foreground">Deletes</p>
           </div>
@@ -96,15 +120,7 @@ const ActivityTab = ({
       <CollapsibleSection
         title="Recent Activity"
         icon={<ClipboardList className="h-4 w-4" />}
-        badge={
-          <Link
-            href="/dashboard/logs"
-            className="ml-auto text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
-            onClick={(e) => e.stopPropagation()}
-          >
-            View all <ArrowRight className="h-3 w-3" />
-          </Link>
-        }
+        badge={<ViewAllLink href="/dashboard/logs" />}
       >
         <div className="divide-y max-h-80 overflow-y-auto">
           {recentLogs.length > 0 ? (
@@ -113,32 +129,17 @@ const ActivityTab = ({
                 key={log.id}
                 className="px-4 py-2.5 flex items-center gap-3 hover:bg-muted/30 transition-colors"
               >
-                <div className={`w-2 h-2 rounded-full shrink-0 ${
-                  log.action === "create" ? "bg-green-500" : log.action === "update" ? "bg-yellow-500" : "bg-red-500"
-                }`} />
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shrink-0 ${
-                    actionColors[log.action] || ""
-                  }`}
-                >
+                <div className={`w-2 h-2 rounded-full shrink-0 ${actionDotColor[log.action] || ""}`} />
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shrink-0 ${actionColors[log.action] || ""}`}>
                   {log.action}
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-foreground truncate">
                     <span className="font-medium">{log.userName}</span>{" "}
-                    {log.action === "create"
-                      ? "created"
-                      : log.action === "update"
-                      ? "updated"
-                      : "deleted"}{" "}
-                    <span className="text-muted-foreground">
-                      {log.entity}
-                    </span>
+                    {actionVerb[log.action] || log.action}{" "}
+                    <span className="text-muted-foreground">{log.entity}</span>
                     {log.customer && (
-                      <span className="text-muted-foreground">
-                        {" "}
-                        — {log.customer}
-                      </span>
+                      <span className="text-muted-foreground"> — {log.customer}</span>
                     )}
                   </p>
                 </div>
@@ -161,15 +162,7 @@ const ActivityTab = ({
         <CollapsibleSection
           title="Recent Inward"
           icon={<MonitorDown className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
-          badge={
-            <Link
-              href="/dashboard/inward"
-              className="ml-auto text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
-              onClick={(e) => e.stopPropagation()}
-            >
-              View all <ArrowRight className="h-3 w-3" />
-            </Link>
-          }
+          badge={<ViewAllLink href="/dashboard/inward" />}
         >
           <div className="px-4 py-2 border-b bg-muted/30">
             <div className="relative">
@@ -197,25 +190,18 @@ const ActivityTab = ({
                 {filteredInward.length > 0 ? (
                   filteredInward.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">
-                        {item.inumber}
-                      </TableCell>
+                      <TableCell className="font-medium">{item.inumber}</TableCell>
                       <TableCell>{formatDate(item.addDate)}</TableCell>
                       <TableCell>{item.customer}</TableCell>
                       <TableCell>{item.item}</TableCell>
                       <TableCell className="text-right">
-                        {parseInt(item.quantity || "0").toLocaleString(
-                          "en-IN"
-                        )}
+                        {parseInt(item.quantity || "0").toLocaleString("en-IN")}
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="h-24 text-center text-muted-foreground"
-                    >
+                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                       {inwardSearch ? "No matching records." : "No inward records found."}
                     </TableCell>
                   </TableRow>
@@ -229,15 +215,7 @@ const ActivityTab = ({
         <CollapsibleSection
           title="Recent Outward"
           icon={<MonitorUp className="h-4 w-4 text-orange-600 dark:text-orange-400" />}
-          badge={
-            <Link
-              href="/dashboard/outward"
-              className="ml-auto text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
-              onClick={(e) => e.stopPropagation()}
-            >
-              View all <ArrowRight className="h-3 w-3" />
-            </Link>
-          }
+          badge={<ViewAllLink href="/dashboard/outward" />}
         >
           <div className="px-4 py-2 border-b bg-muted/30">
             <div className="relative">
@@ -266,26 +244,19 @@ const ActivityTab = ({
                 {filteredOutward.length > 0 ? (
                   filteredOutward.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">
-                        {item.onumber}
-                      </TableCell>
+                      <TableCell className="font-medium">{item.onumber}</TableCell>
                       <TableCell>{item.inumber}</TableCell>
                       <TableCell>{formatDate(item.outDate)}</TableCell>
                       <TableCell>{item.customer}</TableCell>
                       <TableCell>{item.item}</TableCell>
                       <TableCell className="text-right">
-                        {parseInt(item.quantity || "0").toLocaleString(
-                          "en-IN"
-                        )}
+                        {parseInt(item.quantity || "0").toLocaleString("en-IN")}
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="h-24 text-center text-muted-foreground"
-                    >
+                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                       {outwardSearch ? "No matching records." : "No outward records found."}
                     </TableCell>
                   </TableRow>
