@@ -1,4 +1,4 @@
-name: CI
+name: Quality Checks
 
 on:
   push:
@@ -6,7 +6,8 @@ on:
   pull_request:
 
 jobs:
-  test:
+  backend-tests:
+    name: Run Unit & Integration Tests
     runs-on: ubuntu-latest
 
     env:
