@@ -2,7 +2,7 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 
-const InwardTableSkeleton = () => {
+const OutwardTableSkeleton = () => {
   return (
     <div>
       {/* Header bar skeleton */}
@@ -76,4 +76,4 @@ const InwardTableSkeleton = () => {
   );
 };
 
-export default InwardTableSkeleton;
+export default OutwardTableSkeleton;
