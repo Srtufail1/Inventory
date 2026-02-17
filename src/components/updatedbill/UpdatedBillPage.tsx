@@ -170,18 +170,23 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
   /**
    * UPDATED BILL LOGIC:
    * 
-   * The key difference from the old bill page:
    * When the stored quantity becomes 0 (nextPeriodQuantity === "0"),
-   * that period's bill is pulled back by one month.
+   * AND the last out date is BEFORE the 1st of the end date's month,
+   * the bill is pulled back by one month.
    * 
-   * Example:
-   * - Period 25.03.25 - 25.04.25, stored qty = 100, all out on 27.03.25 (qty becomes 0)
-   * - Normally this bill would go into May 2025
-   * - Since qty became 0, the bill is pulled back to April 2025
+   * Example (pull back):
+   * - Period 16.01.26 - 16.02.26, all out on 18.01.26 (before Feb 1st)
+   * - Normally this bill would go into March 2026
+   * - Since qty became 0 before Feb started, bill is pulled back to February 2026
+   * 
+   * Example (no pull back):
+   * - Period 16.12.25 - 16.01.26, all out on 06.01.26 (after Jan 1st)
+   * - Bill goes into February 2026 as normal (no pull back)
    */
   const processBillData = (result: any): { entries: BillEntry[], detailedData: Map<string, BillItemEntry[]> } => {
     const billEntries: BillEntry[] = [];
     const detailedData = new Map<string, BillItemEntry[]>();
+    const inwardMonthMap = new Map<string, string>();
 
     // Process ledger data
     result.ledgerDataSets.forEach((dataset: any) => {
@@ -193,11 +198,31 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
         // Normal due month: month after the end date's month
         let dueMonth = new Date(parseInt(`20${year}`), parseInt(month), 1);
 
-        // --- UPDATED LOGIC: If stored quantity becomes 0, pull bill back one month ---
+        // --- UPDATED LOGIC: Only pull back if stock went to 0 BEFORE the end date's month started ---
         const nextPeriodQty = parseInt(entry.nextPeriodQuantity) || 0;
-        
-        if (nextPeriodQty === 0) {
-          dueMonth = new Date(dueMonth.getFullYear(), dueMonth.getMonth() - 1, 1);
+
+        if (nextPeriodQty === 0 && entry.outDate_table) {
+          // 1st of the end date's month
+          const endMonthStart = new Date(parseInt(`20${year}`), parseInt(month) - 1, 1);
+
+          // Parse the last out date from outDate_table
+          // Format: "06.01.26 - 43" or multiple lines "06.01.26 - 20\n10.01.26 - 23"
+          const outLines = entry.outDate_table.trim().split('\n');
+          const lastOutLine = outLines[outLines.length - 1].trim();
+          const outDateMatch = lastOutLine.match(/^(\d{2})\.(\d{2})\.(\d{2})/);
+
+          if (outDateMatch) {
+            const lastOutDate = new Date(
+              parseInt(`20${outDateMatch[3]}`),
+              parseInt(outDateMatch[2]) - 1,
+              parseInt(outDateMatch[1])
+            );
+
+            // Only pull back if stock went to 0 BEFORE the end date's month started
+            if (lastOutDate < endMonthStart) {
+              dueMonth = new Date(dueMonth.getFullYear(), dueMonth.getMonth() - 1, 1);
+            }
+          }
         }
         // --- END UPDATED LOGIC ---
 
@@ -230,14 +255,25 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
           detailedData.set(dueMonthString, []);
         }
         detailedData.get(dueMonthString)!.push(billItem);
+
+        // Track which month this inward number was FIRST assigned to (labour always goes in the first bill)
+        if (!inwardMonthMap.has(dataset.inumber)) {
+          inwardMonthMap.set(dataset.inumber, dueMonthString);
+        }
       });
     });
 
-    // Process labor table (same logic as old bill page for labour)
+    // Process labor table - use the same month as the store cost when available
     result.laborTable.forEach((labor: any) => {
-      const [day, month, year] = labor.dueDate.split('.');
-      const dueMonth = new Date(parseInt(`20${year}`), parseInt(month), 1);
-      const dueMonthString = dueMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+      let dueMonthString: string;
+      if (inwardMonthMap.has(labor.inumber)) {
+        // Use the same month the store cost was assigned to
+        dueMonthString = inwardMonthMap.get(labor.inumber)!;
+      } else {
+        const [day, month, year] = labor.dueDate.split('.');
+        const dueMonth = new Date(parseInt(`20${year}`), parseInt(month), 1);
+        dueMonthString = dueMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+      }
       
       let billEntry = billEntries.find(e => e.dueMonth === dueMonthString);
       if (!billEntry) {
