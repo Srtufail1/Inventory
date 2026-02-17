@@ -4,6 +4,60 @@ import { auth } from "../../../../auth";
 
 export const dynamic = 'force-dynamic';
 
+type ExtendedNumberLong = { $numberLong: string };
+type CursorId = ExtendedNumberLong | number | bigint | string;
+
+type MongoCommandResult = {
+  cursor?: {
+    id?: CursorId;
+    firstBatch?: unknown[];
+    nextBatch?: unknown[];
+  };
+};
+
+const hasMoreCursorData = (cursorId: CursorId | undefined | null): boolean => {
+  if (cursorId === undefined || cursorId === null) return false;
+  if (typeof cursorId === "object" && "$numberLong" in cursorId)
+    return cursorId.$numberLong !== "0";
+  if (typeof cursorId === "bigint") return cursorId !== BigInt(0);
+  if (typeof cursorId === "number") return cursorId !== 0;
+  return cursorId !== "0";
+};
+
+const getMoreCursorValue = (cursorId: CursorId) => {
+  if (typeof cursorId === "object" && "$numberLong" in cursorId)
+    return cursorId; // pass back as-is in Extended JSON format
+  if (typeof cursorId === "bigint")
+    return { $numberLong: cursorId.toString() };
+  return cursorId;
+};
+
+const getCollectionDocuments = async (collectionName: string) => {
+  const initialResult = (await db.$runCommandRaw({
+    find: collectionName,
+    filter: {},
+    batchSize: 50000,
+  })) as MongoCommandResult;
+
+  const documents: unknown[] = [...(initialResult.cursor?.firstBatch ?? [])];
+  let cursorId = initialResult.cursor?.id;
+
+  while (hasMoreCursorData(cursorId)) {
+    if (cursorId === undefined || cursorId === null) break;
+
+    const nextResult = (await db.$runCommandRaw({
+      getMore: getMoreCursorValue(cursorId),
+      collection: collectionName,
+      batchSize: 50000,
+    })) as MongoCommandResult;
+
+    documents.push(...(nextResult.cursor?.nextBatch ?? []));
+    cursorId = nextResult.cursor?.id;
+  }
+
+  return documents;
+};
+
 export async function GET() {
   try {
     // Verify session and super admin status
@@ -21,31 +75,34 @@ export async function GET() {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Fetch all collections (including notes)
-    const [users, inwardData, outwardData, notesData] = await Promise.all([
-      db.user.findMany(),
-      db.inward.findMany(),
-      db.outward.findMany(),
-      db.note.findMany(),
-    ]);
+    // Dynamically list all collections
+    const collectionsResult = (await db.$runCommandRaw({
+      listCollections: 1,
+      nameOnly: true,
+    })) as MongoCommandResult;
 
-    // Remove passwords from user data for security
-    const sanitizedUsers = users.map(({ password, ...rest }) => rest);
+    const collectionNames = (collectionsResult.cursor?.firstBatch ?? [])
+      .map((entry: any) => entry?.name)
+      .filter((name: unknown): name is string => typeof name === "string");
+
+    // Fetch all documents from each collection SEQUENTIALLY
+    // (parallel fetching causes cursor timeouts on the server)
+    const collectionEntries: [string, unknown[]][] = [];
+
+    for (const collectionName of collectionNames) {
+      const documents = await getCollectionDocuments(collectionName);
+      collectionEntries.push([collectionName, documents]);
+    }
+
+    const collections = Object.fromEntries(collectionEntries);
+    const counts = Object.fromEntries(
+      collectionEntries.map(([name, docs]) => [name, docs.length])
+    );
 
     const backup = {
       exportDate: new Date().toISOString(),
-      collections: {
-        users: sanitizedUsers,
-        inward: inwardData,
-        outward: outwardData,
-        notes: notesData,
-      },
-      counts: {
-        users: sanitizedUsers.length,
-        inward: inwardData.length,
-        outward: outwardData.length,
-        notes: notesData.length,
-      },
+      collections,
+      counts,
     };
 
     const jsonString = JSON.stringify(backup, null, 2);
@@ -60,6 +117,9 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Backup error:', error);
-    return NextResponse.json({ error: 'Failed to create backup' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to create backup' },
+      { status: 500 }
+    );
   }
 }
