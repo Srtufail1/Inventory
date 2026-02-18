@@ -47,6 +47,7 @@ type AuditLog = {
   userName: string;
   customer: string | null;
   inumber: string | null;
+  onumber: string | null;
   item: string | null;
   quantity: string | null;
   changes: string | null;
@@ -213,6 +214,7 @@ export default function AuditLogTable({ data }: { data: AuditLog[] }) {
           log.user?.toLowerCase().includes(search) ||
           log.customer?.toLowerCase().includes(search) ||
           log.inumber?.toLowerCase().includes(search) ||
+          log.onumber?.toLowerCase().includes(search) ||
           log.item?.toLowerCase().includes(search) ||
           log.quantity?.toLowerCase().includes(search) ||
           log.entity?.toLowerCase().includes(search) ||
@@ -420,6 +422,7 @@ export default function AuditLogTable({ data }: { data: AuditLog[] }) {
                         <TableHead>User</TableHead>
                         <TableHead>Customer</TableHead>
                         <TableHead>Inward #</TableHead>
+                        <TableHead>Outward #</TableHead>
                         <TableHead>Item</TableHead>
                         <TableHead className="w-[60px]">Qty</TableHead>
                         <TableHead>Changes</TableHead>
@@ -455,6 +458,11 @@ export default function AuditLogTable({ data }: { data: AuditLog[] }) {
                           </TableCell>
                           <TableCell className="text-sm">
                             {log.inumber || "--"}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {log.entity === "outward"
+                              ? log.onumber || "--"
+                              : "--"}
                           </TableCell>
                           <TableCell className="text-sm">
                             {log.item || "--"}

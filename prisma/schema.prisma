@@ -77,6 +77,7 @@ model AuditLog {
   userName    String   // name of the user
   customer    String?  // customer name from the record
   inumber     String?  // inward number from the record
+  onumber     String?  // outward number from the record
   item        String?  // item from the record
   quantity    String?  // quantity from the record
   changes     String?  // JSON string of old vs new values for updates
