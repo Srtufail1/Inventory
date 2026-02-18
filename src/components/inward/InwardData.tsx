@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -28,6 +27,7 @@ const InwardData = ({ title, data }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const [hasSelected, setHasSelected] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
 
   useEffect(() => {
@@ -54,14 +54,17 @@ const InwardData = ({ title, data }: Props) => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSubmitting(true);
     const formData = new FormData(e.currentTarget);
     formData.set('customer', searchTerm);
     const response: any = await addUpdateInward(formData, data);
     if (response?.error) {
-      toast({ title: response?.error });
+      toast({ title: response?.error, variant: "destructive" });
     } else {
       toast({ title: "Inventory created successfully" });
+      setIsOpen(false); // Only close on success
     }
+    setIsSubmitting(false);
   };
 
   const handleSheetOpenChange = (open: boolean) => {
@@ -166,11 +169,9 @@ const InwardData = ({ title, data }: Props) => {
                 />
               </div>
             </div>
-            <SheetClose>
-              <Button type="submit" className="mt-5">
-                {title}
-              </Button>
-            </SheetClose>
+            <Button type="submit" className="mt-5" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : title}
+            </Button>
           </form>
         </div>
       </SheetContent>

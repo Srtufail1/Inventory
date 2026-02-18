@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -28,7 +27,11 @@ const OutwardData = ({ title, data }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const [hasSelected, setHasSelected] = useState(false);
-  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inwardNumber, setInwardNumber] = useState(data?.inumber || '');
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
+  const [itemValue, setItemValue] = useState(data?.item || '');
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
       if (!searchTerm || loading || hasSelected) {
@@ -52,22 +55,83 @@ const OutwardData = ({ title, data }: Props) => {
       setFilteredCustomers([]);
     };
 
+  // Auto-fill customer name and item when inward number changes
+  const lookupInwardNumber = useCallback(async (inumber: string) => {
+    if (!inumber.trim()) return;
+
+    setIsAutoFilling(true);
+    try {
+      const response = await fetch(`/api/inward-lookup?inumber=${encodeURIComponent(inumber)}`);
+      if (response.ok) {
+        const result = await response.json();
+        if (result.customer) {
+          setSearchTerm(result.customer);
+          setHasSelected(true);
+        }
+        if (result.item) {
+          setItemValue(result.item);
+        }
+      }
+    } catch (error) {
+      console.error('Error looking up inward number:', error);
+    } finally {
+      setIsAutoFilling(false);
+    }
+  }, []);
+
+  const handleInwardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInwardNumber(value);
+
+    // Debounce the lookup to avoid too many API calls
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Only auto-fill for new entries (not updates)
+    if (!data?.id && value.trim()) {
+      debounceTimerRef.current = setTimeout(() => {
+        lookupInwardNumber(value);
+      }, 500);
+    }
+  };
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSubmitting(true);
     const formData = new FormData(e.currentTarget);
     formData.set('customer', searchTerm);
+    formData.set('inumber', inwardNumber);
+    formData.set('item', itemValue);
     const response: any = await addUpdateOutward(formData, data);
     if (response?.error) {
-      toast({ title: response?.error });
+      toast({ title: response?.error, variant: "destructive" });
     } else {
       toast({ title: "Inventory created successfully" });
+      setIsOpen(false); // Only close on success
     }
+    setIsSubmitting(false);
   };
 
   const handleSheetOpenChange = (open: boolean) => {
     setIsOpen(open);
-    if (open && searchRef.current) {
-      setTimeout(() => searchRef.current?.focus(), 0);
+    if (open) {
+      // Reset state when opening for new entries
+      setInwardNumber(data?.inumber || '');
+      setSearchTerm(data?.customer || '');
+      setItemValue(data?.item || '');
+      if (searchRef.current) {
+        setTimeout(() => searchRef.current?.focus(), 0);
+      }
     }
   };
 
@@ -87,12 +151,26 @@ const OutwardData = ({ title, data }: Props) => {
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-2 mt-5">
               <div className="flex flex-col gap-5">
-                <FormInput
-                  type="number"
-                  name="inumber"
-                  label="Enter Inward Number"
-                  defaultValue={data?.inumber}
-                />
+                <div className="mb-4">
+                  <Label htmlFor="inumber" className="mb-2 text-sm font-medium text-foreground">
+                    Enter Inward Number
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      name="inumber"
+                      value={inwardNumber}
+                      onChange={handleInwardNumberChange}
+                      placeholder="Enter inward number"
+                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-ring"
+                    />
+                    {isAutoFilling && (
+                      <span className="absolute right-3 top-2.5 text-xs text-muted-foreground">
+                        Looking up...
+                      </span>
+                    )}
+                  </div>
+                </div>
                 <FormInput
                   type="number"
                   name="onumber"
@@ -110,6 +188,9 @@ const OutwardData = ({ title, data }: Props) => {
                     placeholder="Search for a customer"
                     className="mt-2"
                   />
+                  {isAutoFilling && (
+                    <p className="text-xs text-blue-600">Auto-filling from inward record...</p>
+                  )}
                   {filteredCustomers.length > 0 && (
                     <ul className="z-10 w-full bg-popover border mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
                       {filteredCustomers.map((customer, index) => (
@@ -133,12 +214,19 @@ const OutwardData = ({ title, data }: Props) => {
                     defaultValue={data?.outDate ? new Date(data.outDate).toISOString().split('T')[0] : ''}
                   />
                 </div>
-                <FormInput
-                  type="text"
-                  name="item"
-                  label="Enter item"
-                  defaultValue={data?.item}
-                />
+                <div className="mb-4">
+                  <Label htmlFor="item" className="mb-2 text-sm font-medium text-foreground">
+                    Enter item
+                  </Label>
+                  <Input
+                    type="text"
+                    name="item"
+                    value={itemValue}
+                    onChange={(e) => setItemValue(e.target.value)}
+                    placeholder="Enter item"
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-ring"
+                  />
+                </div>
                 <FormInput
                   type="number"
                   name="quantity"
@@ -147,11 +235,9 @@ const OutwardData = ({ title, data }: Props) => {
                 />
               </div>
             </div>
-            <SheetClose>
-              <Button type="submit" className="mt-5">
-                {title}
-              </Button>
-            </SheetClose>
+            <Button type="submit" className="mt-5" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : title}
+            </Button>
           </form>
         </div>
       </SheetContent>

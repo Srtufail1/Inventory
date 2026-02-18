@@ -110,6 +110,16 @@ export const addUpdateInward = async (formData: FormData, data: any) => {
     return { error: "All fields are required" };
   }
 
+  // Check for duplicate inward number on new entries only
+  if (!data?.id) {
+    const existing = await db.inward.findFirst({
+      where: { inumber },
+    });
+    if (existing) {
+      return { error: "Inward number already exists" };
+    }
+  }
+
   const session = await auth();
   const userEmail = session?.user?.email || "unknown";
   const userName = session?.user?.name || "unknown";
