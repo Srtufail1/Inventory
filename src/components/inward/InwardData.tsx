@@ -28,35 +28,86 @@ const InwardData = ({ title, data }: Props) => {
   const searchRef = useRef<HTMLInputElement>(null);
   const [hasSelected, setHasSelected] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
 
+  // Item autocomplete state
+  const [itemTerm, setItemTerm] = useState(data?.item || '');
+  const [allItems, setAllItems] = useState<string[]>([]);
+  const [filteredItems, setFilteredItems] = useState<string[]>([]);
+  const [hasSelectedItem, setHasSelectedItem] = useState(false);
+  const [itemsLoading, setItemsLoading] = useState(true);
+
+  // Fetch unique items on mount
   useEffect(() => {
-      if (!searchTerm || loading || hasSelected) {
-        setFilteredCustomers([]);
-        return;
+    let cancelled = false;
+    const fetchItems = async () => {
+      try {
+        const res = await fetch('/api/items');
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data)) {
+          setAllItems(data.map((i: any) => i.item || '').filter(Boolean));
+        }
+      } catch (err) {
+        console.error('Failed to fetch items', err);
+      } finally {
+        if (!cancelled) setItemsLoading(false);
       }
-      const filtered = customers.filter(customer =>
-        customer.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredCustomers(filtered);
-    }, [searchTerm, customers, loading, hasSelected]);
-  
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchTerm(e.target.value);
-      setHasSelected(false);
     };
-  
-    const handleCustomerSelect = (customer: string) => {
-      setSearchTerm(customer);
-      setHasSelected(true);
+    fetchItems();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Filter customers
+  useEffect(() => {
+    if (!searchTerm || loading || hasSelected) {
       setFilteredCustomers([]);
-    };
+      return;
+    }
+    const filtered = customers.filter(customer =>
+      customer.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredCustomers(filtered);
+  }, [searchTerm, customers, loading, hasSelected]);
+
+  // Filter items
+  useEffect(() => {
+    if (!itemTerm || itemsLoading || hasSelectedItem) {
+      setFilteredItems([]);
+      return;
+    }
+    const filtered = allItems.filter(item =>
+      item.toLowerCase().includes(itemTerm.toLowerCase())
+    );
+    setFilteredItems(filtered);
+  }, [itemTerm, allItems, itemsLoading, hasSelectedItem]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setHasSelected(false);
+  };
+
+  const handleCustomerSelect = (customer: string) => {
+    setSearchTerm(customer);
+    setHasSelected(true);
+    setFilteredCustomers([]);
+  };
+
+  const handleItemInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setItemTerm(e.target.value);
+    setHasSelectedItem(false);
+  };
+
+  const handleItemSelect = (item: string) => {
+    setItemTerm(item);
+    setHasSelectedItem(true);
+    setFilteredItems([]);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     const formData = new FormData(e.currentTarget);
     formData.set('customer', searchTerm);
+    formData.set('item', itemTerm);
     const response: any = await addUpdateInward(formData, data);
     if (response?.error) {
       toast({ title: response?.error, variant: "destructive" });
@@ -69,8 +120,12 @@ const InwardData = ({ title, data }: Props) => {
 
   const handleSheetOpenChange = (open: boolean) => {
     setIsOpen(open);
-    if (open && searchRef.current) {
-      setTimeout(() => searchRef.current?.focus(), 0);
+    if (open) {
+      setItemTerm(data?.item || '');
+      setSearchTerm(data?.customer || '');
+      if (searchRef.current) {
+        setTimeout(() => searchRef.current?.focus(), 0);
+      }
     }
   };
 
@@ -131,12 +186,31 @@ const InwardData = ({ title, data }: Props) => {
                     defaultValue={data?.addDate ? new Date(data.addDate).toISOString().split('T')[0] : ''}
                   />
                 </div>
-                <FormInput
-                  type="text"
-                  name="item"
-                  label="Enter item"
-                  defaultValue={data?.item}
-                />
+                {/* Item field with autocomplete */}
+                <div className="flex flex-col space-y-2 relative">
+                  <Label htmlFor="item">Enter item</Label>
+                  <Input
+                    type="text"
+                    name="item"
+                    value={itemTerm}
+                    onChange={handleItemInputChange}
+                    placeholder="Search for an item"
+                    className="mt-2"
+                  />
+                  {filteredItems.length > 0 && (
+                    <ul className="z-10 w-full bg-popover border mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
+                      {filteredItems.map((item, index) => (
+                        <li
+                          key={index}
+                          className="px-4 py-2 hover:bg-muted cursor-pointer text-popover-foreground"
+                          onClick={() => handleItemSelect(item)}
+                        >
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
                 <FormInput
                   type="text"
                   name="packing"
