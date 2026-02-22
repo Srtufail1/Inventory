@@ -34,6 +34,7 @@ export type InwardDataProps = {
   quantity: string;
   store_rate: string;
   labour_rate: string;
+  notes?: string | null;
 }[];
 
 export type OutwardDataProps = {

@@ -6,15 +6,18 @@ import {
   ColumnFiltersState,
   SortingState,
   VisibilityState,
+  ExpandedState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  getExpandedRowModel,
   useReactTable,
   FilterFn,
+  Row,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, Search } from "lucide-react";
+import { ArrowUpDown, ChevronDown, ChevronRight, Search, StickyNote } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -39,14 +42,21 @@ import {
 import { signOut } from "next-auth/react";
 import InwardData from "../inward/InwardData";
 import InwardUpdate from "../inward/InwardUpdate";
+import ExpandableNoteRow from "./ExpandableNoteRow";
 import { format, isWithinInterval } from 'date-fns';
-import DarkModeToggle from '../DarkModeToggle'
+import DarkModeToggle from '../DarkModeToggle';
 import { FaCalendarAlt } from 'react-icons/fa';
 
-const dateRangeFilter: FilterFn<InwardDataProps> = (row, columnId, filterValue) => {
+// Extended type to include notes
+type InwardRowData = InwardDataProps[number] & {
+  notes?: string | null;
+  clients?: any[];
+};
+
+const dateRangeFilter: FilterFn<InwardRowData> = (row, columnId, filterValue) => {
   if (!filterValue.startDate || !filterValue.endDate) return true;
   const cellValue = row.getValue(columnId);
-  
+
   let dateObject: Date;
   if (typeof cellValue === 'string') {
     dateObject = new Date(cellValue);
@@ -63,7 +73,7 @@ const dateRangeFilter: FilterFn<InwardDataProps> = (row, columnId, filterValue) 
   return isWithinInterval(dateObject, { start: filterValue.startDate, end: filterValue.endDate });
 };
 
-export const columns: ColumnDef<InwardDataProps>[] = [
+export const columns: ColumnDef<InwardRowData>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -83,6 +93,34 @@ export const columns: ColumnDef<InwardDataProps>[] = [
         aria-label="Select row"
       />
     ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    id: "expand",
+    header: () => <span className="sr-only">Expand</span>,
+    cell: ({ row }) => {
+      const hasNotes = !!row.original.notes;
+      return (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            row.toggleExpanded();
+          }}
+          className="flex items-center gap-1 p-1 rounded hover:bg-muted transition-colors"
+          title={hasNotes ? "View/edit notes" : "Add notes"}
+        >
+          {row.getIsExpanded() ? (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          )}
+          {hasNotes && (
+            <StickyNote className="h-3.5 w-3.5 text-amber-500 fill-amber-200 dark:fill-amber-800" />
+          )}
+        </button>
+      );
+    },
     enableSorting: false,
     enableHiding: false,
   },
@@ -120,23 +158,23 @@ export const columns: ColumnDef<InwardDataProps>[] = [
     },
     cell: ({ row }) => {
       const date = row.getValue("addDate");
-      
+
       // Check if date is valid
       if (!date || typeof date !== 'string' && !(date instanceof Date)) {
         return <div>Invalid Date</div>;
       }
-      
+
       // Try to create a valid Date object
       const dateObject = typeof date === 'string' ? new Date(date) : date;
-      
+
       // Check if the created Date object is valid
       if (isNaN(dateObject.getTime())) {
         return <div>Invalid Date</div>;
       }
-      
+
       // Format the date
       const formattedDate = format(dateObject, 'dd MMM yyyy');
-      
+
       return (
         <div className="flex items-center">
           <FaCalendarAlt className="mr-2 text-muted-foreground" />
@@ -237,19 +275,36 @@ const InwardTable = ({ data }: any) => {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [expanded, setExpanded] = React.useState<ExpandedState>({});
   const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>([null, null]);
   const [startDate, endDate] = dateRange;
   const [pageSize, setPageSize] = React.useState(10);
 
+  // Local state to track notes updates without full page reload
+  const [localData, setLocalData] = React.useState<InwardRowData[]>(data);
+  React.useEffect(() => {
+    setLocalData(data);
+  }, [data]);
+
+  const handleNotesSaved = (id: string, notes: string | null) => {
+    setLocalData((prev: InwardRowData[]) =>
+      prev.map((item: InwardRowData) =>
+        item.id === id ? { ...item, notes } : item
+      )
+    );
+  };
+
   const table = useReactTable({
-    data,
+    data: localData,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     state: {
@@ -257,6 +312,7 @@ const InwardTable = ({ data }: any) => {
       columnFilters,
       columnVisibility,
       rowSelection,
+      expanded,
       pagination: {
         pageSize,
         pageIndex: 0,
@@ -274,10 +330,13 @@ const InwardTable = ({ data }: any) => {
   React.useEffect(() => {
     if (startDate && endDate) {
       table.getColumn('addDate')?.setFilterValue({ startDate, endDate });
-    } else { 
+    } else {
       table.getColumn('addDate')?.setFilterValue(undefined);
     }
   }, [startDate, endDate, table]);
+
+  // Count rows with notes
+  const notesCount = localData.filter((item: InwardRowData) => !!item.notes).length;
 
   return (
     <div>
@@ -350,9 +409,17 @@ const InwardTable = ({ data }: any) => {
       </div>
       <div className="p-6">
         <div className="flex item justify-between pt-3 pb-6">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Inward Gate Pass
-          </h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold tracking-tight">
+              Inward Gate Pass
+            </h1>
+            {notesCount > 0 && (
+              <span className="flex items-center gap-1 text-sm text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2.5 py-1 rounded-full">
+                <StickyNote className="h-3.5 w-3.5" />
+                {notesCount} with notes
+              </span>
+            )}
+          </div>
           <InwardData title="Add Inward Data" data={{}} />
         </div>
         <div>
@@ -367,9 +434,9 @@ const InwardTable = ({ data }: any) => {
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                         </TableHead>
                       );
                     })}
@@ -379,19 +446,37 @@ const InwardTable = ({ data }: any) => {
               <TableBody>
                 {table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
+                    <React.Fragment key={row.id}>
+                      <TableRow
+                        data-state={row.getIsSelected() && "selected"}
+                        className={
+                          row.getIsExpanded()
+                            ? "border-b-0 bg-amber-50/30 dark:bg-amber-950/10"
+                            : undefined
+                        }
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                      {/* Expanded note row */}
+                      {row.getIsExpanded() && (
+                        <TableRow className="hover:bg-transparent">
+                          <ExpandableNoteRow
+                            inwardId={row.original.id}
+                            inumber={row.original.inumber}
+                            notes={row.original.notes || null}
+                            colSpan={row.getVisibleCells().length}
+                            onNotesSaved={handleNotesSaved}
+                          />
+                        </TableRow>
+                      )}
+                    </React.Fragment>
                   ))
                 ) : (
                   <TableRow>
