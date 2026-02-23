@@ -14,6 +14,7 @@ import FormInput from "../FormInput";
 import { addUpdateInward } from "@/actions/user";
 import { toast } from "../ui/use-toast";
 import { useCustomers } from '@/context/CustomersContext';
+import { useItems } from '@/context/ItemsContext';
 
 type Props = {
   title: string;
@@ -22,6 +23,7 @@ type Props = {
 
 const InwardData = ({ title, data }: Props) => {
   const { customers, loading } = useCustomers();
+  const { items: allItems, loading: itemsLoading } = useItems();
   const [searchTerm, setSearchTerm] = useState(data?.customer || '');
   const [filteredCustomers, setFilteredCustomers] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -31,30 +33,8 @@ const InwardData = ({ title, data }: Props) => {
 
   // Item autocomplete state
   const [itemTerm, setItemTerm] = useState(data?.item || '');
-  const [allItems, setAllItems] = useState<string[]>([]);
   const [filteredItems, setFilteredItems] = useState<string[]>([]);
   const [hasSelectedItem, setHasSelectedItem] = useState(false);
-  const [itemsLoading, setItemsLoading] = useState(true);
-
-  // Fetch unique items on mount
-  useEffect(() => {
-    let cancelled = false;
-    const fetchItems = async () => {
-      try {
-        const res = await fetch('/api/items');
-        const data = await res.json();
-        if (!cancelled && Array.isArray(data)) {
-          setAllItems(data.map((i: any) => i.item || '').filter(Boolean));
-        }
-      } catch (err) {
-        console.error('Failed to fetch items', err);
-      } finally {
-        if (!cancelled) setItemsLoading(false);
-      }
-    };
-    fetchItems();
-    return () => { cancelled = true; };
-  }, []);
 
   // Filter customers
   useEffect(() => {
