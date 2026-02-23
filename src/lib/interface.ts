@@ -45,4 +45,5 @@ export type OutwardDataProps = {
   customer: string;
   item: string;
   quantity: string;
+  notes?: string | null;
 }[];

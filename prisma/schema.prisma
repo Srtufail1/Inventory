@@ -45,6 +45,7 @@ model Outward {
   customer      String
   item          String
   quantity      String
+  notes         String?
 
   @@index([customer])
   @@index([inumber])
