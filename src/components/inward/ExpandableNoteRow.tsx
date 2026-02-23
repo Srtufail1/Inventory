@@ -12,6 +12,7 @@ type ExpandableNoteRowProps = {
   notes: string | null;
   colSpan: number;
   onNotesSaved?: (id: string, notes: string | null) => void;
+  onCollapse?: () => void;
 };
 
 const ExpandableNoteRow: React.FC<ExpandableNoteRowProps> = ({
@@ -20,6 +21,7 @@ const ExpandableNoteRow: React.FC<ExpandableNoteRowProps> = ({
   notes,
   colSpan,
   onNotesSaved,
+  onCollapse,
 }) => {
   const [noteText, setNoteText] = useState(notes || "");
   const [isSaving, setIsSaving] = useState(false);
@@ -48,6 +50,7 @@ const ExpandableNoteRow: React.FC<ExpandableNoteRowProps> = ({
         toast({ title: "Notes saved successfully" });
         setHasChanges(false);
         onNotesSaved?.(inwardId, noteText.trim() || null);
+        onCollapse?.();
       }
     } catch (error) {
       toast({ title: "Failed to save notes", variant: "destructive" });

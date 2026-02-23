@@ -15,14 +15,12 @@ import {
   getExpandedRowModel,
   useReactTable,
   FilterFn,
-  Row,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown, ChevronRight, Search, StickyNote } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -74,56 +72,6 @@ const dateRangeFilter: FilterFn<InwardRowData> = (row, columnId, filterValue) =>
 };
 
 export const columns: ColumnDef<InwardRowData>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    id: "expand",
-    header: () => <span className="sr-only">Expand</span>,
-    cell: ({ row }) => {
-      const hasNotes = !!row.original.notes;
-      return (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            row.toggleExpanded();
-          }}
-          className="flex items-center gap-1 p-1 rounded hover:bg-muted transition-colors"
-          title={hasNotes ? "View/edit notes" : "Add notes"}
-        >
-          {row.getIsExpanded() ? (
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          ) : (
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          )}
-          {hasNotes && (
-            <StickyNote className="h-3.5 w-3.5 text-amber-500 fill-amber-200 dark:fill-amber-800" />
-          )}
-        </button>
-      );
-    },
-    enableSorting: false,
-    enableHiding: false,
-  },
   {
     accessorKey: "inumber",
     header: ({ column }) => {
@@ -264,6 +212,34 @@ export const columns: ColumnDef<InwardRowData>[] = [
     ),
   },
   {
+    id: "notes",
+    header: "Notes",
+    cell: ({ row }) => {
+      const hasNotes = !!row.original.notes;
+      return (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            row.toggleExpanded();
+          }}
+          className="flex items-center gap-1 p-1 rounded hover:bg-muted transition-colors"
+          title={hasNotes ? "View/edit notes" : "Add notes"}
+        >
+          {row.getIsExpanded() ? (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          )}
+          {hasNotes && (
+            <StickyNote className="h-3.5 w-3.5 text-amber-500 fill-amber-200 dark:fill-amber-800" />
+          )}
+        </button>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => <InwardUpdate row={row} />,
@@ -274,11 +250,11 @@ const InwardTable = ({ data }: any) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
   const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>([null, null]);
   const [startDate, endDate] = dateRange;
   const [pageSize, setPageSize] = React.useState(10);
+  const [pageIndex, setPageIndex] = React.useState(0);
 
   // Local state to track notes updates without full page reload
   const [localData, setLocalData] = React.useState<InwardRowData[]>(data);
@@ -306,16 +282,21 @@ const InwardTable = ({ data }: any) => {
     getFilteredRowModel: getFilteredRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
+    onPaginationChange: (updater) => {
+      const newPagination = typeof updater === 'function'
+        ? updater({ pageIndex, pageSize })
+        : updater;
+      setPageIndex(newPagination.pageIndex);
+      setPageSize(newPagination.pageSize);
+    },
     state: {
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
       expanded,
       pagination: {
         pageSize,
-        pageIndex: 0,
+        pageIndex,
       },
     },
     filterFns: {
@@ -324,19 +305,12 @@ const InwardTable = ({ data }: any) => {
   });
 
   React.useEffect(() => {
-    table.setPageSize(pageSize);
-  }, [pageSize, table]);
-
-  React.useEffect(() => {
     if (startDate && endDate) {
       table.getColumn('addDate')?.setFilterValue({ startDate, endDate });
     } else {
       table.getColumn('addDate')?.setFilterValue(undefined);
     }
   }, [startDate, endDate, table]);
-
-  // Count rows with notes
-  const notesCount = localData.filter((item: InwardRowData) => !!item.notes).length;
 
   return (
     <div>
@@ -413,24 +387,18 @@ const InwardTable = ({ data }: any) => {
             <h1 className="text-3xl font-bold tracking-tight">
               Inward Gate Pass
             </h1>
-            {notesCount > 0 && (
-              <span className="flex items-center gap-1 text-sm text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2.5 py-1 rounded-full">
-                <StickyNote className="h-3.5 w-3.5" />
-                {notesCount} with notes
-              </span>
-            )}
           </div>
           <InwardData title="Add Inward Data" data={{}} />
         </div>
         <div>
           <div className="rounded-md border">
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-muted/50 sticky top-0 z-10">
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
+                  <TableRow key={headerGroup.id} className="hover:bg-muted/50">
                     {headerGroup.headers.map((header) => {
                       return (
-                        <TableHead key={header.id}>
+                        <TableHead key={header.id} className="whitespace-nowrap">
                           {header.isPlaceholder
                             ? null
                             : flexRender(
@@ -452,7 +420,9 @@ const InwardTable = ({ data }: any) => {
                         className={
                           row.getIsExpanded()
                             ? "border-b-0 bg-amber-50/30 dark:bg-amber-950/10"
-                            : undefined
+                            : row.index % 2 === 1
+                              ? "bg-muted/30"
+                              : undefined
                         }
                       >
                         {row.getVisibleCells().map((cell) => (
@@ -473,6 +443,7 @@ const InwardTable = ({ data }: any) => {
                             notes={row.original.notes || null}
                             colSpan={row.getVisibleCells().length}
                             onNotesSaved={handleNotesSaved}
+                            onCollapse={() => row.toggleExpanded()}
                           />
                         </TableRow>
                       )}
@@ -491,45 +462,51 @@ const InwardTable = ({ data }: any) => {
               </TableBody>
             </Table>
           </div>
-          <div className="flex items-center justify-end space-x-2 py-5">
-            <div className="flex-1 text-sm text-muted-foreground">
-              {table.getFilteredSelectedRowModel().rows.length} of{" "}
-              {table.getFilteredRowModel().rows.length} row(s) selected.
+          <div className="flex items-center justify-between py-4">
+            <div className="text-sm text-muted-foreground">
+              {table.getFilteredRowModel().rows.length} row(s) total
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-muted-foreground">Rows per page:</span>
-              <select
-                value={pageSize === data.length ? 100000000 : pageSize}
-                onChange={e => {
-                  const newSize = Number(e.target.value);
-                  setPageSize(newSize === 100000000 ? data.length : newSize);
-                }}
-                className="block rounded-md border shadow-sm focus:border-primary focus:ring focus:ring-ring focus:ring-opacity-50 bg-background text-foreground"
-              >
-                {[10, 20, 50, 100, 500, 1000, 100000000].map(size => (
-                  <option key={size} value={size}>
-                    {size === 100000000 ? 'All' : size}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                Next
-              </Button>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Rows per page:</span>
+                <select
+                  value={pageSize === data.length ? 100000000 : pageSize}
+                  onChange={e => {
+                    const newSize = Number(e.target.value);
+                    setPageSize(newSize === 100000000 ? data.length : newSize);
+                    setPageIndex(0);
+                  }}
+                  className="h-8 rounded-md border px-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  {[10, 20, 50, 100, 500, 1000, 100000000].map(size => (
+                    <option key={size} value={size}>
+                      {size === 100000000 ? 'All' : size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <span className="text-sm text-muted-foreground">
+                Page {table.getState().pagination.pageIndex + 1} of{" "}
+                {table.getPageCount()}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           </div>
         </div>
