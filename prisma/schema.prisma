@@ -30,6 +30,7 @@ model Inward {
   quantity      String
   store_rate    String
   labour_rate   String
+  notes         String?
 
   @@index([customer])
   @@index([inumber])
@@ -44,6 +45,7 @@ model Outward {
   customer      String
   item          String
   quantity      String
+  notes         String?
 
   @@index([customer])
   @@index([inumber])
