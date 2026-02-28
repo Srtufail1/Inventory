@@ -80,23 +80,6 @@ const numberToWords = (num: number): string => {
   return convertToPakistaniSystem(Math.floor(num));
 };
 
-function moveMonthBack(monthStr: string): string {
-  // Parse "March 2025" safely
-  const date: Date = new Date(`${monthStr} 1`);
-
-  if (isNaN(date.getTime())) {
-    throw new Error(`Invalid month format: ${monthStr}`);
-  }
-
-  // Move one month back
-  date.setMonth(date.getMonth() - 1);
-
-  // Format back to "Month YYYY"
-  return date.toLocaleString('en-US', {
-    month: 'long',
-    year: 'numeric'
-  });
-}
 
 export const generateCustomerPdf = (
   items: BillItemEntry[],
@@ -111,7 +94,7 @@ export const generateCustomerPdf = (
   if (!printWindow) return;
 
   const safeCustomerName = escapeHtml(customerName);
-  const safeMonth: string = escapeHtml(moveMonthBack(month));
+  const safeMonth: string = escapeHtml(month);
   const currentDate = new Date().toLocaleDateString('en-GB', {
     day: '2-digit',
     month: '2-digit',
