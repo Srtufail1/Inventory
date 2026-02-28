@@ -7,7 +7,7 @@ import { Search, Calendar, Printer, FileDown } from "lucide-react";
 import DarkModeToggle from '../DarkModeToggle';
 import { signOut } from "next-auth/react";
 import { useCustomers } from '@/context/CustomersContext';
-import { generateCustomerPdf, generateMonthlyPrint } from '../bill/billPdfGenerator';
+import { generateCustomerPdf, generateMonthlyPrint, generateCombinedCustomerPdf, MonthBillSection } from '../bill/billPdfGenerator';
 
 export type BillItemEntry = {
   inwardNumber: string;
@@ -123,6 +123,7 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
   const [isMonthSearching, setIsMonthSearching] = useState(false);
 
   const [itemTranslations, setItemTranslations] = useState<ItemTranslationMap>(new Map());
+  const [selectedMonths, setSelectedMonths] = useState<Set<string>>(new Set());
 
   const monthOptions = generateMonthOptions();
 
@@ -339,6 +340,7 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
     setSearchMode('customer');
     setMonthBillData([]);
     setSearchedMonth('');
+    setSelectedMonths(new Set());
     
     try {
       const response = await fetch(`/api/ledger?customer=${encodeURIComponent(searchTerm)}`);
@@ -424,6 +426,35 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
       setIsLoading(false);
       setIsMonthSearching(false);
     }
+  };
+
+  const toggleMonthSelection = (month: string) => {
+    setSelectedMonths(prev => {
+      const next = new Set(prev);
+      if (next.has(month)) {
+        next.delete(month);
+      } else {
+        next.add(month);
+      }
+      return next;
+    });
+  };
+
+  const combinedTotal = Array.from(selectedMonths).reduce((sum, month) => {
+    const entry = billData.find(e => e.dueMonth === month);
+    return sum + (entry?.totalAmount ?? 0);
+  }, 0);
+
+  const handleGenerateCombinedPdf = () => {
+    const sortedMonths = Array.from(selectedMonths).sort(
+      (a, b) => new Date(a).getTime() - new Date(b).getTime()
+    );
+    const sections: MonthBillSection[] = sortedMonths.map(month => ({
+      month,
+      items: detailedBillData.get(month) ?? [],
+      totalAmount: billData.find(e => e.dueMonth === month)?.totalAmount ?? 0,
+    }));
+    generateCombinedCustomerPdf(sections, combinedTotal, customerName, itemTranslations);
   };
 
   const handleGeneratePdf = (month: string) => {
@@ -580,12 +611,37 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
                   selectedMonth={selectedMonth}
                   onSelectMonth={setSelectedMonth}
                 />
+                {selectedMonths.size >= 2 && (
+                  <div className="flex items-center justify-between mb-4 px-5 py-3 bg-blue-500/10 border border-blue-500 rounded-lg">
+                    <span className="text-sm font-medium text-foreground">
+                      {selectedMonths.size} months selected &nbsp;·&nbsp; Combined Total:&nbsp;
+                      <strong>{combinedTotal.toLocaleString('en-IN')}</strong>
+                    </span>
+                    <Button
+                      onClick={handleGenerateCombinedPdf}
+                      size="sm"
+                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                    >
+                      <FileDown className="h-4 w-4" />
+                      Generate Combined Bill
+                    </Button>
+                  </div>
+                )}
                 <div className="space-y-8">
                   {filteredBillData.map((entry, index) => (
                     <div key={index} className="bg-card shadow rounded-lg overflow-hidden border">
                       <div className="px-6 py-4 border-b">
                         <div className="flex justify-between items-center">
-                          <h3 className="text-xl font-semibold text-foreground">{entry.dueMonth}</h3>
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={selectedMonths.has(entry.dueMonth)}
+                              onChange={() => toggleMonthSelection(entry.dueMonth)}
+                              className="h-4 w-4 cursor-pointer accent-blue-600"
+                              title="Select for combined bill"
+                            />
+                            <h3 className="text-xl font-semibold text-foreground">{entry.dueMonth}</h3>
+                          </div>
                           <div className="flex items-center space-x-4">
                             <p className="text-l text-foreground">Total Amount:</p>
                             <p className="text-xl font-bold text-foreground">{entry.totalAmount.toLocaleString('en-IN')}</p>

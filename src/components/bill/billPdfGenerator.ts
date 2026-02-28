@@ -404,6 +404,220 @@ export const generateCustomerPdf = (
   printWindow.document.close();
 };
 
+export type MonthBillSection = {
+  month: string;
+  items: BillItemEntry[];
+  totalAmount: number;
+};
+
+export const generateCombinedCustomerPdf = (
+  sections: MonthBillSection[],
+  grandTotal: number,
+  customerName: string,
+  itemTranslations: ItemTranslationMap = new Map()
+) => {
+  if (!sections || sections.length === 0) return;
+
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) return;
+
+  const safeCustomerName = escapeHtml(customerName);
+  const periodLabel = sections.map(s => escapeHtml(s.month)).join(', ');
+  const currentDate = new Date().toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+
+  const amountInWords = numberToWords(grandTotal);
+
+  const sectionRows = sections.map(section => {
+    const safeMonth = escapeHtml(section.month);
+    const itemRows = section.items.map((item, index) => {
+      const translatedName = getTranslatedItemName(item.itemName, itemTranslations);
+      const isUrdu = item.itemName && item.itemName !== 'N/A' && itemTranslations.has(item.itemName.toLowerCase());
+      return `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${escapeHtml(item.inwardNumber)}</td>
+          <td>${escapeHtml(item.dateRange || '')}</td>
+          <td ${isUrdu ? 'dir="rtl" class="urdu-text"' : ''}>${escapeHtml(translatedName)}</td>
+          <td class="text-right">${(item.storedQuantity || 0).toLocaleString('en-PK')}</td>
+          <td class="text-right">${(item.rate || 0).toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
+          <td class="text-right">${(item.labourCost || 0).toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
+          <td class="text-right">${(item.sum || 0).toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
+        </tr>
+      `;
+    }).join('');
+
+    return `
+      <tr class="month-header-row">
+        <td colspan="8"><strong>${safeMonth}</strong></td>
+      </tr>
+      ${itemRows}
+      <tr class="subtotal-row">
+        <td colspan="7" class="text-right"><strong>Subtotal — ${safeMonth}:</strong></td>
+        <td class="text-right"><strong>PKR ${section.totalAmount.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</strong></td>
+      </tr>
+    `;
+  }).join('');
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Combined Bill - ${safeCustomerName}</title>
+        <style>
+          @page {
+            size: A4;
+            margin: 10mm 12mm;
+          }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 9pt;
+            line-height: 1.35;
+            color: #000;
+            background: #fff;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 8mm 10mm;
+            margin: 0 auto;
+          }
+          .urdu-text {
+            font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Urdu Typesetting', 'Segoe UI', Tahoma, sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+          }
+          @media print {
+            body { padding: 0; margin: 0; -webkit-print-color-adjust: economy; print-color-adjust: economy; }
+            .no-print { display: none !important; }
+          }
+          .header { border-bottom: 1px solid #000; padding-bottom: 6px; margin-bottom: 10px; }
+          .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+          .company-name { font-size: 18pt; font-weight: 700; letter-spacing: 0.5px; }
+          .company-contact { font-size: 7.5pt; line-height: 1.4; }
+          .bill-title-box { border: 1px solid #000; padding: 6px 16px; }
+          .bill-title { font-size: 11pt; font-weight: 700; letter-spacing: 1px; }
+          .bill-info {
+            display: flex; justify-content: space-between;
+            margin: 10px 0; padding: 6px 8px; border: 1px solid #000;
+          }
+          .bill-to h3 { font-size: 7.5pt; font-weight: 600; text-transform: uppercase; margin-bottom: 2px; }
+          .customer-name { font-size: 11pt; font-weight: 700; }
+          .bill-details { text-align: right; font-size: 8pt; }
+          .period-banner {
+            text-align: center; padding: 4px; margin-bottom: 8px;
+            font-size: 9.5pt; font-weight: 700; border: 1px solid #000;
+          }
+          table { width: 100%; border-collapse: collapse; font-size: 8pt; margin-bottom: 8px; }
+          th, td { border: 0.7px solid #000; padding: 4px; }
+          th { font-weight: 700; text-transform: uppercase; font-size: 7.5pt; }
+          .text-right { text-align: right; }
+          .month-header-row td {
+            background-color: #f0f0f0;
+            font-size: 9pt;
+            padding: 5px 4px;
+          }
+          .subtotal-row td {
+            border-top: 1px solid #555;
+            background-color: #fafafa;
+          }
+          .total-row td { font-weight: 700; border-top: 2px solid #000; }
+          .amount-words { border: 1px solid #000; padding: 6px 8px; margin: 10px 0; font-size: 8pt; }
+          .footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid #000; }
+          .signatures { display: flex; justify-content: space-between; margin-top: 25px; }
+          .signature-box { width: 45%; text-align: center; }
+          .signature-line { border-top: 1px solid #000; margin-top: 35px; padding-top: 4px; font-size: 8pt; }
+          .no-print { margin-bottom: 15px; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <div class="no-print">
+          <button onclick="window.print()">Print Invoice</button>
+          <button onclick="window.close()">Close</button>
+        </div>
+
+        <div class="header">
+          <div class="header-top">
+            <div class="company-info">
+              <div class="company-name">ZCS</div>
+              <div class="company-contact">
+                <strong>Address:</strong> Faisalabad, Pakistan<br>
+              </div>
+            </div>
+            <div class="bill-title-box">
+              <div class="bill-title">INVOICE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bill-info">
+          <div class="bill-to">
+            <h3>Bill To</h3>
+            <div class="customer-name">${safeCustomerName}</div>
+          </div>
+          <div class="bill-details">
+            <p><strong>Invoice Date:</strong> ${currentDate}</p>
+            <p><strong>Invoice No:</strong> INV-${Date.now().toString().slice(-8)}</p>
+            <p><strong>Billing Period:</strong> ${periodLabel}</p>
+          </div>
+        </div>
+
+        <div class="period-banner">
+          COMBINED STORAGE CHARGES — ${periodLabel.toUpperCase()}
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 5%;" class="text-center">S.No</th>
+              <th style="width: 10%;">Inward No.</th>
+              <th style="width: 18%;">Date (From - To)</th>
+              <th style="width: 20%;">Item Name</th>
+              <th style="width: 10%;" class="text-right">Stored Qty</th>
+              <th style="width: 10%;" class="text-right">Rate (PKR)</th>
+              <th style="width: 12%;" class="text-right">Labour (PKR)</th>
+              <th style="width: 15%;" class="text-right">Amount (PKR)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${sectionRows}
+          </tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="7" class="text-right"><strong>GRAND TOTAL:</strong></td>
+              <td class="text-right"><strong>PKR ${grandTotal.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="amount-words">
+          <strong>Amount in Words:</strong> Pakistani Rupees ${amountInWords} Only
+        </div>
+
+        <div class="footer">
+          <div class="signatures">
+            <div class="signature-box">
+              <div class="signature-line">
+                <div>Customer Signature</div>
+                <div>Name &amp; Date</div>
+              </div>
+            </div>
+            <div class="signature-box">
+              <div class="signature-line">
+                <div>Authorized Signature</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+};
+
 export const generateMonthlyPrint = (
   printContent: HTMLDivElement,
   searchedMonth: string
