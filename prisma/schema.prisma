@@ -98,3 +98,22 @@ model ItemTranslation {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model Invoice {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceNumber String   @unique
+  customerName  String
+  invoiceDate   DateTime
+  billingPeriod String
+  totalAmount   Float
+  createdAt     DateTime @default(now())
+
+  @@index([customerName])
+  @@index([invoiceDate])
+}
+
+model InvoiceCounter {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  year    Int    @unique
+  counter Int    @default(0)
+}
