@@ -86,7 +86,8 @@ export const generateCustomerPdf = (
   totalAmount: number,
   customerName: string,
   month: string,
-  itemTranslations: ItemTranslationMap = new Map()
+  itemTranslations: ItemTranslationMap = new Map(),
+  invoiceNumber?: string
 ) => {
   if (!items || items.length === 0) return;
 
@@ -345,7 +346,7 @@ export const generateCustomerPdf = (
           </div>
           <div class="bill-details">
             <p><strong>Invoice Date:</strong> ${currentDate}</p>
-            <p><strong>Invoice No:</strong> INV-${Date.now().toString().slice(-8)}</p>
+            <p><strong>Invoice No:</strong> ${invoiceNumber || 'INV-' + Date.now().toString().slice(-8)}</p>
             <p><strong>Billing Period:</strong> ${safeMonth}</p>
           </div>
         </div>
@@ -414,7 +415,8 @@ export const generateCombinedCustomerPdf = (
   sections: MonthBillSection[],
   grandTotal: number,
   customerName: string,
-  itemTranslations: ItemTranslationMap = new Map()
+  itemTranslations: ItemTranslationMap = new Map(),
+  invoiceNumber?: string
 ) => {
   if (!sections || sections.length === 0) return;
 
@@ -559,7 +561,7 @@ export const generateCombinedCustomerPdf = (
           </div>
           <div class="bill-details">
             <p><strong>Invoice Date:</strong> ${currentDate}</p>
-            <p><strong>Invoice No:</strong> INV-${Date.now().toString().slice(-8)}</p>
+            <p><strong>Invoice No:</strong> ${invoiceNumber || 'INV-' + Date.now().toString().slice(-8)}</p>
             <p><strong>Billing Period:</strong> ${periodLabel}</p>
           </div>
         </div>

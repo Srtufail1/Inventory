@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Calendar, Printer, FileDown } from "lucide-react";
+import { Search, Calendar, Printer, FileDown, CheckCircle, Loader2 } from "lucide-react";
 import DarkModeToggle from '../DarkModeToggle';
 import { signOut } from "next-auth/react";
 import { useCustomers } from '@/context/CustomersContext';
@@ -124,6 +124,17 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
 
   const [itemTranslations, setItemTranslations] = useState<ItemTranslationMap>(new Map());
   const [selectedMonths, setSelectedMonths] = useState<Set<string>>(new Set());
+
+  // Invoice tracking state
+  type PendingInvoice = {
+    invoiceNumber: string;
+    invoiceDate: string;
+    billingPeriod: string;
+    totalAmount: number;
+    status: 'ready' | 'saving' | 'saved';
+  };
+  const [pendingInvoices, setPendingInvoices] = useState<Map<string, PendingInvoice>>(new Map());
+  const [pendingCombinedInvoice, setPendingCombinedInvoice] = useState<PendingInvoice | null>(null);
 
   const monthOptions = generateMonthOptions();
 
@@ -341,6 +352,8 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
     setMonthBillData([]);
     setSearchedMonth('');
     setSelectedMonths(new Set());
+    setPendingInvoices(new Map());
+    setPendingCombinedInvoice(null);
     
     try {
       const response = await fetch(`/api/ledger?customer=${encodeURIComponent(searchTerm)}`);
@@ -445,7 +458,7 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
     return sum + (entry?.totalAmount ?? 0);
   }, 0);
 
-  const handleGenerateCombinedPdf = () => {
+  const handleGenerateCombinedPdf = async () => {
     const sortedMonths = Array.from(selectedMonths).sort(
       (a, b) => new Date(a).getTime() - new Date(b).getTime()
     );
@@ -454,15 +467,125 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
       items: detailedBillData.get(month) ?? [],
       totalAmount: billData.find(e => e.dueMonth === month)?.totalAmount ?? 0,
     }));
-    generateCombinedCustomerPdf(sections, combinedTotal, customerName, itemTranslations);
+
+    let invoiceNumber: string | undefined;
+    try {
+      const res = await fetch('/api/invoices/number', { method: 'POST' });
+      const data = await res.json();
+      invoiceNumber = data.invoiceNumber;
+    } catch {
+      // fall back to timestamp-based if API fails
+    }
+
+    generateCombinedCustomerPdf(sections, combinedTotal, customerName, itemTranslations, invoiceNumber);
+
+    if (invoiceNumber) {
+      const billingPeriod = sortedMonths.join(', ');
+      setPendingCombinedInvoice({
+        invoiceNumber,
+        invoiceDate: new Date().toISOString(),
+        billingPeriod,
+        totalAmount: combinedTotal,
+        status: 'ready',
+      });
+    }
   };
 
-  const handleGeneratePdf = (month: string) => {
+  const handleMarkCombinedBillGiven = async () => {
+    if (!pendingCombinedInvoice || pendingCombinedInvoice.status !== 'ready') return;
+
+    setPendingCombinedInvoice({ ...pendingCombinedInvoice, status: 'saving' });
+
+    try {
+      const res = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invoiceNumber: pendingCombinedInvoice.invoiceNumber,
+          customerName,
+          invoiceDate: pendingCombinedInvoice.invoiceDate,
+          billingPeriod: pendingCombinedInvoice.billingPeriod,
+          totalAmount: pendingCombinedInvoice.totalAmount,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to save');
+
+      setPendingCombinedInvoice({ ...pendingCombinedInvoice, status: 'saved' });
+    } catch {
+      setPendingCombinedInvoice({ ...pendingCombinedInvoice, status: 'ready' });
+      alert('Failed to save invoice. Please try again.');
+    }
+  };
+
+  const handleGeneratePdf = async (month: string) => {
     const items = detailedBillData.get(month);
     const billEntry = billData.find(e => e.dueMonth === month);
-    
-    if (items && billEntry) {
-      generateCustomerPdf(items, billEntry.totalAmount, customerName, month, itemTranslations);
+    if (!items || !billEntry) return;
+
+    let invoiceNumber: string | undefined;
+    try {
+      const res = await fetch('/api/invoices/number', { method: 'POST' });
+      const data = await res.json();
+      invoiceNumber = data.invoiceNumber;
+    } catch {
+      // fall back to timestamp-based if API fails
+    }
+
+    generateCustomerPdf(items, billEntry.totalAmount, customerName, month, itemTranslations, invoiceNumber);
+
+    if (invoiceNumber) {
+      setPendingInvoices(prev => {
+        const next = new Map(prev);
+        next.set(month, {
+          invoiceNumber,
+          invoiceDate: new Date().toISOString(),
+          billingPeriod: month,
+          totalAmount: billEntry.totalAmount,
+          status: 'ready',
+        });
+        return next;
+      });
+    }
+  };
+
+  const handleMarkBillGiven = async (month: string) => {
+    const pending = pendingInvoices.get(month);
+    if (!pending || pending.status !== 'ready') return;
+
+    setPendingInvoices(prev => {
+      const next = new Map(prev);
+      next.set(month, { ...pending, status: 'saving' });
+      return next;
+    });
+
+    try {
+      const res = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invoiceNumber: pending.invoiceNumber,
+          customerName,
+          invoiceDate: pending.invoiceDate,
+          billingPeriod: pending.billingPeriod,
+          totalAmount: pending.totalAmount,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to save');
+
+      setPendingInvoices(prev => {
+        const next = new Map(prev);
+        next.set(month, { ...pending, status: 'saved' });
+        return next;
+      });
+    } catch {
+      setPendingInvoices(prev => {
+        const next = new Map(prev);
+        next.set(month, { ...pending, status: 'ready' });
+        return next;
+      });
+      alert('Failed to save invoice. Please try again.');
     }
   };
 
@@ -612,19 +735,43 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
                   onSelectMonth={setSelectedMonth}
                 />
                 {selectedMonths.size >= 2 && (
-                  <div className="flex items-center justify-between mb-4 px-5 py-3 bg-blue-500/10 border border-blue-500 rounded-lg">
+                  <div className="flex items-center justify-between mb-4 px-5 py-3 bg-blue-500/10 border border-blue-500 rounded-lg flex-wrap gap-2">
                     <span className="text-sm font-medium text-foreground">
                       {selectedMonths.size} months selected &nbsp;·&nbsp; Combined Total:&nbsp;
                       <strong>{combinedTotal.toLocaleString('en-IN')}</strong>
                     </span>
-                    <Button
-                      onClick={handleGenerateCombinedPdf}
-                      size="sm"
-                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-                    >
-                      <FileDown className="h-4 w-4" />
-                      Generate Combined Bill
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={handleGenerateCombinedPdf}
+                        size="sm"
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                      >
+                        <FileDown className="h-4 w-4" />
+                        Generate Combined Bill
+                      </Button>
+                      {pendingCombinedInvoice && (
+                        pendingCombinedInvoice.status === 'saved' ? (
+                          <span className="flex items-center gap-1 text-sm text-green-600 font-medium">
+                            <CheckCircle className="h-4 w-4" />
+                            Bill Given ({pendingCombinedInvoice.invoiceNumber})
+                          </span>
+                        ) : (
+                          <Button
+                            onClick={handleMarkCombinedBillGiven}
+                            disabled={pendingCombinedInvoice.status === 'saving'}
+                            size="sm"
+                            className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700"
+                          >
+                            {pendingCombinedInvoice.status === 'saving' ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <CheckCircle className="h-4 w-4" />
+                            )}
+                            Bill Given to Customer
+                          </Button>
+                        )
+                      )}
+                    </div>
                   </div>
                 )}
                 <div className="space-y-8">
@@ -642,7 +789,7 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
                             />
                             <h3 className="text-xl font-semibold text-foreground">{entry.dueMonth}</h3>
                           </div>
-                          <div className="flex items-center space-x-4">
+                          <div className="flex items-center space-x-4 flex-wrap gap-y-2">
                             <p className="text-l text-foreground">Total Amount:</p>
                             <p className="text-xl font-bold text-foreground">{entry.totalAmount.toLocaleString('en-IN')}</p>
                             <Button
@@ -661,6 +808,33 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
                               <FileDown className="h-4 w-4" />
                               Print Bill
                             </Button>
+                            {(() => {
+                              const pending = pendingInvoices.get(entry.dueMonth);
+                              if (!pending) return null;
+                              if (pending.status === 'saved') {
+                                return (
+                                  <span className="flex items-center gap-1 text-sm text-green-600 font-medium">
+                                    <CheckCircle className="h-4 w-4" />
+                                    Bill Given ({pending.invoiceNumber})
+                                  </span>
+                                );
+                              }
+                              return (
+                                <Button
+                                  onClick={() => handleMarkBillGiven(entry.dueMonth)}
+                                  disabled={pending.status === 'saving'}
+                                  size="sm"
+                                  className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700"
+                                >
+                                  {pending.status === 'saving' ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <CheckCircle className="h-4 w-4" />
+                                  )}
+                                  Bill Given to Customer
+                                </Button>
+                              );
+                            })()}
                           </div>
                         </div>
                       </div>

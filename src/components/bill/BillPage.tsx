@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Calendar, Printer, FileDown } from "lucide-react";
+import { Search, Calendar, Printer, FileDown, CheckCircle, Loader2 } from "lucide-react";
 import DarkModeToggle from '../DarkModeToggle';
 import { signOut } from "next-auth/react";
 import { useCustomers } from '@/context/CustomersContext';
@@ -131,6 +131,16 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
 
   // Item translations state
   const [itemTranslations, setItemTranslations] = useState<ItemTranslationMap>(new Map());
+
+  // Invoice tracking state
+  type PendingInvoice = {
+    invoiceNumber: string;
+    invoiceDate: string;
+    billingPeriod: string;
+    totalAmount: number;
+    status: 'ready' | 'saving' | 'saved';
+  };
+  const [pendingInvoices, setPendingInvoices] = useState<Map<string, PendingInvoice>>(new Map());
 
   const monthOptions = generateMonthOptions();
 
@@ -284,11 +294,12 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
 
   const handleCustomerSearch = async () => {
     if (searchTerm.trim() === "") return;
-  
+
     setIsLoading(true);
     setSearchMode('customer');
     setMonthBillData([]);
     setSearchedMonth('');
+    setPendingInvoices(new Map());
     
     try {
       const response = await fetch(`/api/ledger?customer=${encodeURIComponent(searchTerm)}`);
@@ -381,12 +392,74 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
     }
   };
 
-  const handleGeneratePdf = (month: string) => {
+  const handleGeneratePdf = async (month: string) => {
     const items = detailedBillData.get(month);
     const billEntry = billData.find(e => e.dueMonth === month);
-    
-    if (items && billEntry) {
-      generateCustomerPdf(items, billEntry.totalAmount, customerName, month, itemTranslations);
+    if (!items || !billEntry) return;
+
+    let invoiceNumber: string | undefined;
+    try {
+      const res = await fetch('/api/invoices/number', { method: 'POST' });
+      const data = await res.json();
+      invoiceNumber = data.invoiceNumber;
+    } catch {
+      // fall back to timestamp-based if API fails
+    }
+
+    generateCustomerPdf(items, billEntry.totalAmount, customerName, month, itemTranslations, invoiceNumber);
+
+    if (invoiceNumber) {
+      setPendingInvoices(prev => {
+        const next = new Map(prev);
+        next.set(month, {
+          invoiceNumber,
+          invoiceDate: new Date().toISOString(),
+          billingPeriod: month,
+          totalAmount: billEntry.totalAmount,
+          status: 'ready',
+        });
+        return next;
+      });
+    }
+  };
+
+  const handleMarkBillGiven = async (month: string) => {
+    const pending = pendingInvoices.get(month);
+    if (!pending || pending.status !== 'ready') return;
+
+    setPendingInvoices(prev => {
+      const next = new Map(prev);
+      next.set(month, { ...pending, status: 'saving' });
+      return next;
+    });
+
+    try {
+      const res = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invoiceNumber: pending.invoiceNumber,
+          customerName,
+          invoiceDate: pending.invoiceDate,
+          billingPeriod: pending.billingPeriod,
+          totalAmount: pending.totalAmount,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to save');
+
+      setPendingInvoices(prev => {
+        const next = new Map(prev);
+        next.set(month, { ...pending, status: 'saved' });
+        return next;
+      });
+    } catch {
+      setPendingInvoices(prev => {
+        const next = new Map(prev);
+        next.set(month, { ...pending, status: 'ready' });
+        return next;
+      });
+      alert('Failed to save invoice. Please try again.');
     }
   };
 
@@ -547,7 +620,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
                       <div className="px-6 py-4 border-b">
                         <div className="flex justify-between items-center">
                           <h3 className="text-xl font-semibold text-foreground">{entry.dueMonth}</h3>
-                          <div className="flex items-center space-x-4">
+                          <div className="flex items-center space-x-4 flex-wrap gap-y-2">
                             <p className="text-l text-foreground">Total Amount:</p>
                             <p className="text-xl font-bold text-foreground">{entry.totalAmount.toLocaleString('en-IN')}</p>
                             <Button
@@ -566,6 +639,33 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
                               <FileDown className="h-4 w-4" />
                               Print Bill
                             </Button>
+                            {(() => {
+                              const pending = pendingInvoices.get(entry.dueMonth);
+                              if (!pending) return null;
+                              if (pending.status === 'saved') {
+                                return (
+                                  <span className="flex items-center gap-1 text-sm text-green-600 font-medium">
+                                    <CheckCircle className="h-4 w-4" />
+                                    Bill Given ({pending.invoiceNumber})
+                                  </span>
+                                );
+                              }
+                              return (
+                                <Button
+                                  onClick={() => handleMarkBillGiven(entry.dueMonth)}
+                                  disabled={pending.status === 'saving'}
+                                  size="sm"
+                                  className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700"
+                                >
+                                  {pending.status === 'saving' ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <CheckCircle className="h-4 w-4" />
+                                  )}
+                                  Bill Given to Customer
+                                </Button>
+                              );
+                            })()}
                           </div>
                         </div>
                       </div>
