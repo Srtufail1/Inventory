@@ -15,6 +15,7 @@ import { addUpdateInward } from "@/actions/user";
 import { toast } from "../ui/use-toast";
 import { useCustomers } from '@/context/CustomersContext';
 import { useItems } from '@/context/ItemsContext';
+import { usePackings } from '@/context/PackingsContext';
 
 type Props = {
   title: string;
@@ -24,6 +25,7 @@ type Props = {
 const InwardData = ({ title, data }: Props) => {
   const { customers, loading } = useCustomers();
   const { items: allItems, loading: itemsLoading } = useItems();
+  const { packings: allPackings, loading: packingsLoading } = usePackings();
   const [searchTerm, setSearchTerm] = useState(data?.customer || '');
   const [filteredCustomers, setFilteredCustomers] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -35,6 +37,11 @@ const InwardData = ({ title, data }: Props) => {
   const [itemTerm, setItemTerm] = useState(data?.item || '');
   const [filteredItems, setFilteredItems] = useState<string[]>([]);
   const [hasSelectedItem, setHasSelectedItem] = useState(false);
+
+  // Packing autocomplete state
+  const [packingTerm, setPackingTerm] = useState(data?.packing || '');
+  const [filteredPackings, setFilteredPackings] = useState<string[]>([]);
+  const [hasSelectedPacking, setHasSelectedPacking] = useState(false);
 
   // Filter customers
   useEffect(() => {
@@ -60,6 +67,18 @@ const InwardData = ({ title, data }: Props) => {
     setFilteredItems(filtered);
   }, [itemTerm, allItems, itemsLoading, hasSelectedItem]);
 
+  // Filter packings
+  useEffect(() => {
+    if (!packingTerm || packingsLoading || hasSelectedPacking) {
+      setFilteredPackings([]);
+      return;
+    }
+    const filtered = allPackings.filter(packing =>
+      packing.toLowerCase().includes(packingTerm.toLowerCase())
+    );
+    setFilteredPackings(filtered);
+  }, [packingTerm, allPackings, packingsLoading, hasSelectedPacking]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
     setHasSelected(false);
@@ -82,12 +101,24 @@ const InwardData = ({ title, data }: Props) => {
     setFilteredItems([]);
   };
 
+  const handlePackingInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPackingTerm(e.target.value);
+    setHasSelectedPacking(false);
+  };
+
+  const handlePackingSelect = (packing: string) => {
+    setPackingTerm(packing);
+    setHasSelectedPacking(true);
+    setFilteredPackings([]);
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     const formData = new FormData(e.currentTarget);
     formData.set('customer', searchTerm);
     formData.set('item', itemTerm);
+    formData.set('packing', packingTerm);
     const response: any = await addUpdateInward(formData, data);
     if (response?.error) {
       toast({ title: response?.error, variant: "destructive" });
@@ -103,6 +134,7 @@ const InwardData = ({ title, data }: Props) => {
     if (open) {
       setItemTerm(data?.item || '');
       setSearchTerm(data?.customer || '');
+      setPackingTerm(data?.packing || '');
       if (searchRef.current) {
         setTimeout(() => searchRef.current?.focus(), 0);
       }
@@ -191,12 +223,31 @@ const InwardData = ({ title, data }: Props) => {
                     </ul>
                   )}
                 </div>
-                <FormInput
-                  type="text"
-                  name="packing"
-                  label="Enter packing type"
-                  defaultValue={data?.packing}
-                />
+                {/* Packing field with autocomplete */}
+                <div className="flex flex-col space-y-2 relative">
+                  <Label htmlFor="packing">Enter packing type</Label>
+                  <Input
+                    type="text"
+                    name="packing"
+                    value={packingTerm}
+                    onChange={handlePackingInputChange}
+                    placeholder="Search for a packing type"
+                    className="mt-2"
+                  />
+                  {filteredPackings.length > 0 && (
+                    <ul className="z-10 w-full bg-popover border mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
+                      {filteredPackings.map((packing, index) => (
+                        <li
+                          key={index}
+                          className="px-4 py-2 hover:bg-muted cursor-pointer text-popover-foreground"
+                          onClick={() => handlePackingSelect(packing)}
+                        >
+                          {packing}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
                 <FormInput
                   type="number"
                   name="weight"
