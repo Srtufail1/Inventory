@@ -7,6 +7,7 @@ import {
   SortingState,
   VisibilityState,
   ExpandedState,
+  RowSelectionState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -21,6 +22,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -72,6 +74,29 @@ const dateRangeFilter: FilterFn<OutwardRowData> = (row, columnId, filterValue) =
 };
 
 export const columns: ColumnDef<OutwardRowData>[] = [
+  {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+        onClick={(e) => e.stopPropagation()}
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: "inumber",
     header: ({ column }) => {
@@ -224,6 +249,7 @@ const OutwardTable = ({ data }: any) => {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
   const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>([null, null]);
   const [startDate, endDate] = dateRange;
   const [pageSize, setPageSize] = React.useState(10);
@@ -249,6 +275,7 @@ const OutwardTable = ({ data }: any) => {
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onExpandedChange: setExpanded,
+    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -267,6 +294,7 @@ const OutwardTable = ({ data }: any) => {
       columnFilters,
       columnVisibility,
       expanded,
+      rowSelection,
       pagination: {
         pageSize,
         pageIndex,
@@ -399,11 +427,13 @@ const OutwardTable = ({ data }: any) => {
                       <TableRow
                         data-state={row.getIsSelected() && "selected"}
                         className={
-                          row.getIsExpanded()
-                            ? "border-b-0 bg-amber-50/30 dark:bg-amber-950/10"
-                            : row.index % 2 === 1
-                              ? "bg-muted/30"
-                              : undefined
+                          row.getIsSelected()
+                            ? "bg-blue-50 dark:bg-blue-950/40"
+                            : row.getIsExpanded()
+                              ? "border-b-0 bg-amber-50/30 dark:bg-amber-950/10"
+                              : row.index % 2 === 1
+                                ? "bg-muted/30"
+                                : undefined
                         }
                       >
                         {row.getVisibleCells().map((cell) => (
@@ -444,8 +474,13 @@ const OutwardTable = ({ data }: any) => {
             </Table>
           </div>
           <div className="flex items-center justify-between py-4">
-            <div className="text-sm text-muted-foreground">
-              {table.getFilteredRowModel().rows.length} row(s) total
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span>{table.getFilteredRowModel().rows.length} row(s) total</span>
+              {table.getFilteredSelectedRowModel().rows.length > 0 && (
+                <span className="font-medium text-blue-600 dark:text-blue-400">
+                  {table.getFilteredSelectedRowModel().rows.length} selected
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
