@@ -8,6 +8,7 @@ import Providers from "@/lib/Providers";
 import { ThemeProvider } from 'next-themes';
 import { CustomersProvider } from '@/context/CustomersContext';
 import { ItemsProvider } from '@/context/ItemsContext';
+import { PackingsProvider } from '@/context/PackingsContext';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -30,8 +31,10 @@ export default function RootLayout({
           <Providers>
             <CustomersProvider>
               <ItemsProvider>
-                <Toaster />
-                {children}
+                <PackingsProvider>
+                  <Toaster />
+                  {children}
+                </PackingsProvider>
               </ItemsProvider>
             </CustomersProvider>
           </Providers>
