@@ -31,6 +31,7 @@ const OutwardData = ({ title, data }: Props) => {
   const [inwardNumber, setInwardNumber] = useState(data?.inumber || '');
   const [isAutoFilling, setIsAutoFilling] = useState(false);
   const [itemValue, setItemValue] = useState(data?.item || '');
+  const [remainingQuantity, setRemainingQuantity] = useState<number | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -71,6 +72,11 @@ const OutwardData = ({ title, data }: Props) => {
         if (result.item) {
           setItemValue(result.item);
         }
+        if (result.remainingQuantity !== undefined) {
+          setRemainingQuantity(result.remainingQuantity);
+        }
+      } else {
+        setRemainingQuantity(null);
       }
     } catch (error) {
       console.error('Error looking up inward number:', error);
@@ -82,6 +88,7 @@ const OutwardData = ({ title, data }: Props) => {
   const handleInwardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInwardNumber(value);
+    if (!value.trim()) setRemainingQuantity(null);
 
     // Debounce the lookup to avoid too many API calls
     if (debounceTimerRef.current) {
@@ -129,6 +136,7 @@ const OutwardData = ({ title, data }: Props) => {
       setInwardNumber(data?.inumber || '');
       setSearchTerm(data?.customer || '');
       setItemValue(data?.item || '');
+      setRemainingQuantity(null);
       if (searchRef.current) {
         setTimeout(() => searchRef.current?.focus(), 0);
       }
@@ -170,6 +178,11 @@ const OutwardData = ({ title, data }: Props) => {
                       </span>
                     )}
                   </div>
+                  {remainingQuantity !== null && (
+                    <p className={`text-xs mt-1 font-medium ${remainingQuantity === 0 ? 'text-red-500' : 'text-green-600'}`}>
+                      Remaining quantity: {remainingQuantity}
+                    </p>
+                  )}
                 </div>
                 <FormInput
                   type="number"

@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
       select: {
         customer: true,
         item: true,
+        quantity: true,
       },
     });
 
@@ -24,7 +25,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Inward record not found' }, { status: 404 });
     }
 
-    return NextResponse.json(inwardRecord);
+    const outwardRecords = await db.outward.findMany({
+      where: { inumber },
+      select: { quantity: true },
+    });
+
+    const totalOutward = outwardRecords.reduce(
+      (sum, r) => sum + (parseInt(r.quantity) || 0),
+      0
+    );
+    const remainingQuantity = Math.max(0, (parseInt(inwardRecord.quantity) || 0) - totalOutward);
+
+    return NextResponse.json({ ...inwardRecord, remainingQuantity });
   } catch (error) {
     console.error('Error fetching inward record:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
