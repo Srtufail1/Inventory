@@ -7,38 +7,24 @@ export type Stats = {
   totalCustomers: number;
 };
 
-export type RecentInward = {
-  id: string;
-  inumber: string;
-  addDate: string;
-  customer: string;
-  item: string;
-  quantity: string;
-};
-
-export type RecentOutward = {
-  id: string;
-  onumber: string;
-  inumber: string;
-  outDate: string;
-  customer: string;
-  item: string;
-  quantity: string;
-};
-
 export type TopCustomer = {
   customer: string;
   quantity: number;
 };
 
-export type RecentLog = {
+export type InwardStock = {
   id: string;
-  action: string;
-  entity: string;
-  userName: string;
-  customer: string | null;
-  inumber: string | null;
-  createdAt: string;
+  inumber: string;
+  item: string;
+  addDate: string;
+  inwardQty: number;
+  remaining: number;
+};
+
+export type CustomerStock = {
+  customer: string;
+  totalRemaining: number;
+  inwards: InwardStock[];
 };
 
 export type MonthlyTrend = {
@@ -206,10 +192,7 @@ export type RateChangeLog = {
 
 export type Props = {
   stats: Stats;
-  recentInward: RecentInward[];
-  recentOutward: RecentOutward[];
   topCustomers: TopCustomer[];
-  recentLogs: RecentLog[];
   monthlyTrends: MonthlyTrend[];
   topItems: TopItem[];
   todayActivity: TodayActivity;
@@ -227,4 +210,5 @@ export type Props = {
   recentlyDeleted: RecentlyDeletedRecord[];
   missingRateAlerts: MissingRateAlert[];
   rateChangeLogs: RateChangeLog[];
+  customerStock: CustomerStock[];
 };
