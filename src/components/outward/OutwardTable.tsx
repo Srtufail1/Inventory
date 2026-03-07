@@ -46,6 +46,8 @@ import ExpandableNoteRow from "./ExpandableNoteRow";
 import { format, isWithinInterval } from 'date-fns';
 import DarkModeToggle from '../DarkModeToggle';
 import { FaCalendarAlt } from 'react-icons/fa';
+import { useCustomers } from '@/context/CustomersContext';
+import { useItems } from '@/context/ItemsContext';
 
 // Extended type to include notes
 type OutwardRowData = OutwardDataProps[number] & {
@@ -255,6 +257,18 @@ const OutwardTable = ({ data }: any) => {
   const [pageSize, setPageSize] = React.useState(10);
   const [pageIndex, setPageIndex] = React.useState(0);
 
+  // Autocomplete for search filters
+  const { customers } = useCustomers();
+  const { items: allItems } = useItems();
+
+  const [customerFilterValue, setCustomerFilterValue] = React.useState('');
+  const [customerSuggestions, setCustomerSuggestions] = React.useState<string[]>([]);
+  const [customerSelected, setCustomerSelected] = React.useState(false);
+
+  const [itemFilterValue, setItemFilterValue] = React.useState('');
+  const [itemSuggestions, setItemSuggestions] = React.useState<string[]>([]);
+  const [itemSelected, setItemSelected] = React.useState(false);
+
   // Local state to track notes updates without full page reload
   const [localData, setLocalData] = React.useState<OutwardRowData[]>(data);
   React.useEffect(() => {
@@ -313,6 +327,16 @@ const OutwardTable = ({ data }: any) => {
     }
   }, [startDate, endDate, table]);
 
+  React.useEffect(() => {
+    if (!customerFilterValue || customerSelected) { setCustomerSuggestions([]); return; }
+    setCustomerSuggestions(customers.filter(c => c.toLowerCase().includes(customerFilterValue.toLowerCase())));
+  }, [customerFilterValue, customers, customerSelected]);
+
+  React.useEffect(() => {
+    if (!itemFilterValue || itemSelected) { setItemSuggestions([]); return; }
+    setItemSuggestions(allItems.filter(i => i.toLowerCase().includes(itemFilterValue.toLowerCase())));
+  }, [itemFilterValue, allItems, itemSelected]);
+
   return (
     <div>
       <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
@@ -323,7 +347,7 @@ const OutwardTable = ({ data }: any) => {
               placeholder="Search Inward Number..."
               value={(table?.getColumn("inumber")?.getFilterValue() as string) ?? ""}
               onChange={(event) => table?.getColumn("inumber")?.setFilterValue(event?.target?.value)}
-              className="pl-8 max-w-sm outline-none focus:outline-none"
+              className="pl-8 h-10 w-52 text-sm"
             />
           </div>
           <div className="relative">
@@ -332,63 +356,114 @@ const OutwardTable = ({ data }: any) => {
               placeholder="Search Outward Number..."
               value={(table?.getColumn("onumber")?.getFilterValue() as string) ?? ""}
               onChange={(event) => table?.getColumn("onumber")?.setFilterValue(event?.target?.value)}
-              className="pl-8 max-w-sm outline-none focus:outline-none"
+              className="pl-8 h-10 w-52 text-sm"
             />
           </div>
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search Customer..."
-              value={(table?.getColumn("customer")?.getFilterValue() as string) ?? ""}
-              onChange={(event) => table?.getColumn("customer")?.setFilterValue(event?.target?.value)}
-              className="pl-8 max-w-sm outline-none focus:outline-none"
+              value={customerFilterValue}
+              onChange={(event) => {
+                const val = event.target.value;
+                setCustomerFilterValue(val);
+                setCustomerSelected(false);
+                table?.getColumn("customer")?.setFilterValue(val);
+              }}
+              className="pl-8 h-10 w-52 text-sm"
             />
+            {customerSuggestions.length > 0 && (
+              <ul className="absolute z-20 w-48 bg-popover border mt-1 max-h-48 overflow-auto rounded-md shadow-md">
+                {customerSuggestions.map((customer, index) => (
+                  <li
+                    key={index}
+                    className="px-3 py-1.5 hover:bg-muted cursor-pointer text-popover-foreground text-sm"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setCustomerFilterValue(customer);
+                      setCustomerSelected(true);
+                      table?.getColumn("customer")?.setFilterValue(customer);
+                    }}
+                  >
+                    {customer}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div className="relative">
-            <DatePicker
-              selectsRange={true}
-              startDate={startDate}
-              endDate={endDate}
-              onChange={(update: [Date | null, Date | null]) => {
-                setDateRange(update);
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search Item..."
+              value={itemFilterValue}
+              onChange={(event) => {
+                const val = event.target.value;
+                setItemFilterValue(val);
+                setItemSelected(false);
+                table?.getColumn("item")?.setFilterValue(val);
               }}
-              placeholderText="Select date range"
-              className="px-3 py-2 border rounded"
-              dateFormat="dd MMM yyyy"
-              isClearable={true}
+              className="pl-8 h-10 w-52 text-sm"
             />
+            {itemSuggestions.length > 0 && (
+              <ul className="absolute z-20 w-48 bg-popover border mt-1 max-h-48 overflow-auto rounded-md shadow-md">
+                {itemSuggestions.map((item, index) => (
+                  <li
+                    key={index}
+                    className="px-3 py-1.5 hover:bg-muted cursor-pointer text-popover-foreground text-sm"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setItemFilterValue(item);
+                      setItemSelected(true);
+                      table?.getColumn("item")?.setFilterValue(item);
+                    }}
+                  >
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-          <div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="ml-auto">
-                  Columns <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {table
-                  .getAllColumns()
-                  .filter((column) => column.getCanHide())
-                  .map((column) => {
-                    return (
-                      <DropdownMenuCheckboxItem
-                        key={column.id}
-                        className="capitalize"
-                        checked={column.getIsVisible()}
-                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                      >
-                        {column.id}
-                      </DropdownMenuCheckboxItem>
-                    );
-                  })}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <DatePicker
+            selectsRange={true}
+            startDate={startDate}
+            endDate={endDate}
+            onChange={(update: [Date | null, Date | null]) => {
+              setDateRange(update);
+            }}
+            placeholderText="Select Date range..."
+            className="h-10 w-44 rounded-md border border-input bg-background px-2.5 text-sm placeholder:text-muted-foreground focus:outline-none"
+            dateFormat="dd MMM yyyy"
+            isClearable={true}
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-10 shrink-0">
+                Columns <ChevronDown className="ml-1.5 h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-        <DarkModeToggle />
-        <Button onClick={() => signOut()} type="submit">
-          Sign Out
-        </Button>
+          <DarkModeToggle />
+          <Button onClick={() => signOut()} type="submit">
+            Sign Out
+          </Button>
       </div>
       <div className="p-6">
         <div className="flex item justify-between pt-3 pb-6">
