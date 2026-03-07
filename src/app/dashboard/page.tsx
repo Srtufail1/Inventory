@@ -78,33 +78,6 @@ async function DashboardData() {
     .sort(([, a], [, b]) => b - a)
     .map(([customer, quantity]) => ({ customer, quantity }));
 
-  // Recent 10 inward records
-  const recentInward = inwardData.slice(0, 10).map((item) => ({
-    id: item.id,
-    inumber: item.inumber,
-    addDate: item.addDate.toISOString(),
-    customer: item.customer,
-    item: item.item,
-    quantity: item.quantity,
-  }));
-
-  // Recent 10 outward records
-  const recentOutward = outwardData.slice(0, 10).map((item) => ({
-    id: item.id,
-    onumber: item.onumber,
-    inumber: item.inumber,
-    outDate: item.outDate.toISOString(),
-    customer: item.customer,
-    item: item.item,
-    quantity: item.quantity,
-  }));
-
-  // Serialize audit logs — take 5 most recent from the already-fetched 30-day logs
-  const serializedLogs = allAuditLogs.slice(0, 5).map((log) => ({
-    ...log,
-    createdAt: log.createdAt.toISOString(),
-  }));
-
   // === Monthly Trends (last 6 months) ===
   const monthlyTrends = [];
   for (let i = 5; i >= 0; i--) {
@@ -188,6 +161,29 @@ async function DashboardData() {
     outwardByInumber[item.inumber] =
       (outwardByInumber[item.inumber] || 0) + qty;
   });
+
+  // === Customer Stock (remaining qty per customer, per inward) ===
+  const customerStockMap: Record<string, { totalRemaining: number; inwards: Array<{ id: string; inumber: string; item: string; addDate: string; inwardQty: number; remaining: number }> }> = {};
+  inwardData.forEach((item) => {
+    const inwardQty = parseInt(item.quantity) || 0;
+    const outwardQty = outwardByInumber[item.inumber] || 0;
+    const remaining = inwardQty - outwardQty;
+    if (!customerStockMap[item.customer]) {
+      customerStockMap[item.customer] = { totalRemaining: 0, inwards: [] };
+    }
+    customerStockMap[item.customer].totalRemaining += remaining;
+    customerStockMap[item.customer].inwards.push({
+      id: item.id,
+      inumber: item.inumber,
+      item: item.item,
+      addDate: item.addDate.toISOString(),
+      inwardQty,
+      remaining,
+    });
+  });
+  const customerStock = Object.entries(customerStockMap)
+    .map(([customer, data]) => ({ customer, ...data }))
+    .sort((a, b) => b.totalRemaining - a.totalRemaining);
 
   // === Missing Rate Alerts (inward records with missing store_rate or labour_rate) ===
   const missingRateAlerts = inwardData
@@ -620,10 +616,7 @@ async function DashboardData() {
         currentStock,
         totalCustomers: uniqueCustomers.size,
       }}
-      recentInward={recentInward}
-      recentOutward={recentOutward}
       topCustomers={allCustomersSorted}
-      recentLogs={serializedLogs}
       monthlyTrends={monthlyTrends}
       topItems={allItemsSorted}
       todayActivity={todayActivity}
@@ -641,6 +634,7 @@ async function DashboardData() {
       recentlyDeleted={recentlyDeleted}
       missingRateAlerts={missingRateAlerts}
       rateChangeLogs={rateChangeLogs}
+      customerStock={customerStock}
     />
   );
 }
