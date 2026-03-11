@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Collect all unique dates and build sorted summaries
-    const allDates = new Set([...inwardByDate.keys(), ...outwardByDate.keys()]);
+    const allDates = new Set(Array.from(inwardByDate.keys()).concat(Array.from(outwardByDate.keys())));
     const dailySummaries: DailyLabourSummary[] = Array.from(allDates)
       .sort()
       .map((date) => {
