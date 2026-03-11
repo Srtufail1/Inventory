@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { auth, signIn } from "../../auth";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { checkSuperAdmin } from "@/lib/auth-utils";
 
 export const loginSignup = async (formData: FormData, isLogin: boolean) => {
   const name = formData.get("name") as string;
@@ -59,6 +60,11 @@ export const updateUserRole = async (
   },
   data: any
 ) => {
+  // Authorization check: Only SuperAdmins can update user roles
+  if (!(await checkSuperAdmin())) {
+    return { error: "Unauthorized. SuperAdmin privileges required." };
+  }
+
   const { name, email, isAdmin, isSuperAdmin, loginToken } = updatedData;
 
   if (!name || !email) {
@@ -391,6 +397,11 @@ export const DeleteOutward = async (id: string) => {
 
 // delete a single audit log
 export const deleteAuditLog = async (id: string) => {
+  // Authorization check: Only SuperAdmins can delete audit logs
+  if (!(await checkSuperAdmin())) {
+    return { error: "Unauthorized. SuperAdmin privileges required." };
+  }
+
   try {
     const result = await db.auditLog.delete({
       where: { id },
@@ -406,6 +417,11 @@ export const deleteAuditLog = async (id: string) => {
 
 // delete all audit logs for a specific date
 export const deleteAuditLogsByDate = async (dateString: string) => {
+  // Authorization check: Only SuperAdmins can delete audit logs
+  if (!(await checkSuperAdmin())) {
+    return { error: "Unauthorized. SuperAdmin privileges required." };
+  }
+
   try {
     const date = new Date(dateString);
     const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
