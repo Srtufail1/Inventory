@@ -51,11 +51,39 @@ type LabourData = {
   searchDate: string;
 };
 
+type DailyLabourSummary = {
+  date: string;
+  inwardTotal: number;
+  outwardTotal: number;
+  total: number;
+};
+
+type LabourRangeData = {
+  dailySummaries: DailyLabourSummary[];
+  grandInwardTotal: number;
+  grandOutwardTotal: number;
+  grandTotal: number;
+  startDate: string;
+  endDate: string;
+};
+
+type Mode = 'single' | 'range';
+
 const LabourBillPage = () => {
+  const [mode, setMode] = useState<Mode>('single');
+
+  // Single date state
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [labourData, setLabourData] = useState<LabourData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Date range state
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [rangeData, setRangeData] = useState<LabourRangeData | null>(null);
+  const [isRangeLoading, setIsRangeLoading] = useState(false);
+  const [rangeError, setRangeError] = useState<string | null>(null);
 
   const handleSearch = async () => {
     if (!selectedDate) {
@@ -78,6 +106,36 @@ const LabourBillPage = () => {
       setError('Failed to fetch labour bill data');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRangeSearch = async () => {
+    if (!startDate || !endDate) {
+      setRangeError('Please select both start and end dates');
+      return;
+    }
+    if (startDate > endDate) {
+      setRangeError('Start date must be before end date');
+      return;
+    }
+
+    setIsRangeLoading(true);
+    setRangeError(null);
+
+    try {
+      const response = await fetch(
+        `/api/labour/range?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+      const data = await response.json();
+      setRangeData(data);
+    } catch (err) {
+      console.error('Error fetching labour range data:', err);
+      setRangeError('Failed to fetch labour bill data');
+    } finally {
+      setIsRangeLoading(false);
     }
   };
 
@@ -260,6 +318,121 @@ const LabourBillPage = () => {
     }, 250);
   };
 
+  const handleRangePrint = () => {
+    if (!rangeData) return;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const formattedStart = formatDate(rangeData.startDate);
+    const formattedEnd = formatDate(rangeData.endDate);
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Labour Bill - ${formattedStart} to ${formattedEnd}</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              padding: 20px;
+              max-width: 700px;
+              margin: 0 auto;
+            }
+            h1, h2 {
+              text-align: center;
+              color: #1a1a1a;
+              margin: 4px 0;
+            }
+            .subtitle {
+              text-align: center;
+              color: #666;
+              margin-bottom: 24px;
+              font-size: 14px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin: 0;
+            }
+            th, td {
+              border: 1px solid #ddd;
+              padding: 9px 12px;
+              text-align: left;
+            }
+            th {
+              background-color: #f3f4f6;
+              font-weight: 600;
+              text-transform: uppercase;
+              font-size: 11px;
+              color: #6b7280;
+            }
+            tr:nth-child(even) td {
+              background-color: #f9fafb;
+            }
+            .text-right {
+              text-align: right;
+            }
+            .totals-row td {
+              background-color: #e0f2fe !important;
+              font-weight: bold;
+            }
+            .grand-total-row td {
+              background-color: #dcfce7 !important;
+              font-weight: bold;
+              font-size: 14px;
+            }
+            @media print {
+              body { padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>ZamZam Cold Storage</h1>
+          <h2>Labour Bill Summary</h2>
+          <p class="subtitle">${formattedStart} &ndash; ${formattedEnd}</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th class="text-right">Inward Labour</th>
+                <th class="text-right">Outward Labour</th>
+                <th class="text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rangeData.dailySummaries.map((row) => `
+                <tr>
+                  <td>${formatDate(row.date)}</td>
+                  <td class="text-right">${row.inwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                  <td class="text-right">${row.outwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                  <td class="text-right">${row.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                </tr>
+              `).join('')}
+              <tr class="totals-row">
+                <td><strong>Sub-Total</strong></td>
+                <td class="text-right">${rangeData.grandInwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                <td class="text-right">${rangeData.grandOutwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                <td class="text-right">${rangeData.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+              </tr>
+              <tr class="grand-total-row">
+                <td colspan="3" class="text-right"><strong>GRAND TOTAL LABOUR COST:</strong></td>
+                <td class="text-right"><strong>Rs. ${rangeData.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
+  };
+
   return (
     <div>
       {/* Header */}
@@ -275,200 +448,375 @@ const LabourBillPage = () => {
       <div className="p-6">
         <div className="flex items-center justify-between pt-3 pb-6">
           <h1 className="text-3xl font-bold tracking-tight">
-            Daily Labour Bill
+            Labour Bill
           </h1>
         </div>
 
-        {/* Search Section */}
-        <div className="mb-8 p-4 bg-muted/50 rounded-lg">
-          <h3 className="text-lg font-medium text-foreground mb-3 flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Select Date
-          </h3>
-          <div className="flex items-center gap-4">
-            <Input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-64"
-            />
-            <Button onClick={handleSearch} disabled={isLoading}>
-              {isLoading ? 'Searching...' : 'Search'}
-            </Button>
-            {labourData && (
-              <Button onClick={handlePrint} variant="outline" className="flex items-center gap-2">
-                <Printer className="h-4 w-4" />
-                Print Bill
-              </Button>
-            )}
-          </div>
-          {error && <p className="text-red-500 mt-2">{error}</p>}
+        {/* Mode Toggle */}
+        <div className="flex gap-2 mb-6">
+          <Button
+            variant={mode === 'single' ? 'default' : 'outline'}
+            onClick={() => setMode('single')}
+          >
+            Single Date
+          </Button>
+          <Button
+            variant={mode === 'range' ? 'default' : 'outline'}
+            onClick={() => setMode('range')}
+          >
+            Date Range
+          </Button>
         </div>
 
-        {/* Results */}
-        {labourData && (
-          <div className="space-y-8">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300 mb-2">
-                  <MonitorDown className="h-5 w-5" />
-                  <h4 className="font-semibold">Inward Labour</h4>
-                </div>
-                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                  Rs. {labourData.inwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                </p>
-                <p className="text-sm text-blue-600 dark:text-blue-400">{labourData.inwardData.length} record(s)</p>
+        {/* Single Date Mode */}
+        {mode === 'single' && (
+          <>
+            {/* Search Section */}
+            <div className="mb-8 p-4 bg-muted/50 rounded-lg">
+              <h3 className="text-lg font-medium text-foreground mb-3 flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Select Date
+              </h3>
+              <div className="flex items-center gap-4">
+                <Input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-64"
+                />
+                <Button onClick={handleSearch} disabled={isLoading}>
+                  {isLoading ? 'Searching...' : 'Search'}
+                </Button>
+                {labourData && (
+                  <Button onClick={handlePrint} variant="outline" className="flex items-center gap-2">
+                    <Printer className="h-4 w-4" />
+                    Print Bill
+                  </Button>
+                )}
               </div>
-
-              <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-orange-800 dark:text-orange-300 mb-2">
-                  <MonitorUp className="h-5 w-5" />
-                  <h4 className="font-semibold">Outward Labour</h4>
-                </div>
-                <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
-                  Rs. {labourData.outwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                </p>
-                <p className="text-sm text-orange-600 dark:text-orange-400">{labourData.outwardData.length} record(s)</p>
-              </div>
-
-              <div className="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                <h4 className="font-semibold text-green-800 dark:text-green-300 mb-2">Grand Total</h4>
-                <p className="text-2xl font-bold text-green-900 dark:text-green-100">
-                  Rs. {labourData.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                </p>
-                <p className="text-sm text-green-600 dark:text-green-400">
-                  {labourData.inwardData.length + labourData.outwardData.length} total record(s)
-                </p>
-              </div>
+              {error && <p className="text-red-500 mt-2">{error}</p>}
             </div>
 
-            {/* Inward Table */}
-            {labourData.inwardData.length > 0 && (
-              <div className="bg-card shadow rounded-lg overflow-hidden border">
-                <div className="px-6 py-4 border-b bg-blue-500/10 dark:bg-blue-500/5">
-                  <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-200 flex items-center gap-2">
-                    <MonitorDown className="h-5 w-5" />
-                    Inward Labour - {formatDate(labourData.searchDate)}
-                  </h3>
-                  <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">Items received on this date</p>
+            {/* Results */}
+            {labourData && (
+              <div className="space-y-8">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300 mb-2">
+                      <MonitorDown className="h-5 w-5" />
+                      <h4 className="font-semibold">Inward Labour</h4>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                      Rs. {labourData.inwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-sm text-blue-600 dark:text-blue-400">{labourData.inwardData.length} record(s)</p>
+                  </div>
+
+                  <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-orange-800 dark:text-orange-300 mb-2">
+                      <MonitorUp className="h-5 w-5" />
+                      <h4 className="font-semibold">Outward Labour</h4>
+                    </div>
+                    <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
+                      Rs. {labourData.outwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-sm text-orange-600 dark:text-orange-400">{labourData.outwardData.length} record(s)</p>
+                  </div>
+
+                  <div className="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                    <h4 className="font-semibold text-green-800 dark:text-green-300 mb-2">Grand Total</h4>
+                    <p className="text-2xl font-bold text-green-900 dark:text-green-100">
+                      Rs. {labourData.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-sm text-green-600 dark:text-green-400">
+                      {labourData.inwardData.length + labourData.outwardData.length} total record(s)
+                    </p>
+                  </div>
                 </div>
-                <div className="px-6 py-4 overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>S.No</TableHead>
-                        <TableHead>Inward No.</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Item</TableHead>
-                        <TableHead>Packing</TableHead>
-                        <TableHead>Weight (Kg)</TableHead>
-                        <TableHead className="text-right">Quantity</TableHead>
-                        <TableHead className="text-right">Labour Rate</TableHead>
-                        <TableHead className="text-right">Labour Cost</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {labourData.inwardData.map((item, index) => (
-                        <TableRow key={item.id}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell className="font-medium">{item.number}</TableCell>
-                          <TableCell>{item.customer}</TableCell>
-                          <TableCell>{item.item}</TableCell>
-                          <TableCell>{item.packing}</TableCell>
-                          <TableCell>{item.weight}</TableCell>
-                          <TableCell className="text-right">{item.quantity.toLocaleString('en-IN')}</TableCell>
-                          <TableCell className="text-right">{item.labourRate.toFixed(2)}</TableCell>
-                          <TableCell className="text-right font-semibold">
-                            {item.labourCost.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      <TableRow className="bg-blue-100 dark:bg-blue-950/50">
-                        <TableCell colSpan={8} className="text-right font-bold">
-                          Inward Total:
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-blue-900 dark:text-blue-200">
-                          Rs. {labourData.inwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
+
+                {/* Inward Table */}
+                {labourData.inwardData.length > 0 && (
+                  <div className="bg-card shadow rounded-lg overflow-hidden border">
+                    <div className="px-6 py-4 border-b bg-blue-500/10 dark:bg-blue-500/5">
+                      <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-200 flex items-center gap-2">
+                        <MonitorDown className="h-5 w-5" />
+                        Inward Labour - {formatDate(labourData.searchDate)}
+                      </h3>
+                      <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">Items received on this date</p>
+                    </div>
+                    <div className="px-6 py-4 overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>S.No</TableHead>
+                            <TableHead>Inward No.</TableHead>
+                            <TableHead>Customer</TableHead>
+                            <TableHead>Item</TableHead>
+                            <TableHead>Packing</TableHead>
+                            <TableHead>Weight (Kg)</TableHead>
+                            <TableHead className="text-right">Quantity</TableHead>
+                            <TableHead className="text-right">Labour Rate</TableHead>
+                            <TableHead className="text-right">Labour Cost</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {labourData.inwardData.map((item, index) => (
+                            <TableRow key={item.id}>
+                              <TableCell>{index + 1}</TableCell>
+                              <TableCell className="font-medium">{item.number}</TableCell>
+                              <TableCell>{item.customer}</TableCell>
+                              <TableCell>{item.item}</TableCell>
+                              <TableCell>{item.packing}</TableCell>
+                              <TableCell>{item.weight}</TableCell>
+                              <TableCell className="text-right">{item.quantity.toLocaleString('en-IN')}</TableCell>
+                              <TableCell className="text-right">{item.labourRate.toFixed(2)}</TableCell>
+                              <TableCell className="text-right font-semibold">
+                                {item.labourCost.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          <TableRow className="bg-blue-100 dark:bg-blue-950/50">
+                            <TableCell colSpan={8} className="text-right font-bold">
+                              Inward Total:
+                            </TableCell>
+                            <TableCell className="text-right font-bold text-blue-900 dark:text-blue-200">
+                              Rs. {labourData.inwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Outward Table */}
+                {labourData.outwardData.length > 0 && (
+                  <div className="bg-card shadow rounded-lg overflow-hidden border">
+                    <div className="px-6 py-4 border-b bg-orange-500/10 dark:bg-orange-500/5">
+                      <h3 className="text-xl font-semibold text-orange-900 dark:text-orange-200 flex items-center gap-2">
+                        <MonitorUp className="h-5 w-5" />
+                        Outward Labour - {formatDate(labourData.searchDate)}
+                      </h3>
+                      <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">Items dispatched on this date</p>
+                    </div>
+                    <div className="px-6 py-4 overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>S.No</TableHead>
+                            <TableHead>Outward No.</TableHead>
+                            <TableHead>Inward No.</TableHead>
+                            <TableHead>Customer</TableHead>
+                            <TableHead>Item</TableHead>
+                            <TableHead className="text-right">Quantity</TableHead>
+                            <TableHead className="text-right">Labour Rate</TableHead>
+                            <TableHead className="text-right">Labour Cost</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {labourData.outwardData.map((item, index) => (
+                            <TableRow key={item.id}>
+                              <TableCell>{index + 1}</TableCell>
+                              <TableCell className="font-medium">{item.number}</TableCell>
+                              <TableCell>{item.inwardNumber}</TableCell>
+                              <TableCell>{item.customer}</TableCell>
+                              <TableCell>{item.item}</TableCell>
+                              <TableCell className="text-right">{item.quantity.toLocaleString('en-IN')}</TableCell>
+                              <TableCell className="text-right">{item.labourRate.toFixed(2)}</TableCell>
+                              <TableCell className="text-right font-semibold">
+                                {item.labourCost.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          <TableRow className="bg-orange-100 dark:bg-orange-950/50">
+                            <TableCell colSpan={7} className="text-right font-bold">
+                              Outward Total:
+                            </TableCell>
+                            <TableCell className="text-right font-bold text-orange-900 dark:text-orange-200">
+                              Rs. {labourData.outwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
+
+                {/* No Data Messages */}
+                {labourData.inwardData.length === 0 && labourData.outwardData.length === 0 && (
+                  <div className="text-center py-12 bg-muted/50 rounded-lg">
+                    <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-foreground">No Records Found</h3>
+                    <p className="text-muted-foreground mt-2">
+                      No inward or outward records found for {formatDate(labourData.searchDate)}
+                    </p>
+                  </div>
+                )}
+
+                {/* Formula Note */}
+                <div className="bg-muted rounded-lg p-4 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Formula:</strong> Labour Cost = Quantity × (Labour Rate ÷ 2)
+                  </p>
                 </div>
               </div>
             )}
+          </>
+        )}
 
-            {/* Outward Table */}
-            {labourData.outwardData.length > 0 && (
-              <div className="bg-card shadow rounded-lg overflow-hidden border">
-                <div className="px-6 py-4 border-b bg-orange-500/10 dark:bg-orange-500/5">
-                  <h3 className="text-xl font-semibold text-orange-900 dark:text-orange-200 flex items-center gap-2">
-                    <MonitorUp className="h-5 w-5" />
-                    Outward Labour - {formatDate(labourData.searchDate)}
-                  </h3>
-                  <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">Items dispatched on this date</p>
+        {/* Date Range Mode */}
+        {mode === 'range' && (
+          <>
+            <div className="mb-8 p-4 bg-muted/50 rounded-lg">
+              <h3 className="text-lg font-medium text-foreground mb-3 flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Select Date Range
+              </h3>
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">From</span>
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-48"
+                  />
                 </div>
-                <div className="px-6 py-4 overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>S.No</TableHead>
-                        <TableHead>Outward No.</TableHead>
-                        <TableHead>Inward No.</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Item</TableHead>
-                        <TableHead className="text-right">Quantity</TableHead>
-                        <TableHead className="text-right">Labour Rate</TableHead>
-                        <TableHead className="text-right">Labour Cost</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {labourData.outwardData.map((item, index) => (
-                        <TableRow key={item.id}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell className="font-medium">{item.number}</TableCell>
-                          <TableCell>{item.inwardNumber}</TableCell>
-                          <TableCell>{item.customer}</TableCell>
-                          <TableCell>{item.item}</TableCell>
-                          <TableCell className="text-right">{item.quantity.toLocaleString('en-IN')}</TableCell>
-                          <TableCell className="text-right">{item.labourRate.toFixed(2)}</TableCell>
-                          <TableCell className="text-right font-semibold">
-                            {item.labourCost.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      <TableRow className="bg-orange-100 dark:bg-orange-950/50">
-                        <TableCell colSpan={7} className="text-right font-bold">
-                          Outward Total:
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-orange-900 dark:text-orange-200">
-                          Rs. {labourData.outwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">To</span>
+                  <Input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-48"
+                  />
                 </div>
+                <Button onClick={handleRangeSearch} disabled={isRangeLoading}>
+                  {isRangeLoading ? 'Searching...' : 'Search'}
+                </Button>
+                {rangeData && rangeData.dailySummaries.length > 0 && (
+                  <Button onClick={handleRangePrint} variant="outline" className="flex items-center gap-2">
+                    <Printer className="h-4 w-4" />
+                    Print Bill
+                  </Button>
+                )}
               </div>
-            )}
-
-            {/* No Data Messages */}
-            {labourData.inwardData.length === 0 && labourData.outwardData.length === 0 && (
-              <div className="text-center py-12 bg-muted/50 rounded-lg">
-                <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground">No Records Found</h3>
-                <p className="text-muted-foreground mt-2">
-                  No inward or outward records found for {formatDate(labourData.searchDate)}
-                </p>
-              </div>
-            )}
-
-            {/* Formula Note */}
-            <div className="bg-muted rounded-lg p-4 text-center">
-              <p className="text-sm text-muted-foreground">
-                <strong>Formula:</strong> Labour Cost = Quantity × (Labour Rate ÷ 2)
-              </p>
+              {rangeError && <p className="text-red-500 mt-2">{rangeError}</p>}
             </div>
-          </div>
+
+            {rangeData && (
+              <div className="space-y-6">
+                {rangeData.dailySummaries.length === 0 ? (
+                  <div className="text-center py-12 bg-muted/50 rounded-lg">
+                    <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-foreground">No Records Found</h3>
+                    <p className="text-muted-foreground mt-2">
+                      No inward or outward records found for {formatDate(rangeData.startDate)} – {formatDate(rangeData.endDate)}
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300 mb-2">
+                          <MonitorDown className="h-5 w-5" />
+                          <h4 className="font-semibold">Total Inward Labour</h4>
+                        </div>
+                        <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                          Rs. {rangeData.grandInwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className="text-sm text-blue-600 dark:text-blue-400">{rangeData.dailySummaries.length} day(s)</p>
+                      </div>
+
+                      <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+                        <div className="flex items-center gap-2 text-orange-800 dark:text-orange-300 mb-2">
+                          <MonitorUp className="h-5 w-5" />
+                          <h4 className="font-semibold">Total Outward Labour</h4>
+                        </div>
+                        <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
+                          Rs. {rangeData.grandOutwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className="text-sm text-orange-600 dark:text-orange-400">{rangeData.dailySummaries.length} day(s)</p>
+                      </div>
+
+                      <div className="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                        <h4 className="font-semibold text-green-800 dark:text-green-300 mb-2">Grand Total</h4>
+                        <p className="text-2xl font-bold text-green-900 dark:text-green-100">
+                          Rs. {rangeData.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className="text-sm text-green-600 dark:text-green-400">
+                          {formatDate(rangeData.startDate)} – {formatDate(rangeData.endDate)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Daily Summary Table */}
+                    <div className="bg-card shadow rounded-lg overflow-hidden border">
+                      <div className="px-6 py-4 border-b bg-muted/50">
+                        <h3 className="text-xl font-semibold">Daily Breakdown</h3>
+                      </div>
+                      <div className="px-6 py-4 overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Date</TableHead>
+                              <TableHead className="text-right">Inward Labour</TableHead>
+                              <TableHead className="text-right">Outward Labour</TableHead>
+                              <TableHead className="text-right">Total</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {rangeData.dailySummaries.map((row) => (
+                              <TableRow key={row.date}>
+                                <TableCell className="font-medium">{formatDate(row.date)}</TableCell>
+                                <TableCell className="text-right">
+                                  {row.inwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {row.outwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                </TableCell>
+                                <TableCell className="text-right font-semibold">
+                                  {row.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                            <TableRow className="bg-blue-100 dark:bg-blue-950/50">
+                              <TableCell className="font-bold">Sub-Total</TableCell>
+                              <TableCell className="text-right font-bold">
+                                {rangeData.grandInwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                              </TableCell>
+                              <TableCell className="text-right font-bold">
+                                {rangeData.grandOutwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                              </TableCell>
+                              <TableCell className="text-right font-bold">
+                                {rangeData.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow className="bg-green-100 dark:bg-green-950/50">
+                              <TableCell colSpan={3} className="text-right font-bold text-green-900 dark:text-green-200">
+                                GRAND TOTAL LABOUR COST:
+                              </TableCell>
+                              <TableCell className="text-right font-bold text-green-900 dark:text-green-200">
+                                Rs. {rangeData.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+
+                    <div className="bg-muted rounded-lg p-4 text-center">
+                      <p className="text-sm text-muted-foreground">
+                        <strong>Formula:</strong> Labour Cost = Quantity × (Labour Rate ÷ 2)
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
