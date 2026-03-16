@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { auth, signIn } from "../../auth";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { checkAdmin, checkSuperAdmin } from "@/lib/auth-utils";
 
 export const loginSignup = async (formData: FormData, isLogin: boolean) => {
   const name = formData.get("name") as string;
@@ -65,6 +66,10 @@ export const updateUserRole = async (
     return { error: "Name and email are required" };
   }
 
+  if (!(await checkSuperAdmin())) {
+    return { error: "Unauthorized. SuperAdmin privileges required." };
+  }
+
   const checkUser = await db.user.findUnique({ where: { id: data?.id } });
   if (!checkUser) return { error: "User not found" };
 
@@ -95,6 +100,10 @@ export const updateUserRole = async (
 // add/update inward
 
 export const addUpdateInward = async (formData: FormData, data: any) => {
+  if (!(await checkAdmin())) {
+    return { error: "Unauthorized. Admin privileges required." };
+  }
+
   const inumber = formData.get("inumber") as string;
   const addDateString = formData.get("addDate") as string;
   const addDate = new Date(addDateString);
@@ -213,6 +222,10 @@ export const addUpdateInward = async (formData: FormData, data: any) => {
 // delete inward
 
 export const DeleteInward = async (id: string) => {
+  if (!(await checkAdmin())) {
+    return { error: "Unauthorized. Admin privileges required." };
+  }
+
   try {
     const session = await auth();
     const userEmail = session?.user?.email || "unknown";
@@ -253,6 +266,10 @@ export const DeleteInward = async (id: string) => {
 // add/update outward
 
 export const addUpdateOutward = async (formData: FormData, data: any) => {
+  if (!(await checkAdmin())) {
+    return { error: "Unauthorized. Admin privileges required." };
+  }
+
   const onumber = formData.get("onumber") as string;
   const inumber = formData.get("inumber") as string;
   const outDateString = formData.get("outDate") as string;
@@ -351,6 +368,10 @@ export const addUpdateOutward = async (formData: FormData, data: any) => {
 // delete outward
 
 export const DeleteOutward = async (id: string) => {
+  if (!(await checkAdmin())) {
+    return { error: "Unauthorized. Admin privileges required." };
+  }
+
   try {
     const session = await auth();
     const userEmail = session?.user?.email || "unknown";
@@ -391,6 +412,10 @@ export const DeleteOutward = async (id: string) => {
 
 // delete a single audit log
 export const deleteAuditLog = async (id: string) => {
+  if (!(await checkSuperAdmin())) {
+    return { error: "Unauthorized. SuperAdmin privileges required." };
+  }
+
   try {
     const result = await db.auditLog.delete({
       where: { id },
@@ -406,6 +431,10 @@ export const deleteAuditLog = async (id: string) => {
 
 // delete all audit logs for a specific date
 export const deleteAuditLogsByDate = async (dateString: string) => {
+  if (!(await checkSuperAdmin())) {
+    return { error: "Unauthorized. SuperAdmin privileges required." };
+  }
+
   try {
     const date = new Date(dateString);
     const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());

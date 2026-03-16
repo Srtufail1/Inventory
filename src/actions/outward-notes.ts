@@ -2,8 +2,13 @@
 
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { checkAdmin } from "@/lib/auth-utils";
 
 export const updateOutwardNotes = async (id: string, notes: string) => {
+  if (!(await checkAdmin())) {
+    return { error: "Unauthorized. Admin privileges required." };
+  }
+
   if (!id) {
     return { error: "Outward ID is required" };
   }

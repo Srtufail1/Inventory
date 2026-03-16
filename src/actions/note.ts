@@ -2,9 +2,14 @@
 
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { checkAdmin } from "@/lib/auth-utils";
 
 // Add or update a note
 export const addUpdateNote = async (formData: FormData, data: any) => {
+  if (!(await checkAdmin())) {
+    return { error: "Unauthorized. Admin privileges required." };
+  }
+
   const type = formData.get("type") as string;
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
@@ -63,6 +68,10 @@ export const addUpdateNote = async (formData: FormData, data: any) => {
 
 // Delete a note
 export const deleteNote = async (id: string) => {
+  if (!(await checkAdmin())) {
+    return { error: "Unauthorized. Admin privileges required." };
+  }
+
   try {
     const result = await db.note.delete({
       where: { id },
