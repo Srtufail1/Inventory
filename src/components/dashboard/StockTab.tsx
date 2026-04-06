@@ -163,6 +163,20 @@ const StockTab = ({ customerStock }: { customerStock: CustomerStock[] }) => {
           <TrendingDown className="h-4 w-4" />
           Negative Stock
         </Button>
+        <div className="h-10 flex items-center gap-2 rounded-md border border-input bg-muted/40 px-3 text-sm ml-auto">
+          <span className="text-muted-foreground">Total Remaining:</span>
+          <span
+            className={`font-bold ${
+              filteredCustomers.reduce((sum, c) => sum + c.totalRemaining, 0) < 0
+                ? "text-red-500"
+                : ""
+            }`}
+          >
+            {filteredCustomers
+              .reduce((sum, c) => sum + c.totalRemaining, 0)
+              .toLocaleString("en-IN")}
+          </span>
+        </div>
       </div>
 
       {/* Customer list */}
@@ -276,6 +290,7 @@ const StockTab = ({ customerStock }: { customerStock: CustomerStock[] }) => {
                 </div>
               );
             })}
+
           </div>
         )}
       </div>
