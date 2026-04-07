@@ -496,6 +496,21 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
 
     setPendingCombinedInvoice({ ...pendingCombinedInvoice, status: 'saving' });
 
+    const combinedItems = Array.from(selectedMonths)
+      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+      .flatMap(month =>
+        (detailedBillData.get(month) ?? []).map(item => ({
+          inwardNumber: item.inwardNumber,
+          dateRange: item.dateRange,
+          itemName: item.itemName,
+          storedQuantity: item.storedQuantity,
+          rate: item.rate,
+          labourCost: item.labourCost,
+          storeCost: item.storeCost,
+          amount: item.sum,
+        }))
+      );
+
     try {
       const res = await fetch('/api/invoices', {
         method: 'POST',
@@ -506,6 +521,7 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
           invoiceDate: pendingCombinedInvoice.invoiceDate,
           billingPeriod: pendingCombinedInvoice.billingPeriod,
           totalAmount: pendingCombinedInvoice.totalAmount,
+          items: combinedItems,
         }),
       });
 
@@ -559,6 +575,17 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
       return next;
     });
 
+    const monthItems = (detailedBillData.get(month) ?? []).map(item => ({
+      inwardNumber: item.inwardNumber,
+      dateRange: item.dateRange,
+      itemName: item.itemName,
+      storedQuantity: item.storedQuantity,
+      rate: item.rate,
+      labourCost: item.labourCost,
+      storeCost: item.storeCost,
+      amount: item.sum,
+    }));
+
     try {
       const res = await fetch('/api/invoices', {
         method: 'POST',
@@ -569,6 +596,7 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
           invoiceDate: pending.invoiceDate,
           billingPeriod: pending.billingPeriod,
           totalAmount: pending.totalAmount,
+          items: monthItems,
         }),
       });
 

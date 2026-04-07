@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { invoiceNumber, customerName, invoiceDate, billingPeriod, totalAmount } = body;
+    const { invoiceNumber, customerName, invoiceDate, billingPeriod, totalAmount, items } = body;
 
     if (!invoiceNumber || !customerName || !invoiceDate || !billingPeriod || totalAmount === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
         invoiceDate: new Date(invoiceDate),
         billingPeriod,
         totalAmount,
+        items: Array.isArray(items) ? items : [],
       },
     });
 
