@@ -8,6 +8,17 @@ import DarkModeToggle from '../DarkModeToggle';
 import { signOut } from "next-auth/react";
 import { useCustomers } from '@/context/CustomersContext';
 
+type InvoiceItem = {
+  inwardNumber: string;
+  dateRange?: string;
+  itemName?: string;
+  storedQuantity?: number;
+  rate?: number;
+  labourCost: number;
+  storeCost: number;
+  amount: number;
+};
+
 type Invoice = {
   id: string;
   invoiceNumber: string;
@@ -15,6 +26,7 @@ type Invoice = {
   invoiceDate: string;
   billingPeriod: string;
   totalAmount: number;
+  items: InvoiceItem[];
   createdAt: string;
 };
 
@@ -24,6 +36,7 @@ const InvoicePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchedCustomer, setSearchedCustomer] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
+  const [expandedInvoiceId, setExpandedInvoiceId] = useState<string | null>(null);
   const { customers, loading } = useCustomers();
   const [filteredCustomers, setFilteredCustomers] = useState<string[]>([]);
   const [hasSelected, setHasSelected] = useState(false);
@@ -176,26 +189,61 @@ const InvoicePage: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-border">
                       {invoices.map((invoice, index) => (
-                        <tr
-                          key={invoice.id}
-                          className={index % 2 === 0 ? 'bg-muted/30' : ''}
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                            {invoice.invoiceNumber}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                            {invoice.customerName}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                            {formatDate(invoice.invoiceDate)}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-muted-foreground">
-                            {invoice.billingPeriod}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground text-right font-medium">
-                            {invoice.totalAmount.toLocaleString('en-PK', { minimumFractionDigits: 2 })}
-                          </td>
-                        </tr>
+                        <React.Fragment key={invoice.id}>
+                          <tr
+                            className={`cursor-pointer hover:bg-muted/50 ${index % 2 === 0 ? 'bg-muted/30' : ''}`}
+                            onClick={() => setExpandedInvoiceId(expandedInvoiceId === invoice.id ? null : invoice.id)}
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
+                              <span className="mr-2 text-muted-foreground">{expandedInvoiceId === invoice.id ? '▼' : '▶'}</span>
+                              {invoice.invoiceNumber}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                              {invoice.customerName}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                              {formatDate(invoice.invoiceDate)}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-muted-foreground">
+                              {invoice.billingPeriod}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground text-right font-medium">
+                              {invoice.totalAmount.toLocaleString('en-PK', { minimumFractionDigits: 2 })}
+                            </td>
+                          </tr>
+                          {expandedInvoiceId === invoice.id && invoice.items && invoice.items.length > 0 && (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-3 bg-muted/10">
+                                <table className="w-full text-xs border-collapse">
+                                  <thead>
+                                    <tr className="text-muted-foreground border-b border-border">
+                                      <th className="py-2 pr-4 text-left font-medium">Inward No.</th>
+                                      <th className="py-2 pr-4 text-left font-medium">Date (From - To)</th>
+                                      <th className="py-2 pr-4 text-left font-medium">Item Name</th>
+                                      <th className="py-2 pr-4 text-right font-medium">Stored Qty</th>
+                                      <th className="py-2 pr-4 text-right font-medium">Rate</th>
+                                      <th className="py-2 pr-4 text-right font-medium">Labour Cost</th>
+                                      <th className="py-2 text-right font-medium">Amount</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {invoice.items.map((item, i) => (
+                                      <tr key={i} className={`border-b border-border/50 ${i % 2 === 0 ? '' : 'bg-muted/20'}`}>
+                                        <td className="py-1.5 pr-4 text-foreground">{item.inwardNumber}</td>
+                                        <td className="py-1.5 pr-4 text-muted-foreground whitespace-nowrap">{item.dateRange ?? '-'}</td>
+                                        <td className="py-1.5 pr-4 text-muted-foreground">{item.itemName ?? '-'}</td>
+                                        <td className="py-1.5 pr-4 text-right text-muted-foreground">{item.storedQuantity ?? '-'}</td>
+                                        <td className="py-1.5 pr-4 text-right text-muted-foreground">{item.rate != null ? item.rate.toLocaleString('en-PK', { minimumFractionDigits: 2 }) : '-'}</td>
+                                        <td className="py-1.5 pr-4 text-right text-muted-foreground">{item.labourCost.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
+                                        <td className="py-1.5 text-right text-foreground font-medium">{item.amount.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
                       ))}
                     </tbody>
                     <tfoot>

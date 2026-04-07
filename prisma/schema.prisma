@@ -99,14 +99,26 @@ model ItemTranslation {
   updatedAt   DateTime @updatedAt
 }
 
+type InvoiceItem {
+  inwardNumber   String
+  dateRange      String?
+  itemName       String?
+  storedQuantity Int?
+  rate           Float?
+  labourCost     Float
+  storeCost      Float
+  amount         Float
+}
+
 model Invoice {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  invoiceNumber String   @unique
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceNumber String        @unique
   customerName  String
   invoiceDate   DateTime
   billingPeriod String
   totalAmount   Float
-  createdAt     DateTime @default(now())
+  items         InvoiceItem[]
+  createdAt     DateTime      @default(now())
 
   @@index([customerName])
   @@index([invoiceDate])
