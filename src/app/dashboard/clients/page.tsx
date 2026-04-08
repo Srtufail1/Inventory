@@ -22,7 +22,18 @@ async function ClientsPageData() {
     redirect("/dashboard/inward"); // redirect non-super-admins
   }
 
-  const users = await db.user.findMany({});
+  const users = await db.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      password: true,
+      isAdmin: true,
+      isSuperAdmin: true,
+      loginToken: true,
+      lastSeen: true,
+    },
+  });
 
   return <ClientsData data={users} />;
 }
