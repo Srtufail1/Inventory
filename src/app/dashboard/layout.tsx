@@ -1,4 +1,5 @@
 import Sidebar from "@/components/Siderbar";
+import HeartbeatProvider from "@/components/HeartbeatProvider";
 import React, { ReactNode } from "react";
 import { auth } from "../../../auth";
 import { db } from "@/lib/db";
@@ -20,6 +21,7 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen w-full">
+      <HeartbeatProvider />
       <div className="w-full lg:w-[14%] border-b lg:border-r bg-muted/40">
         <Sidebar isSuperAdmin={user.isSuperAdmin ?? false} />
       </div>

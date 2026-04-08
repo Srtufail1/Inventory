@@ -69,6 +69,11 @@ const credentialsConfig = CredentialsProvider({
       return null;
     }
 
+    await db.user.update({
+      where: { id: user.id },
+      data: { lastSeen: new Date() },
+    });
+
     return user;
   },
 });

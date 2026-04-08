@@ -45,7 +45,59 @@ interface UserData {
   isAdmin: boolean;
   isSuperAdmin: boolean;
   loginToken: string | null;
+  lastSeen: Date | null;
 }
+
+const ONLINE_THRESHOLD_MS = 2 * 60 * 1000; // 2 minutes
+
+function formatLastSeen(lastSeen: Date | null): { label: string; online: boolean } {
+  if (!lastSeen) return { label: "Never", online: false };
+
+  const diffMs = Date.now() - new Date(lastSeen).getTime();
+
+  if (diffMs < ONLINE_THRESHOLD_MS) {
+    return { label: "Online", online: true };
+  }
+
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffMin < 60) return { label: `${diffMin}m ago`, online: false };
+  if (diffHour < 24) return { label: `${diffHour}h ago`, online: false };
+  return { label: `${diffDay}d ago`, online: false };
+}
+
+const StatusCell = ({ lastSeen }: { lastSeen: Date | null }) => {
+  const [tick, setTick] = React.useState(0);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // tick is used only to trigger re-render
+  void tick;
+  const { label, online } = formatLastSeen(lastSeen);
+
+  return (
+    <div className="flex items-center gap-2">
+      <span
+        className={`h-2 w-2 rounded-full flex-shrink-0 ${
+          online ? "bg-green-500" : "bg-gray-400"
+        }`}
+      />
+      <span
+        className={`text-xs font-medium ${
+          online ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
+        }`}
+      >
+        {online ? "Online" : label === "Never" ? "Never logged in" : `Last seen ${label}`}
+      </span>
+    </div>
+  );
+};
 
 // Separate component for the Access cell with Authorize button
 const AccessCell = ({ loginToken }: { loginToken: string | null | boolean }) => {
@@ -175,6 +227,14 @@ export const columns: ColumnDef<UserData>[] = [
           {isSuperAdmin ? "True" : "False"}
         </span>
       );
+    },
+  },
+  {
+    accessorKey: "lastSeen",
+    header: "Status",
+    cell: ({ row }) => {
+      const lastSeen = row.getValue("lastSeen") as Date | null;
+      return <StatusCell lastSeen={lastSeen} />;
     },
   },
   {
