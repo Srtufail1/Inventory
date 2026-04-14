@@ -210,5 +210,4 @@ export type Props = {
   recentlyDeleted: RecentlyDeletedRecord[];
   missingRateAlerts: MissingRateAlert[];
   rateChangeLogs: RateChangeLog[];
-  customerStock: CustomerStock[];
 };

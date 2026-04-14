@@ -6,7 +6,6 @@ import {
   BarChart3,
   TrendingUp,
   AlertTriangle,
-  Package,
   Shield,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -15,7 +14,6 @@ import OverviewTab from "./OverviewTab";
 import AnalyticsTab from "./AnalyticsTab";
 import AlertsTab from "./AlertsTab";
 import MonitoringTab from "./MonitoringTab";
-import StockTab from "./StockTab";
 import type { Props } from "./types";
 
 const DashboardSummary: React.FC<Props> = ({
@@ -38,9 +36,8 @@ const DashboardSummary: React.FC<Props> = ({
   recentlyDeleted,
   missingRateAlerts,
   rateChangeLogs,
-  customerStock,
 }) => {
-  const [activeTab, setActiveTab] = useState<"overview" | "analytics" | "alerts" | "monitoring" | "stock">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "analytics" | "alerts" | "monitoring">("overview");
 
   const totalAlerts = useMemo(() => {
     return (
@@ -58,7 +55,6 @@ const DashboardSummary: React.FC<Props> = ({
     { key: "analytics" as const, label: "Analytics", icon: <TrendingUp className="h-3.5 w-3.5" /> },
     { key: "alerts" as const, label: "Alerts", icon: <AlertTriangle className="h-3.5 w-3.5" />, badge: totalAlerts },
     { key: "monitoring" as const, label: "Monitoring", icon: <Shield className="h-3.5 w-3.5" /> },
-    { key: "stock" as const, label: "Stock", icon: <Package className="h-3.5 w-3.5" /> },
   ];
 
   return (
@@ -143,9 +139,6 @@ const DashboardSummary: React.FC<Props> = ({
           />
         )}
 
-        {activeTab === "stock" && (
-          <StockTab customerStock={customerStock} />
-        )}
       </div>
     </div>
   );
