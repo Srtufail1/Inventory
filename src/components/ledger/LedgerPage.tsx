@@ -163,6 +163,14 @@ const CustomerDetailsTable = ({ details }: { details: CustomerDetail[] }) => (
 const LedgerTable = ({ data, inumber, customerName }: { data: LedgerEntry[], inumber: string, customerName: string }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
 
+  const escapeHtml = (value: string) =>
+    value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
   const table = useReactTable({
     data,
     columns,
@@ -202,11 +210,13 @@ const LedgerTable = ({ data, inumber, customerName }: { data: LedgerEntry[], inu
 
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
+    const safeCustomerName = escapeHtml(customerName);
+    const safeInumber = escapeHtml(inumber);
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Ledger - ${customerName} (Inward: ${inumber})</title>
+          <title>Ledger - ${safeCustomerName} (Inward: ${safeInumber})</title>
           <style>
             body { font-family: sans-serif; padding: 24px; color: #000; }
             h2 { font-size: 18px; margin-bottom: 12px; }
