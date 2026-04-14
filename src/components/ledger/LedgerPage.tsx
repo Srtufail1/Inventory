@@ -228,7 +228,7 @@ const LedgerTable = ({ data, inumber, customerName }: { data: LedgerEntry[], inu
           </style>
         </head>
         <body>
-          <h2>Ledger — ${customerName} &nbsp;|&nbsp; Inward Number: ${inumber}</h2>
+          <h2>Ledger — ${safeCustomerName} &nbsp;|&nbsp; Inward Number: ${safeInumber}</h2>
           <table>
             <thead><tr>${headerHTML}</tr></thead>
             <tbody>${rowsHTML}</tbody>
