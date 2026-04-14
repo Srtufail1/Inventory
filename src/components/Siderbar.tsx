@@ -30,7 +30,7 @@ const Sidebar = ({ isSuperAdmin = false }: SidebarProps) => {
   });
 
   return (
-    <div>
+    <div className="lg:sticky lg:top-0 lg:h-screen">
       <div className="flex h-full max-h-screen flex-col gap-2">
         <div className="flex h-16 items-center border-b px-6">
           <Link href="/" className="flex items-center gap-2 font-semibold text-foreground">
