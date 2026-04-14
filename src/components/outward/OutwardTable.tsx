@@ -339,30 +339,30 @@ const OutwardTable = ({ data }: any) => {
 
   return (
     <div>
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
-        <div className="flex items-center gap-3 w-full">
-          <div className="relative">
+      <div className="flex flex-wrap items-center gap-2 border-b bg-muted/40 px-6 py-3 min-h-14 lg:min-h-16">
+        <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
+          <div className="relative shrink-0">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search Inward Number..."
+              placeholder="Inward No."
               value={(table?.getColumn("inumber")?.getFilterValue() as string) ?? ""}
               onChange={(event) => table?.getColumn("inumber")?.setFilterValue(event?.target?.value)}
-              className="pl-8 h-10 w-52 text-sm"
+              className="pl-8 h-9 w-36 text-sm"
             />
           </div>
-          <div className="relative">
+          <div className="relative shrink-0">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search Outward Number..."
+              placeholder="Outward No."
               value={(table?.getColumn("onumber")?.getFilterValue() as string) ?? ""}
               onChange={(event) => table?.getColumn("onumber")?.setFilterValue(event?.target?.value)}
-              className="pl-8 h-10 w-52 text-sm"
+              className="pl-8 h-9 w-36 text-sm"
             />
           </div>
-          <div className="relative">
+          <div className="relative shrink-0">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search Customer..."
+              placeholder="Customer..."
               value={customerFilterValue}
               onChange={(event) => {
                 const val = event.target.value;
@@ -370,10 +370,10 @@ const OutwardTable = ({ data }: any) => {
                 setCustomerSelected(false);
                 table?.getColumn("customer")?.setFilterValue(val);
               }}
-              className="pl-8 h-10 w-52 text-sm"
+              className="pl-8 h-9 w-36 text-sm"
             />
             {customerSuggestions.length > 0 && (
-              <ul className="absolute z-20 w-48 bg-popover border mt-1 max-h-48 overflow-auto rounded-md shadow-md">
+              <ul className="absolute z-20 w-44 bg-popover border mt-1 max-h-48 overflow-auto rounded-md shadow-md">
                 {customerSuggestions.map((customer, index) => (
                   <li
                     key={index}
@@ -391,10 +391,10 @@ const OutwardTable = ({ data }: any) => {
               </ul>
             )}
           </div>
-          <div className="relative">
+          <div className="relative shrink-0">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search Item..."
+              placeholder="Item..."
               value={itemFilterValue}
               onChange={(event) => {
                 const val = event.target.value;
@@ -402,10 +402,10 @@ const OutwardTable = ({ data }: any) => {
                 setItemSelected(false);
                 table?.getColumn("item")?.setFilterValue(val);
               }}
-              className="pl-8 h-10 w-52 text-sm"
+              className="pl-8 h-9 w-36 text-sm"
             />
             {itemSuggestions.length > 0 && (
-              <ul className="absolute z-20 w-48 bg-popover border mt-1 max-h-48 overflow-auto rounded-md shadow-md">
+              <ul className="absolute z-20 w-44 bg-popover border mt-1 max-h-48 overflow-auto rounded-md shadow-md">
                 {itemSuggestions.map((item, index) => (
                   <li
                     key={index}
@@ -430,14 +430,14 @@ const OutwardTable = ({ data }: any) => {
             onChange={(update: [Date | null, Date | null]) => {
               setDateRange(update);
             }}
-            placeholderText="Select Date range..."
-            className="h-10 w-44 rounded-md border border-input bg-background px-2.5 text-sm placeholder:text-muted-foreground focus:outline-none"
+            placeholderText="Date range..."
+            className="h-9 w-40 rounded-md border border-input bg-background px-2.5 text-sm placeholder:text-muted-foreground focus:outline-none shrink-0"
             dateFormat="dd MMM yyyy"
             isClearable={true}
           />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-10 shrink-0">
+              <Button variant="outline" size="sm" className="h-9 shrink-0">
                 Columns <ChevronDown className="ml-1.5 h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>
@@ -460,10 +460,12 @@ const OutwardTable = ({ data }: any) => {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+        <div className="flex items-center gap-2 shrink-0 ml-auto">
           <DarkModeToggle />
-          <Button onClick={() => signOut()} type="submit">
+          <Button onClick={() => signOut()} type="submit" size="sm" className="h-9">
             Sign Out
           </Button>
+        </div>
       </div>
       <div className="p-6">
         <div className="flex item justify-between pt-3 pb-6">

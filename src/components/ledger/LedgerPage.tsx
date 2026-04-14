@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react"; 
 import {
   ColumnDef,
   flexRender,
@@ -10,7 +10,7 @@ import {
   SortingState,
   getSortedRowModel,
 } from "@tanstack/react-table";
-import { ArrowUpDown, Search } from "lucide-react";
+import { ArrowUpDown, Search, Printer } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -160,7 +160,7 @@ const CustomerDetailsTable = ({ details }: { details: CustomerDetail[] }) => (
 );
 
 // New component for individual Ledger tables
-const LedgerTable = ({ data, inumber }: { data: LedgerEntry[], inumber: string }) => {
+const LedgerTable = ({ data, inumber, customerName }: { data: LedgerEntry[], inumber: string, customerName: string }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const table = useReactTable({
@@ -175,9 +175,72 @@ const LedgerTable = ({ data, inumber }: { data: LedgerEntry[], inumber: string }
     },
   });
 
+  const handlePrint = () => {
+    const allRows = table.getSortedRowModel().rows;
+    const headers = columns
+      .map((col) => {
+        if (typeof col.header === "string") return col.header;
+        const key = (col as { accessorKey?: string }).accessorKey;
+        return key ?? "";
+      })
+      .filter(Boolean);
+
+    const headerHTML = headers.map((h) => `<th>${h}</th>`).join("");
+
+    const rowsHTML = allRows
+      .map((row) => {
+        const cells = row.getVisibleCells().map((cell) => {
+          const val = cell.getValue();
+          const amount = (cell.column.id === "amount") ? Number(val) : null;
+          const style = amount !== null ? `style="color:${amount < 0 ? "red" : "green"}"` : "";
+          const text = val !== null && val !== undefined ? String(val).replace(/\n/g, "<br/>") : "";
+          return `<td ${style}>${text}</td>`;
+        });
+        return `<tr>${cells.join("")}</tr>`;
+      })
+      .join("");
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Ledger - ${customerName} (Inward: ${inumber})</title>
+          <style>
+            body { font-family: sans-serif; padding: 24px; color: #000; }
+            h2 { font-size: 18px; margin-bottom: 12px; }
+            table { width: 100%; border-collapse: collapse; font-size: 13px; }
+            th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; vertical-align: top; }
+            th { background: #f0f0f0; font-weight: 600; }
+            tr:nth-child(even) td { background: #fafafa; }
+            @media print { body { padding: 0; } }
+          </style>
+        </head>
+        <body>
+          <h2>Ledger — ${customerName} &nbsp;|&nbsp; Inward Number: ${inumber}</h2>
+          <table>
+            <thead><tr>${headerHTML}</tr></thead>
+            <tbody>${rowsHTML}</tbody>
+          </table>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  };
+
   return (
     <div className="mb-8">
-      <h2 className="text-xl font-semibold mb-2">Ledger Table (Inward Number: {inumber})</h2>
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-xl font-semibold">Ledger Table (Inward Number: {inumber})</h2>
+        <Button variant="outline" size="sm" onClick={handlePrint} title="Print as PDF">
+          <Printer className="h-4 w-4 mr-1" />
+          Print
+        </Button>
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -360,7 +423,7 @@ const LedgerPage = () => {
         {customerDetails.length > 0 && <CustomerDetailsTable details={customerDetails} />}
         {laborData.length > 0 && <LaborTable data={laborData} />}
         {dataSets.map((dataSet) => (
-          <LedgerTable key={dataSet.inumber} data={dataSet.ledgerData} inumber={dataSet.inumber} />
+          <LedgerTable key={dataSet.inumber} data={dataSet.ledgerData} inumber={dataSet.inumber} customerName={searchTerm} />
         ))}
       </div>
     </div>
