@@ -130,3 +130,16 @@ model InvoiceCounter {
   year    Int    @unique
   counter Int    @default(0)
 }
+
+type CustomerContact {
+  name  String
+  phone String
+}
+
+model CustomerDetail {
+  id        String            @id @default(auto()) @map("_id") @db.ObjectId
+  customer  String            @unique
+  contacts  CustomerContact[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
