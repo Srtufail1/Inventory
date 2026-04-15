@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react"; 
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   ColumnDef,
   flexRender,
@@ -160,19 +160,44 @@ const CustomerDetailsTable = ({ details }: { details: CustomerDetail[] }) => (
 );
 
 // New component for individual Ledger tables
-const LedgerTable = ({ data, inumber, customerName }: { data: LedgerEntry[], inumber: string, customerName: string }) => {
+const LedgerTable = ({
+  data,
+  inumber,
+  customerName,
+  customerDetails,
+  laborData,
+}: {
+  data: LedgerEntry[];
+  inumber: string;
+  customerName: string;
+  customerDetails: CustomerDetail[];
+  laborData: LaborEntry[];
+}) => {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [printFromDate, setPrintFromDate] = useState("");
+  const [printToDate, setPrintToDate] = useState("");
 
-  const escapeHtml = (value: string) =>
-    value
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
+  // Parse "DD.MM.YY" into a Date for range comparison
+  const parseDotDate = (dateStr: string): Date | null => {
+    const parts = dateStr.trim().split(".");
+    if (parts.length !== 3) return null;
+    const [day, month, year] = parts;
+    return new Date(`20${year}-${month}-${day}`);
+  };
+
+  // Filter rows by the selected date range (based on the start of the "dates" field)
+  const filteredData = useMemo(() => data.filter((entry) => {
+    if (!printFromDate && !printToDate) return true;
+    const startStr = entry.dates.split(" - ")[0];
+    const startDate = parseDotDate(startStr);
+    if (!startDate) return true;
+    if (printFromDate && startDate < new Date(printFromDate)) return false;
+    if (printToDate && startDate > new Date(printToDate)) return false;
+    return true;
+  }), [data, printFromDate, printToDate]);
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -184,59 +209,152 @@ const LedgerTable = ({ data, inumber, customerName }: { data: LedgerEntry[], inu
   });
 
   const handlePrint = () => {
-    const allRows = table.getSortedRowModel().rows;
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    const doc = printWindow.document;
+
+    // Title (textContent — never parsed as HTML)
+    doc.title = `Ledger - ${customerName} (Inward: ${inumber})`;
+
+    // Stylesheet (static — no user data)
+    const style = doc.createElement("style");
+    style.textContent = [
+      "body { font-family: sans-serif; padding: 24px; color: #000; }",
+      "h2 { font-size: 18px; margin-bottom: 8px; }",
+      "h3 { font-size: 14px; margin: 16px 0 6px; color: #333; }",
+      "table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }",
+      "th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; vertical-align: top; }",
+      "th { background: #f0f0f0; font-weight: 600; }",
+      "tr:nth-child(even) td { background: #fafafa; }",
+      "@media print { body { padding: 0; } }",
+    ].join(" ");
+    doc.head.appendChild(style);
+
+    // Helper: append text that may contain \n → split into text nodes + <br>
+    const appendText = (el: HTMLElement, text: string) => {
+      text.split("\n").forEach((line, i, arr) => {
+        el.appendChild(doc.createTextNode(line));
+        if (i < arr.length - 1) el.appendChild(doc.createElement("br"));
+      });
+    };
+
+    // Helper: build a <table> from headers + row data using only DOM APIs
+    const makeTable = (headers: string[], rows: string[][]): HTMLTableElement => {
+      const tbl = doc.createElement("table");
+      const thead = tbl.createTHead();
+      const hRow = thead.insertRow();
+      headers.forEach((h) => {
+        const th = doc.createElement("th");
+        th.textContent = h;
+        hRow.appendChild(th);
+      });
+      const tbody = tbl.createTBody();
+      rows.forEach((rowData) => {
+        const tr = tbody.insertRow();
+        rowData.forEach((cell) => {
+          const td = tr.insertCell();
+          td.textContent = cell;
+        });
+      });
+      return tbl;
+    };
+
+    // Page heading
+    const h2 = doc.createElement("h2");
+    h2.textContent = `Ledger — ${customerName} | Inward Number: ${inumber}`;
+    doc.body.appendChild(h2);
+
+    // Date range note
+    if (printFromDate || printToDate) {
+      const p = doc.createElement("p");
+      p.style.cssText = "font-size:12px;color:#555;margin-bottom:8px;";
+      p.textContent = `Date range: ${printFromDate || "—"} to ${printToDate || "—"}`;
+      doc.body.appendChild(p);
+    }
+
+    // Customer details section
+    const matchedCustomer = customerDetails.find((d) => d.inumber === inumber);
+    if (matchedCustomer) {
+      const h3 = doc.createElement("h3");
+      h3.textContent = "Customer Details";
+      doc.body.appendChild(h3);
+      doc.body.appendChild(
+        makeTable(
+          ["Customer", "Inward Number", "Item", "Packing", "Weight (Kg)", "Quantity", "Remaining Quantity"],
+          [[
+            matchedCustomer.customer,
+            matchedCustomer.inumber,
+            matchedCustomer.item,
+            matchedCustomer.packing,
+            matchedCustomer.weight,
+            String(matchedCustomer.quantity),
+            String(matchedCustomer.remaining_quantity),
+          ]]
+        )
+      );
+    }
+
+    // Labor section
+    const matchedLabor = laborData.find((l) => l.inumber === inumber);
+    if (matchedLabor) {
+      const h3 = doc.createElement("h3");
+      h3.textContent = "Labor Details";
+      doc.body.appendChild(h3);
+      doc.body.appendChild(
+        makeTable(
+          ["Add Date", "Inward Number", "Quantity", "Labour Rate", "Labour Amount", "Due Date"],
+          [[
+            matchedLabor.addDate,
+            matchedLabor.inumber,
+            String(matchedLabor.quantity),
+            String(matchedLabor.labourRate),
+            String(matchedLabor.labourAmount),
+            matchedLabor.dueDate,
+          ]]
+        )
+      );
+    }
+
+    // Ledger table
+    const ledgerH3 = doc.createElement("h3");
+    ledgerH3.textContent = "Ledger";
+    doc.body.appendChild(ledgerH3);
+
     const headers = columns
       .map((col) => {
         if (typeof col.header === "string") return col.header;
-        const key = (col as { accessorKey?: string }).accessorKey;
-        return key ?? "";
+        return (col as { accessorKey?: string }).accessorKey ?? "";
       })
       .filter(Boolean);
 
-    const headerHTML = headers.map((h) => `<th>${h}</th>`).join("");
+    const tbl = doc.createElement("table");
+    const thead = tbl.createTHead();
+    const hRow = thead.insertRow();
+    headers.forEach((h) => {
+      const th = doc.createElement("th");
+      th.textContent = h;
+      hRow.appendChild(th);
+    });
 
-    const rowsHTML = allRows
-      .map((row) => {
-        const cells = row.getVisibleCells().map((cell) => {
-          const val = cell.getValue();
-          const amount = (cell.column.id === "amount") ? Number(val) : null;
-          const style = amount !== null ? `style="color:${amount < 0 ? "red" : "green"}"` : "";
-          const text = val !== null && val !== undefined ? String(val).replace(/\n/g, "<br/>") : "";
-          return `<td ${style}>${text}</td>`;
-        });
-        return `<tr>${cells.join("")}</tr>`;
-      })
-      .join("");
+    const tbody = tbl.createTBody();
+    table.getSortedRowModel().rows.forEach((row) => {
+      const tr = tbody.insertRow();
+      row.getVisibleCells().forEach((cell) => {
+        const td = tr.insertCell();
+        const val = cell.getValue();
+        if (cell.column.id === "amount") {
+          const amount = Number(val);
+          td.style.color = amount < 0 ? "red" : "green";
+          td.textContent = String(val);
+        } else {
+          appendText(td, val !== null && val !== undefined ? String(val) : "");
+        }
+      });
+    });
 
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-    const safeCustomerName = escapeHtml(customerName);
-    const safeInumber = escapeHtml(inumber);
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Ledger - ${safeCustomerName} (Inward: ${safeInumber})</title>
-          <style>
-            body { font-family: sans-serif; padding: 24px; color: #000; }
-            h2 { font-size: 18px; margin-bottom: 12px; }
-            table { width: 100%; border-collapse: collapse; font-size: 13px; }
-            th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; vertical-align: top; }
-            th { background: #f0f0f0; font-weight: 600; }
-            tr:nth-child(even) td { background: #fafafa; }
-            @media print { body { padding: 0; } }
-          </style>
-        </head>
-        <body>
-          <h2>Ledger — ${safeCustomerName} &nbsp;|&nbsp; Inward Number: ${safeInumber}</h2>
-          <table>
-            <thead><tr>${headerHTML}</tr></thead>
-            <tbody>${rowsHTML}</tbody>
-          </table>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+    doc.body.appendChild(tbl);
+
     printWindow.focus();
     printWindow.print();
     printWindow.close();
@@ -246,10 +364,28 @@ const LedgerTable = ({ data, inumber, customerName }: { data: LedgerEntry[], inu
     <div className="mb-8">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-xl font-semibold">Ledger Table (Inward Number: {inumber})</h2>
-        <Button variant="outline" size="sm" onClick={handlePrint} title="Print as PDF">
-          <Printer className="h-4 w-4 mr-1" />
-          Print
-        </Button>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-muted-foreground whitespace-nowrap">Date range:</label>
+          <input
+            type="date"
+            value={printFromDate}
+            onChange={(e) => setPrintFromDate(e.target.value)}
+            className="border rounded px-2 py-1 text-sm"
+            title="From date"
+          />
+          <span className="text-sm text-muted-foreground">—</span>
+          <input
+            type="date"
+            value={printToDate}
+            onChange={(e) => setPrintToDate(e.target.value)}
+            className="border rounded px-2 py-1 text-sm"
+            title="To date"
+          />
+          <Button variant="outline" size="sm" onClick={handlePrint} title="Print as PDF">
+            <Printer className="h-4 w-4 mr-1" />
+            Print
+          </Button>
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -433,7 +569,7 @@ const LedgerPage = () => {
         {customerDetails.length > 0 && <CustomerDetailsTable details={customerDetails} />}
         {laborData.length > 0 && <LaborTable data={laborData} />}
         {dataSets.map((dataSet) => (
-          <LedgerTable key={dataSet.inumber} data={dataSet.ledgerData} inumber={dataSet.inumber} customerName={searchTerm} />
+          <LedgerTable key={dataSet.inumber} data={dataSet.ledgerData} inumber={dataSet.inumber} customerName={searchTerm} customerDetails={customerDetails} laborData={laborData} />
         ))}
       </div>
     </div>
