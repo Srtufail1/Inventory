@@ -9,7 +9,6 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
@@ -194,7 +193,6 @@ const CustomerPage = ({ data }: { data: CustomerData[] }) => {
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
@@ -366,28 +364,8 @@ const CustomerPage = ({ data }: { data: CustomerData[] }) => {
               </TableBody>
             </Table>
           </div>
-          <div className="flex items-center justify-end space-x-2 py-5">
-            <div className="flex-1 text-sm text-muted-foreground">
-              {table.getFilteredRowModel().rows.length} Customer(s)
-            </div>
-            <div className="space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                Next
-              </Button>
-            </div>
+          <div className="py-3 text-sm text-muted-foreground">
+            {table.getFilteredRowModel().rows.length} Customer(s)
           </div>
         </div>
       </div>
