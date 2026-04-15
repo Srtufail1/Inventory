@@ -177,14 +177,6 @@ const LedgerTable = ({
   const [printFromDate, setPrintFromDate] = useState("");
   const [printToDate, setPrintToDate] = useState("");
 
-  const escapeHtml = (value: string) =>
-    value
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-
   // Parse "DD.MM.YY" into a Date for range comparison
   const parseDotDate = (dateStr: string): Date | null => {
     const parts = dateStr.trim().split(".");
@@ -217,128 +209,152 @@ const LedgerTable = ({
   });
 
   const handlePrint = () => {
-    const allRows = table.getSortedRowModel().rows;
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    const doc = printWindow.document;
+
+    // Title (textContent — never parsed as HTML)
+    doc.title = `Ledger - ${customerName} (Inward: ${inumber})`;
+
+    // Stylesheet (static — no user data)
+    const style = doc.createElement("style");
+    style.textContent = [
+      "body { font-family: sans-serif; padding: 24px; color: #000; }",
+      "h2 { font-size: 18px; margin-bottom: 8px; }",
+      "h3 { font-size: 14px; margin: 16px 0 6px; color: #333; }",
+      "table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }",
+      "th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; vertical-align: top; }",
+      "th { background: #f0f0f0; font-weight: 600; }",
+      "tr:nth-child(even) td { background: #fafafa; }",
+      "@media print { body { padding: 0; } }",
+    ].join(" ");
+    doc.head.appendChild(style);
+
+    // Helper: append text that may contain \n → split into text nodes + <br>
+    const appendText = (el: HTMLElement, text: string) => {
+      text.split("\n").forEach((line, i, arr) => {
+        el.appendChild(doc.createTextNode(line));
+        if (i < arr.length - 1) el.appendChild(doc.createElement("br"));
+      });
+    };
+
+    // Helper: build a <table> from headers + row data using only DOM APIs
+    const makeTable = (headers: string[], rows: string[][]): HTMLTableElement => {
+      const tbl = doc.createElement("table");
+      const thead = tbl.createTHead();
+      const hRow = thead.insertRow();
+      headers.forEach((h) => {
+        const th = doc.createElement("th");
+        th.textContent = h;
+        hRow.appendChild(th);
+      });
+      const tbody = tbl.createTBody();
+      rows.forEach((rowData) => {
+        const tr = tbody.insertRow();
+        rowData.forEach((cell) => {
+          const td = tr.insertCell();
+          td.textContent = cell;
+        });
+      });
+      return tbl;
+    };
+
+    // Page heading
+    const h2 = doc.createElement("h2");
+    h2.textContent = `Ledger — ${customerName} | Inward Number: ${inumber}`;
+    doc.body.appendChild(h2);
+
+    // Date range note
+    if (printFromDate || printToDate) {
+      const p = doc.createElement("p");
+      p.style.cssText = "font-size:12px;color:#555;margin-bottom:8px;";
+      p.textContent = `Date range: ${printFromDate || "—"} to ${printToDate || "—"}`;
+      doc.body.appendChild(p);
+    }
+
+    // Customer details section
+    const matchedCustomer = customerDetails.find((d) => d.inumber === inumber);
+    if (matchedCustomer) {
+      const h3 = doc.createElement("h3");
+      h3.textContent = "Customer Details";
+      doc.body.appendChild(h3);
+      doc.body.appendChild(
+        makeTable(
+          ["Customer", "Inward Number", "Item", "Packing", "Weight (Kg)", "Quantity", "Remaining Quantity"],
+          [[
+            matchedCustomer.customer,
+            matchedCustomer.inumber,
+            matchedCustomer.item,
+            matchedCustomer.packing,
+            matchedCustomer.weight,
+            String(matchedCustomer.quantity),
+            String(matchedCustomer.remaining_quantity),
+          ]]
+        )
+      );
+    }
+
+    // Labor section
+    const matchedLabor = laborData.find((l) => l.inumber === inumber);
+    if (matchedLabor) {
+      const h3 = doc.createElement("h3");
+      h3.textContent = "Labor Details";
+      doc.body.appendChild(h3);
+      doc.body.appendChild(
+        makeTable(
+          ["Add Date", "Inward Number", "Quantity", "Labour Rate", "Labour Amount", "Due Date"],
+          [[
+            matchedLabor.addDate,
+            matchedLabor.inumber,
+            String(matchedLabor.quantity),
+            String(matchedLabor.labourRate),
+            String(matchedLabor.labourAmount),
+            matchedLabor.dueDate,
+          ]]
+        )
+      );
+    }
+
+    // Ledger table
+    const ledgerH3 = doc.createElement("h3");
+    ledgerH3.textContent = "Ledger";
+    doc.body.appendChild(ledgerH3);
+
     const headers = columns
       .map((col) => {
         if (typeof col.header === "string") return col.header;
-        const key = (col as { accessorKey?: string }).accessorKey;
-        return key ?? "";
+        return (col as { accessorKey?: string }).accessorKey ?? "";
       })
       .filter(Boolean);
 
-    const headerHTML = headers.map((h) => `<th>${escapeHtml(h)}</th>`).join("");
+    const tbl = doc.createElement("table");
+    const thead = tbl.createTHead();
+    const hRow = thead.insertRow();
+    headers.forEach((h) => {
+      const th = doc.createElement("th");
+      th.textContent = h;
+      hRow.appendChild(th);
+    });
 
-    const rowsHTML = allRows
-      .map((row) => {
-        const cells = row.getVisibleCells().map((cell) => {
-          const val = cell.getValue();
-          const amount = cell.column.id === "amount" ? Number(val) : null;
-          const style =
-            amount !== null
-              ? `style="color:${amount < 0 ? "red" : "green"}"`
-              : "";
-          const text =
-            val !== null && val !== undefined
-              ? escapeHtml(String(val)).replace(/\n/g, "<br/>")
-              : "";
-          return `<td ${style}>${text}</td>`;
-        });
-        return `<tr>${cells.join("")}</tr>`;
-      })
-      .join("");
+    const tbody = tbl.createTBody();
+    table.getSortedRowModel().rows.forEach((row) => {
+      const tr = tbody.insertRow();
+      row.getVisibleCells().forEach((cell) => {
+        const td = tr.insertCell();
+        const val = cell.getValue();
+        if (cell.column.id === "amount") {
+          const amount = Number(val);
+          td.style.color = amount < 0 ? "red" : "green";
+          td.textContent = String(val);
+        } else {
+          appendText(td, val !== null && val !== undefined ? String(val) : "");
+        }
+      });
+    });
 
-    // Customer detail for this inward number
-    const matchedCustomer = customerDetails.find((d) => d.inumber === inumber);
-    const customerSectionHTML = matchedCustomer
-      ? `
-        <h3>Customer Details</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Customer</th><th>Inward Number</th><th>Item</th>
-              <th>Packing</th><th>Weight (Kg)</th><th>Quantity</th><th>Remaining Quantity</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>${escapeHtml(matchedCustomer.customer)}</td>
-              <td>${escapeHtml(matchedCustomer.inumber)}</td>
-              <td>${escapeHtml(matchedCustomer.item)}</td>
-              <td>${escapeHtml(matchedCustomer.packing)}</td>
-              <td>${escapeHtml(matchedCustomer.weight)}</td>
-              <td>${escapeHtml(String(matchedCustomer.quantity))}</td>
-              <td>${escapeHtml(String(matchedCustomer.remaining_quantity))}</td>
-            </tr>
-          </tbody>
-        </table>`
-      : "";
+    doc.body.appendChild(tbl);
 
-    // Labor entry for this inward number
-    const matchedLabor = laborData.find((l) => l.inumber === inumber);
-    const laborSectionHTML = matchedLabor
-      ? `
-        <h3>Labor Details</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Add Date</th><th>Inward Number</th><th>Quantity</th>
-              <th>Labour Rate</th><th>Labour Amount</th><th>Due Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>${escapeHtml(matchedLabor.addDate)}</td>
-              <td>${escapeHtml(matchedLabor.inumber)}</td>
-              <td>${escapeHtml(String(matchedLabor.quantity))}</td>
-              <td>${escapeHtml(String(matchedLabor.labourRate))}</td>
-              <td>${escapeHtml(String(matchedLabor.labourAmount))}</td>
-              <td>${escapeHtml(matchedLabor.dueDate)}</td>
-            </tr>
-          </tbody>
-        </table>`
-      : "";
-
-    const dateRangeLabel =
-      printFromDate || printToDate
-        ? `<p style="font-size:12px;color:#555;margin-bottom:8px;">
-            Date range: ${printFromDate || "—"} to ${printToDate || "—"}
-           </p>`
-        : "";
-
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-    const safeCustomerName = escapeHtml(customerName);
-    const safeInumber = escapeHtml(inumber);
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Ledger - ${safeCustomerName} (Inward: ${safeInumber})</title>
-          <style>
-            body { font-family: sans-serif; padding: 24px; color: #000; }
-            h2 { font-size: 18px; margin-bottom: 8px; }
-            h3 { font-size: 14px; margin: 16px 0 6px; color: #333; }
-            table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
-            th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; vertical-align: top; }
-            th { background: #f0f0f0; font-weight: 600; }
-            tr:nth-child(even) td { background: #fafafa; }
-            @media print { body { padding: 0; } }
-          </style>
-        </head>
-        <body>
-          <h2>Ledger — ${safeCustomerName} &nbsp;|&nbsp; Inward Number: ${safeInumber}</h2>
-          ${dateRangeLabel}
-          ${customerSectionHTML}
-          ${laborSectionHTML}
-          <h3>Ledger</h3>
-          <table>
-            <thead><tr>${headerHTML}</tr></thead>
-            <tbody>${rowsHTML}</tbody>
-          </table>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
     printWindow.focus();
     printWindow.print();
     printWindow.close();
