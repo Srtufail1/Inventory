@@ -510,6 +510,9 @@ const LabourBillPage = () => {
                     <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
                       Rs. {labourData.inwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </p>
+                    <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                      Qty: {labourData.inwardData.reduce((sum, item) => sum + item.quantity, 0).toLocaleString('en-IN')}
+                    </p>
                     <p className="text-sm text-blue-600 dark:text-blue-400">{labourData.inwardData.length} record(s)</p>
                   </div>
 
@@ -520,6 +523,9 @@ const LabourBillPage = () => {
                     </div>
                     <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
                       Rs. {labourData.outwardTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-sm text-orange-700 dark:text-orange-300 font-medium">
+                      Qty: {labourData.outwardData.reduce((sum, item) => sum + item.quantity, 0).toLocaleString('en-IN')}
                     </p>
                     <p className="text-sm text-orange-600 dark:text-orange-400">{labourData.outwardData.length} record(s)</p>
                   </div>
