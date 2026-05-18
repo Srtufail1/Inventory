@@ -2,7 +2,6 @@
 
 import { db } from "@/lib/db";
 import { auth, signIn } from "../../auth";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { checkAdmin, checkSuperAdmin } from "@/lib/auth-utils";
 
@@ -24,26 +23,18 @@ export const loginSignup = async (formData: FormData, isLogin: boolean) => {
     }
   }
 
-  const res = await signIn("credentials", {
-    name,
-    email,
-    password,
-    isLogin,
-    redirect: true,
-    callbackUrl: "/",
-  })
-    .then(() => {
-      redirect("/");
-    })
-    .catch((err) => {
-      if (err?.toString() == "Error: NEXT_REDIRECT") {
-        user?.isAdmin ? redirect("/dashboard/inward") : redirect("/");
-      } else return { error: err?.type };
+  try {
+    await signIn("credentials", {
+      name,
+      email,
+      password,
+      isLogin,
+      redirectTo: user?.isAdmin ? "/dashboard/inward" : "/",
     });
-
-  if (!isLogin && res?.error) {
-    return { error: "credentials already exists" };
-  } else {
+  } catch (err: any) {
+    // Re-throw redirect errors so Next.js can handle the navigation
+    if (err?.digest?.startsWith("NEXT_REDIRECT")) throw err;
+    if (!isLogin) return { error: "credentials already exists" };
     return { error: "wrong credentials" };
   }
 };
