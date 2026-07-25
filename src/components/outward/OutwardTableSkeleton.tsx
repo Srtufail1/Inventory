@@ -6,7 +6,7 @@ const OutwardTableSkeleton = () => {
   return (
     <div>
       {/* Header bar skeleton */}
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
+      <div className="app-toolbar">
         <div className="flex items-center gap-3 w-full">
           <Skeleton className="h-10 w-64" />
           <Skeleton className="h-10 w-64" />
@@ -26,7 +26,7 @@ const OutwardTableSkeleton = () => {
         </div>
 
         {/* Table skeleton */}
-        <div className="rounded-md border">
+        <div className="rounded-xl border shadow-sm">
           {/* Table header */}
           <div className="border-b bg-muted/50 p-4">
             <div className="flex gap-4">

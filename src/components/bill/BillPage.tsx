@@ -501,7 +501,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
 
   return (
     <div>
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
+      <div className="app-toolbar">
         <div className="flex items-center gap-3 w-full"></div>
         <DarkModeToggle />
         <Button onClick={() => signOut()} type="submit">
@@ -510,7 +510,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
       </div>
       <div className="p-6">
         <div className="flex item justify-between pt-3 pb-6">
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight">
             Customer Billing Records
           </h1>
         </div>

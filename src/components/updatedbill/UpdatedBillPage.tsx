@@ -648,28 +648,25 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
 
   return (
     <div>
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
+      <div className="app-toolbar">
         <div className="flex items-center gap-3 w-full"></div>
         <DarkModeToggle />
         <Button onClick={() => signOut()} type="submit">
           Sign Out
         </Button>
       </div>
-      <div className="p-6">
-        <div className="flex item justify-between pt-3 pb-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Updated Bill
-            </h1>
-          </div>
+      <div className="page-shell pb-0">
+        <div className="section-heading">
+          <h1 className="text-2xl font-bold tracking-tight">Updated Bill</h1>
+          <p className="text-sm text-muted-foreground">Prepare customer bills, combine billing periods, and record delivered invoices.</p>
         </div>
       </div>
 
-      <main className="max-w-6xl px-4 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-[1600px] px-4 pb-8 pt-5 sm:px-6 lg:px-8">
         {/* Search Section - Side by Side */}
-        <div className={`mb-10 grid grid-cols-1 ${isSuperAdmin ? 'md:grid-cols-2' : ''} gap-6`}>
+        <div className={`mb-8 grid grid-cols-1 ${isSuperAdmin ? 'md:grid-cols-2' : ''} gap-4`}>
           {/* Customer Search */}
-          <div className="p-4 bg-muted/50 rounded-lg h-fit">
+          <section className="data-panel h-fit p-5">
             <h3 className="text-lg font-medium text-foreground mb-3 flex items-center gap-2">
               <Search className="h-5 w-5" />
               Search by Customer
@@ -706,11 +703,11 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
                 {isLoading && searchMode === 'customer' ? 'Searching...' : 'Search Customer'}
               </Button>
             </div>
-          </div>
+          </section>
 
           {/* Month Search - Only visible to SuperAdmin */}
           {isSuperAdmin && (
-            <div className="p-4 bg-blue-500/10 dark:bg-blue-500/5 rounded-lg">
+            <section className="data-panel border-l-[3px] border-l-primary p-5">
               <h3 className="text-lg font-medium text-foreground mb-3 flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
                 Search by Month (All Customers)
@@ -744,15 +741,16 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
                   />
                 )}
               </div>
-            </div>
+            </section>
           )}
         </div>
         
         {/* Customer Search Results */}
         {searchMode === 'customer' && customerName && (
           <>
-            <div className="mb-6">
-              <h2 className="text-3xl font-bold text-foreground">Customer: {customerName}</h2>
+            <div className="section-heading mb-6">
+              <p className="text-xs font-semibold uppercase text-muted-foreground">Customer bill</p>
+              <h2 className="text-2xl font-bold text-foreground">{customerName}</h2>
             </div>
             
             {billData.length > 0 && (
@@ -804,9 +802,9 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
                 )}
                 <div className="space-y-8">
                   {filteredBillData.map((entry, index) => (
-                    <div key={index} className="bg-card shadow rounded-lg overflow-hidden border">
+                    <section key={index} className="data-panel">
                       <div className="px-6 py-4 border-b">
-                        <div className="flex justify-between items-center">
+                        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                           <div className="flex items-center gap-3">
                             <input
                               type="checkbox"
@@ -817,7 +815,7 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
                             />
                             <h3 className="text-xl font-semibold text-foreground">{entry.dueMonth}</h3>
                           </div>
-                          <div className="flex items-center space-x-4 flex-wrap gap-y-2">
+                          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
                             <p className="text-l text-foreground">Total Amount:</p>
                             <p className="text-xl font-bold text-foreground">{entry.totalAmount.toLocaleString('en-IN')}</p>
                             <Button
@@ -867,7 +865,7 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
                         </div>
                       </div>
                       {expandedMonths.has(entry.dueMonth) && (
-                        <div className="px-6 py-4 overflow-x-auto">
+                        <div className="overflow-x-auto px-3 py-3 sm:px-5">
                           <table className="min-w-full divide-y divide-border">
                             <thead className="bg-muted/50">
                               <tr>
@@ -896,7 +894,7 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
                           </table>
                         </div>
                       )}
-                    </div>
+                    </section>
                   ))}
                 </div>
               </>
@@ -928,7 +926,7 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
               
               {monthBillData.length > 0 && (
                 <>
-                  <div className="bg-green-500/10 dark:bg-green-500/5 border-2 border-green-500 dark:border-green-600 rounded-lg p-6 mb-6">
+                  <div className="data-panel mb-6 border-l-[3px] border-l-primary p-5">
                     <div className="flex justify-between items-center">
                       <div>
                         <h3 className="text-xl font-bold text-green-700 dark:text-green-400">{searchedMonth} - Total Bill</h3>

@@ -339,12 +339,12 @@ export default function AuditLogTable({ data }: { data: AuditLog[] }) {
       {/* Date Groups */}
       <div className="space-y-2">
         {dateGroups.length === 0 ? (
-          <div className="rounded-md border p-8 text-center text-muted-foreground">
+          <div className="rounded-xl border shadow-sm p-8 text-center text-muted-foreground">
             No audit logs found.
           </div>
         ) : (
           dateGroups.map((group) => (
-            <div key={group.dateKey} className="rounded-md border">
+            <div key={group.dateKey} className="rounded-xl border shadow-sm">
               {/* Date Row */}
               <div
                 className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors"

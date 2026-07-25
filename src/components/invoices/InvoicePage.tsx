@@ -97,7 +97,7 @@ const InvoicePage: React.FC = () => {
 
   return (
     <div>
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
+      <div className="app-toolbar">
         <div className="flex items-center gap-3 w-full"></div>
         <DarkModeToggle />
         <Button onClick={() => signOut()} type="submit">
@@ -107,7 +107,7 @@ const InvoicePage: React.FC = () => {
 
       <div className="p-6">
         <div className="flex items-center justify-between pt-3 pb-6">
-          <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Invoices</h1>
         </div>
       </div>
 

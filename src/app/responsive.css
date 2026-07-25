@@ -1,10 +1,18 @@
 @media(max-width: 900px){
     .login-left{
         display: none;
-    }   
+    }
+    .login-right{
+        min-height: 100dvh;
+        height: auto;
+        padding-block: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-bottom));
+    }
+    .login-right-container{
+        min-height: calc(100dvh - 48px);
+    }
 }
 
-@media(max-width: 370px){
+@media(max-width: 390px){
     .login-center-options{
         flex-direction: column;
         align-items: center;
@@ -16,11 +24,20 @@
     }
 
     .login-center h2{
-        font-size: 3rem;
+        font-size: 2rem;
     }
 
     .login-center p{
-        font-size: 1.5rem;
+        font-size: 0.9rem;
     }
 
+}
+
+@media(max-width: 640px){
+    .login-center h2{
+        font-size: 2rem;
+    }
+    .login-center p{
+        font-size: 0.9rem;
+    }
 }

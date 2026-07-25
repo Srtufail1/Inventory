@@ -436,7 +436,7 @@ const LabourBillPage = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
+      <div className="app-toolbar">
         <div className="flex items-center gap-3 w-full"></div>
         <DarkModeToggle />
         <Button onClick={() => signOut()} type="submit">
@@ -445,23 +445,22 @@ const LabourBillPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="p-6">
-        <div className="flex items-center justify-between pt-3 pb-6">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Labour Bill
-          </h1>
+      <div className="page-shell">
+        <div className="section-heading">
+          <h1 className="text-2xl font-bold tracking-tight">Labour Bill</h1>
+          <p className="text-sm text-muted-foreground">Review inward and outward labour charges for a date or reporting period.</p>
         </div>
 
         {/* Mode Toggle */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex w-fit gap-1 rounded-md border bg-muted/60 p-1">
           <Button
-            variant={mode === 'single' ? 'default' : 'outline'}
+            variant={mode === 'single' ? 'default' : 'ghost'}
             onClick={() => setMode('single')}
           >
             Single Date
           </Button>
           <Button
-            variant={mode === 'range' ? 'default' : 'outline'}
+            variant={mode === 'range' ? 'default' : 'ghost'}
             onClick={() => setMode('range')}
           >
             Date Range
@@ -472,17 +471,17 @@ const LabourBillPage = () => {
         {mode === 'single' && (
           <>
             {/* Search Section */}
-            <div className="mb-8 p-4 bg-muted/50 rounded-lg">
+            <section className="data-panel p-5">
               <h3 className="text-lg font-medium text-foreground mb-3 flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
                 Select Date
               </h3>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Input
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-64"
+                  className="w-full sm:w-64"
                 />
                 <Button onClick={handleSearch} disabled={isLoading}>
                   {isLoading ? 'Searching...' : 'Search'}
@@ -495,14 +494,14 @@ const LabourBillPage = () => {
                 )}
               </div>
               {error && <p className="text-red-500 mt-2">{error}</p>}
-            </div>
+            </section>
 
             {/* Results */}
             {labourData && (
               <div className="space-y-8">
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="data-panel border-t-[3px] border-t-blue-500 p-4">
                     <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300 mb-2">
                       <MonitorDown className="h-5 w-5" />
                       <h4 className="font-semibold">Inward Labour</h4>
@@ -516,7 +515,7 @@ const LabourBillPage = () => {
                     <p className="text-sm text-blue-600 dark:text-blue-400">{labourData.inwardData.length} record(s)</p>
                   </div>
 
-                  <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+                  <div className="data-panel border-t-[3px] border-t-orange-500 p-4">
                     <div className="flex items-center gap-2 text-orange-800 dark:text-orange-300 mb-2">
                       <MonitorUp className="h-5 w-5" />
                       <h4 className="font-semibold">Outward Labour</h4>
@@ -530,7 +529,7 @@ const LabourBillPage = () => {
                     <p className="text-sm text-orange-600 dark:text-orange-400">{labourData.outwardData.length} record(s)</p>
                   </div>
 
-                  <div className="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                  <div className="data-panel border-t-[3px] border-t-primary p-4">
                     <h4 className="font-semibold text-green-800 dark:text-green-300 mb-2">Grand Total</h4>
                     <p className="text-2xl font-bold text-green-900 dark:text-green-100">
                       Rs. {labourData.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
@@ -543,7 +542,7 @@ const LabourBillPage = () => {
 
                 {/* Inward Table */}
                 {labourData.inwardData.length > 0 && (
-                  <div className="bg-card shadow rounded-lg overflow-hidden border">
+                  <div className="data-panel">
                     <div className="px-6 py-4 border-b bg-blue-500/10 dark:bg-blue-500/5">
                       <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-200 flex items-center gap-2">
                         <MonitorDown className="h-5 w-5" />
@@ -598,7 +597,7 @@ const LabourBillPage = () => {
 
                 {/* Outward Table */}
                 {labourData.outwardData.length > 0 && (
-                  <div className="bg-card shadow rounded-lg overflow-hidden border">
+                  <div className="data-panel">
                     <div className="px-6 py-4 border-b bg-orange-500/10 dark:bg-orange-500/5">
                       <h3 className="text-xl font-semibold text-orange-900 dark:text-orange-200 flex items-center gap-2">
                         <MonitorUp className="h-5 w-5" />
@@ -661,7 +660,7 @@ const LabourBillPage = () => {
                 )}
 
                 {/* Formula Note */}
-                <div className="bg-muted rounded-lg p-4 text-center">
+                <div className="rounded-md border bg-muted/50 p-4 text-center">
                   <p className="text-sm text-muted-foreground">
                     <strong>Formula:</strong> Labour Cost = Quantity × (Labour Rate ÷ 2)
                   </p>
@@ -674,7 +673,7 @@ const LabourBillPage = () => {
         {/* Date Range Mode */}
         {mode === 'range' && (
           <>
-            <div className="mb-8 p-4 bg-muted/50 rounded-lg">
+            <section className="data-panel p-5">
               <h3 className="text-lg font-medium text-foreground mb-3 flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
                 Select Date Range
@@ -709,7 +708,7 @@ const LabourBillPage = () => {
                 )}
               </div>
               {rangeError && <p className="text-red-500 mt-2">{rangeError}</p>}
-            </div>
+            </section>
 
             {rangeData && (
               <div className="space-y-6">

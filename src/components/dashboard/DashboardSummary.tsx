@@ -51,47 +51,66 @@ const DashboardSummary: React.FC<Props> = ({
   }, [duplicateAlerts, quantityMismatches, orphanedOutward, staleRecords, emptyQuantityFlags, missingRateAlerts]);
 
   const tabs = [
-    { key: "overview" as const, label: "Overview", icon: <BarChart3 className="h-3.5 w-3.5" /> },
-    { key: "analytics" as const, label: "Analytics", icon: <TrendingUp className="h-3.5 w-3.5" /> },
-    { key: "alerts" as const, label: "Alerts", icon: <AlertTriangle className="h-3.5 w-3.5" />, badge: totalAlerts },
-    { key: "monitoring" as const, label: "Monitoring", icon: <Shield className="h-3.5 w-3.5" /> },
+    { key: "overview" as const, label: "Overview", icon: <BarChart3 className="h-4 w-4" /> },
+    { key: "analytics" as const, label: "Analytics", icon: <TrendingUp className="h-4 w-4" /> },
+    { key: "alerts" as const, label: "Alerts", icon: <AlertTriangle className="h-4 w-4" />, badge: totalAlerts },
+    { key: "monitoring" as const, label: "Monitoring", icon: <Shield className="h-4 w-4" /> },
   ];
 
   return (
-    <div>
+    <div className="animate-fade-in">
       {/* Header */}
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
-        <div className="flex items-center gap-3 w-full">
-          <BarChart3 className="h-5 w-5 text-muted-foreground" />
-          <span className="font-medium text-foreground">Dashboard</span>
+      <div className="app-toolbar">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 dark:bg-primary/20">
+            <BarChart3 className="h-4 w-4 text-primary" />
+          </div>
+          <span className="font-semibold text-foreground">Dashboard</span>
         </div>
-        <DarkModeToggle />
-        <Button variant="outline" onClick={() => signOut()} type="submit">
-          Sign Out
-        </Button>
+        <div className="flex items-center gap-2">
+          <DarkModeToggle />
+          <Button
+            variant="ghost"
+            onClick={() => signOut()}
+            type="submit"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Sign Out
+          </Button>
+        </div>
       </div>
 
-      <div className="p-4 space-y-5">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Dashboard
-        </h1>
+      <div className="page-shell">
+        {/* Page Title */}
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Dashboard
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Monitor your inventory, track trends, and manage alerts.
+          </p>
+        </div>
 
         {/* Tab Navigation */}
-        <div className="flex gap-1 p-1 bg-muted/50 rounded-lg border sticky top-0 z-10">
+        <div className="sticky top-14 z-10 grid grid-cols-4 gap-1 rounded-md border bg-card/90 p-1 shadow-sm backdrop-blur-sm lg:top-16">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
+              className={`flex min-h-11 items-center justify-center gap-2 rounded-md px-2 py-2 text-sm font-medium transition-colors sm:px-4 ${
                 activeTab === tab.key
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                  ? "bg-background text-foreground shadow-sm border border-border/50"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {tab.icon}
               <span className="hidden sm:inline">{tab.label}</span>
               {tab.badge !== undefined && tab.badge > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400">
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                  activeTab === tab.key
+                    ? "bg-red-500 text-white"
+                    : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400"
+                }`}>
                   {tab.badge}
                 </span>
               )}
@@ -99,46 +118,48 @@ const DashboardSummary: React.FC<Props> = ({
           ))}
         </div>
 
-        {activeTab === "overview" && (
-          <OverviewTab
-            stats={stats}
-            todayActivity={todayActivity}
-            monthChange={monthChange}
-          />
-        )}
+        {/* Tab Content */}
+        <div className="animate-fade-in">
+          {activeTab === "overview" && (
+            <OverviewTab
+              stats={stats}
+              todayActivity={todayActivity}
+              monthChange={monthChange}
+            />
+          )}
 
-        {activeTab === "analytics" && (
-          <AnalyticsTab
-            monthlyTrends={monthlyTrends}
-            customerGrowth={customerGrowth}
-            topCustomers={topCustomers}
-            topItems={topItems}
-            customerBalances={customerBalances}
-          />
-        )}
+          {activeTab === "analytics" && (
+            <AnalyticsTab
+              monthlyTrends={monthlyTrends}
+              customerGrowth={customerGrowth}
+              topCustomers={topCustomers}
+              topItems={topItems}
+              customerBalances={customerBalances}
+            />
+          )}
 
-        {activeTab === "alerts" && (
-          <AlertsTab
-            totalAlerts={totalAlerts}
-            duplicateAlerts={duplicateAlerts}
-            quantityMismatches={quantityMismatches}
-            orphanedOutward={orphanedOutward}
-            staleRecords={staleRecords}
-            emptyQuantityFlags={emptyQuantityFlags}
-            missingRateAlerts={missingRateAlerts}
-          />
-        )}
+          {activeTab === "alerts" && (
+            <AlertsTab
+              totalAlerts={totalAlerts}
+              duplicateAlerts={duplicateAlerts}
+              quantityMismatches={quantityMismatches}
+              orphanedOutward={orphanedOutward}
+              staleRecords={staleRecords}
+              emptyQuantityFlags={emptyQuantityFlags}
+              missingRateAlerts={missingRateAlerts}
+            />
+          )}
 
-        {activeTab === "monitoring" && (
-          <MonitoringTab
-            userActivityScoreboard={userActivityScoreboard}
-            dailyEntrySummary={dailyEntrySummary}
-            quantityChangeLogs={quantityChangeLogs}
-            rateChangeLogs={rateChangeLogs}
-            recentlyDeleted={recentlyDeleted}
-          />
-        )}
-
+          {activeTab === "monitoring" && (
+            <MonitoringTab
+              userActivityScoreboard={userActivityScoreboard}
+              dailyEntrySummary={dailyEntrySummary}
+              quantityChangeLogs={quantityChangeLogs}
+              rateChangeLogs={rateChangeLogs}
+              recentlyDeleted={recentlyDeleted}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

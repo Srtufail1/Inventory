@@ -145,7 +145,7 @@ const ItemTranslationsPage = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
+      <div className="app-toolbar">
         <div className="flex items-center gap-3 w-full">
           <Languages className="h-5 w-5 text-muted-foreground" />
           <span className="font-medium text-foreground">Item Translations</span>
@@ -159,7 +159,7 @@ const ItemTranslationsPage = () => {
       <div className="p-6">
         <div className="flex items-center justify-between pt-3 pb-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
               <Languages className="h-8 w-8" />
               Item Name Translations
             </h1>
@@ -245,7 +245,7 @@ const ItemTranslationsPage = () => {
         </div>
 
         {/* Table */}
-        <div className="rounded-md border">
+        <div className="rounded-xl border shadow-sm">
           <Table>
             <TableHeader>
               <TableRow>
