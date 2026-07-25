@@ -4,19 +4,25 @@ import CustomerPage from "@/components/customer/CustomerPage";
 import { Skeleton } from "@/components/ui/skeleton";
 
 async function CustomerData() {
-  const customerData = await db.inward.groupBy({
-    by: ['customer'],
-    _count: {
-      customer: true
-    },
-    orderBy: {
-      customer: 'asc'
-    }
-  });
+  const [customerData, customerDetails] = await Promise.all([
+    db.inward.groupBy({
+      by: ['customer'],
+      _count: { customer: true },
+      orderBy: { customer: 'asc' }
+    }),
+    db.customerDetail.findMany({
+      select: { customer: true, contacts: true }
+    })
+  ]);
+
+  const contactsByCustomer = new Map(
+    customerDetails.map((detail) => [detail.customer, detail.contacts])
+  );
 
   const formattedData = customerData.map(item => ({
     customer: item.customer,
     totalInwards: item._count.customer,
+    contacts: contactsByCustomer.get(item.customer) ?? [],
   }));
 
   return <CustomerPage data={formattedData} />;

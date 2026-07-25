@@ -6,7 +6,7 @@ const NotesTableSkeleton = () => {
   return (
     <div>
       {/* Header bar skeleton */}
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
+      <div className="app-toolbar">
         <div className="flex items-center gap-3 w-full">
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-10 w-48" />
@@ -14,8 +14,8 @@ const NotesTableSkeleton = () => {
           <Skeleton className="h-10 w-32" />
           <Skeleton className="h-10 w-24" />
         </div>
-        <Skeleton className="h-10 w-10 rounded-full" />
-        <Skeleton className="h-10 w-24" />
+        <Skeleton className="h-9 w-9 rounded-lg" />
+        <Skeleton className="h-9 w-24 rounded-md" />
       </div>
 
       {/* Content skeleton */}
@@ -36,7 +36,7 @@ const NotesTableSkeleton = () => {
         </div>
 
         {/* Table skeleton */}
-        <div className="rounded-md border">
+        <div className="rounded-xl border shadow-sm">
           <div className="border-b bg-muted/50 p-4">
             <div className="flex gap-4">
               <Skeleton className="h-4 w-6" />

@@ -17,7 +17,7 @@ import {
   useReactTable,
   FilterFn,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, ChevronRight, Search, StickyNote } from "lucide-react";
+import { ArrowUpDown, ChevronDown, ChevronRight, Search, StickyNote, MonitorDown, SlidersHorizontal } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -39,12 +39,12 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { signOut } from "next-auth/react";
 import InwardData from "../inward/InwardData";
 import InwardUpdate from "../inward/InwardUpdate";
 import ExpandableNoteRow from "./ExpandableNoteRow";
 import { format, isWithinInterval } from 'date-fns';
 import DarkModeToggle from '../DarkModeToggle';
+import { ToolbarActions, SignOutButton } from '@/components/PageToolbar';
 import { FaCalendarAlt } from 'react-icons/fa';
 import { useCustomers } from '@/context/CustomersContext';
 import { useItems } from '@/context/ItemsContext';
@@ -113,11 +113,7 @@ export const columns: ColumnDef<InwardRowData>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="pl-8">
-        {row.getValue("inumber")}
-      </div>
-    ),
+    cell: ({ row }) => <div className="text-center tabular-nums">{row.getValue("inumber")}</div>,
   },
   {
     accessorKey: "addDate",
@@ -184,9 +180,7 @@ export const columns: ColumnDef<InwardRowData>[] = [
   {
     accessorKey: "weight",
     header: "Weight (Kg)",
-    cell: ({ row }) => (
-      <div className="pl-4">{row.getValue("weight")}</div>
-    ),
+    cell: ({ row }) => <div className="text-center tabular-nums">{row.getValue("weight")}</div>,
   },
   {
     accessorKey: "quantity",
@@ -201,9 +195,7 @@ export const columns: ColumnDef<InwardRowData>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="pl-8">{row.getValue("quantity")}</div>
-    ),
+    cell: ({ row }) => <div className="text-center tabular-nums">{row.getValue("quantity")}</div>,
   },
   {
     accessorKey: "store_rate",
@@ -218,9 +210,7 @@ export const columns: ColumnDef<InwardRowData>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="pl-10">{row.getValue("store_rate")}</div>
-    ),
+    cell: ({ row }) => <div className="text-center tabular-nums">{row.getValue("store_rate")}</div>,
   },
   {
     accessorKey: "labour_rate",
@@ -235,9 +225,7 @@ export const columns: ColumnDef<InwardRowData>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="pl-12">{row.getValue("labour_rate")}</div>
-    ),
+    cell: ({ row }) => <div className="text-center tabular-nums">{row.getValue("labour_rate")}</div>,
   },
   {
     id: "notes",
@@ -284,6 +272,7 @@ const InwardTable = ({ data }: any) => {
   const [startDate, endDate] = dateRange;
   const [pageSize, setPageSize] = React.useState(10);
   const [pageIndex, setPageIndex] = React.useState(0);
+  const [showMobileFilters, setShowMobileFilters] = React.useState(false);
 
   // Autocomplete for search filters
   const { customers } = useCustomers();
@@ -377,15 +366,34 @@ const InwardTable = ({ data }: any) => {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-2 border-b bg-muted/40 px-6 py-3 min-h-14 lg:min-h-16">
-        <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
+      <div className="app-filterbar">
+        <div className="flex w-full items-center justify-between md:hidden">
+          <div>
+            <p className="text-sm font-semibold">Inward records</p>
+            <p className="text-xs text-muted-foreground">{table.getFilteredRowModel().rows.length} results</p>
+          </div>
+          <div className="flex items-center gap-1">
+            <DarkModeToggle />
+            <SignOutButton />
+            <Button
+              variant={showMobileFilters ? "secondary" : "outline"}
+              size="sm"
+              className="h-10 gap-2"
+              onClick={() => setShowMobileFilters((visible) => !visible)}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Filters
+            </Button>
+          </div>
+        </div>
+        <div className={`${showMobileFilters ? "flex" : "hidden"} w-full min-w-0 flex-col gap-2 md:flex md:w-auto md:flex-1 md:flex-row md:flex-wrap md:items-center`}>
           <div className="relative shrink-0">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Inward No."
               value={(table?.getColumn("inumber")?.getFilterValue() as string) ?? ""}
               onChange={(event) => table?.getColumn("inumber")?.setFilterValue(event?.target?.value)}
-              className="pl-8 h-9 w-36 text-sm"
+              className="h-10 w-full pl-8 text-sm md:h-9 md:w-36"
             />
           </div>
           <div className="relative shrink-0">
@@ -399,7 +407,7 @@ const InwardTable = ({ data }: any) => {
                 setCustomerSelected(false);
                 table?.getColumn("customer")?.setFilterValue(val);
               }}
-              className="pl-8 h-9 w-36 text-sm"
+              className="h-10 w-full pl-8 text-sm md:h-9 md:w-36"
             />
             {customerSuggestions.length > 0 && (
               <ul className="absolute z-20 w-44 bg-popover border mt-1 max-h-48 overflow-auto rounded-md shadow-md">
@@ -431,7 +439,7 @@ const InwardTable = ({ data }: any) => {
                 setItemSelected(false);
                 table?.getColumn("item")?.setFilterValue(val);
               }}
-              className="pl-8 h-9 w-36 text-sm"
+              className="h-10 w-full pl-8 text-sm md:h-9 md:w-36"
             />
             {itemSuggestions.length > 0 && (
               <ul className="absolute z-20 w-44 bg-popover border mt-1 max-h-48 overflow-auto rounded-md shadow-md">
@@ -463,7 +471,7 @@ const InwardTable = ({ data }: any) => {
                 setPackingSelected(false);
                 table?.getColumn("packing")?.setFilterValue(val);
               }}
-              className="pl-8 h-9 w-36 text-sm"
+              className="h-10 w-full pl-8 text-sm md:h-9 md:w-36"
             />
             {packingSuggestions.length > 0 && (
               <ul className="absolute z-20 w-44 bg-popover border mt-1 max-h-48 overflow-auto rounded-md shadow-md">
@@ -490,7 +498,7 @@ const InwardTable = ({ data }: any) => {
               placeholder="Weight..."
               value={(table?.getColumn("weight")?.getFilterValue() as string) ?? ""}
               onChange={(event) => table?.getColumn("weight")?.setFilterValue(event?.target?.value)}
-              className="pl-8 h-9 w-32 text-sm"
+              className="h-10 w-full pl-8 text-sm md:h-9 md:w-32"
             />
           </div>
           <DatePicker
@@ -501,13 +509,13 @@ const InwardTable = ({ data }: any) => {
               setDateRange(update);
             }}
             placeholderText="Date range..."
-            className="h-9 w-40 rounded-md border border-input bg-background px-2.5 text-sm placeholder:text-muted-foreground focus:outline-none shrink-0"
+            className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus:outline-none md:h-9 md:w-40"
             dateFormat="dd MMM yyyy"
             isClearable={true}
           />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9 shrink-0">
+              <Button variant="outline" size="sm" className="h-10 w-full shrink-0 md:h-9 md:w-auto">
                 Columns <ChevronDown className="ml-1.5 h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>
@@ -530,31 +538,37 @@ const InwardTable = ({ data }: any) => {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <div className="flex items-center gap-2 shrink-0 ml-auto">
-          <DarkModeToggle />
-          <Button onClick={() => signOut()} type="submit" size="sm" className="h-9">
-            Sign Out
-          </Button>
-        </div>
+        <ToolbarActions className="hidden md:flex" />
       </div>
-      <div className="p-6">
-        <div className="flex item justify-between pt-3 pb-6">
+      <div className="gate-pass-shell page-shell animate-fade-in">
+        <div className="flex flex-col gap-4 pb-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-bold tracking-tight">
-              Inward Gate Pass
-            </h1>
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900/40">
+              <MonitorDown className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight">
+                Inward Gate Pass
+              </h1>
+              <p className="text-sm text-muted-foreground">Manage incoming inventory records</p>
+            </div>
           </div>
           <InwardData title="Add Inward Data" data={{}} />
         </div>
         <div>
-          <div className="rounded-md border">
+          <div className="hidden shadow-sm md:block">
             <Table>
               <TableHeader className="bg-muted/50 sticky top-0 z-10">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id} className="hover:bg-muted/50">
                     {headerGroup.headers.map((header) => {
+                      const isCentered = ["inumber", "weight", "quantity", "store_rate", "labour_rate", "select", "notes", "actions"].includes(header.column.id);
+                      const isCenteredSortable = ["inumber", "quantity", "store_rate", "labour_rate"].includes(header.column.id);
                       return (
-                        <TableHead key={header.id} className="whitespace-nowrap">
+                        <TableHead
+                          key={header.id}
+                          className={`whitespace-nowrap px-2 ${isCentered ? "text-center" : ""} ${isCenteredSortable ? "[&>button]:relative [&>button]:w-full [&>button]:justify-center [&>button]:px-5 [&>button>svg]:absolute [&>button>svg]:right-1" : ""}`}
+                        >
                           {header.isPlaceholder
                             ? null
                             : flexRender(
@@ -584,7 +598,10 @@ const InwardTable = ({ data }: any) => {
                         }
                       >
                         {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
+                          <TableCell
+                            key={cell.id}
+                            className={`px-2 py-2.5 ${["inumber", "weight", "quantity", "store_rate", "labour_rate", "select", "notes", "actions"].includes(cell.column.id) ? "text-center" : ""}`}
+                          >
                             {flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext()
@@ -620,7 +637,77 @@ const InwardTable = ({ data }: any) => {
               </TableBody>
             </Table>
           </div>
-          <div className="flex items-center justify-between py-4">
+          <div className="space-y-3 md:hidden">
+            {table.getRowModel().rows.length ? table.getRowModel().rows.map((row) => {
+              const record = row.original;
+              return (
+                <article key={row.id} className="overflow-hidden rounded-md border bg-card shadow-sm">
+                  <div className="flex items-start gap-2.5 border-b bg-muted/30 p-3">
+                    <Checkbox
+                      checked={row.getIsSelected()}
+                      onCheckedChange={(value) => row.toggleSelected(!!value)}
+                      aria-label={`Select inward ${record.inumber}`}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-semibold uppercase text-muted-foreground">Inward pass</p>
+                          <h2 className="font-bold text-primary">#{record.inumber}</h2>
+                        </div>
+                        <time className="text-xs font-medium text-muted-foreground">
+                          {format(new Date(record.addDate), "dd MMM yyyy")}
+                        </time>
+                      </div>
+                      <p className="mt-1.5 truncate text-sm font-semibold">{record.customer}</p>
+                      <p className="truncate text-sm text-muted-foreground">{record.item}</p>
+                    </div>
+                  </div>
+                  <dl className="grid grid-cols-2 gap-px bg-border">
+                    <div className="bg-card p-2.5">
+                      <dt className="text-[11px] uppercase text-muted-foreground">Quantity</dt>
+                      <dd className="mt-1 font-semibold">{record.quantity}</dd>
+                    </div>
+                    <div className="bg-card p-2.5">
+                      <dt className="text-[11px] uppercase text-muted-foreground">Packing / weight</dt>
+                      <dd className="mt-1 truncate font-semibold">{record.packing} · {record.weight} kg</dd>
+                    </div>
+                    <div className="bg-card p-2.5">
+                      <dt className="text-[11px] uppercase text-muted-foreground">Store rate</dt>
+                      <dd className="mt-1 font-semibold">Rs. {record.store_rate || "—"}</dd>
+                    </div>
+                    <div className="bg-card p-2.5">
+                      <dt className="text-[11px] uppercase text-muted-foreground">Labour rate</dt>
+                      <dd className="mt-1 font-semibold">Rs. {record.labour_rate || "—"}</dd>
+                    </div>
+                  </dl>
+                  <div className="flex items-center justify-between gap-2 p-2.5">
+                    <button
+                      className="flex min-h-10 items-center gap-2 rounded-md px-2 text-sm font-medium text-muted-foreground hover:bg-muted"
+                      onClick={() => row.toggleExpanded()}
+                    >
+                      <StickyNote className={`h-4 w-4 ${record.notes ? "text-amber-500" : ""}`} />
+                      {record.notes ? "View note" : "Add note"}
+                    </button>
+                    <InwardUpdate row={row} />
+                  </div>
+                  {row.getIsExpanded() && (
+                    <ExpandableNoteRow
+                      inwardId={record.id}
+                      inumber={record.inumber}
+                      notes={record.notes || null}
+                      colSpan={1}
+                      asCard
+                      onNotesSaved={handleNotesSaved}
+                      onCollapse={() => row.toggleExpanded()}
+                    />
+                  )}
+                </article>
+              );
+            }) : (
+              <div className="rounded-md border bg-card p-8 text-center text-sm text-muted-foreground">No results.</div>
+            )}
+          </div>
+          <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <span>{table.getFilteredRowModel().rows.length} row(s) total</span>
               {table.getFilteredSelectedRowModel().rows.length > 0 && (
@@ -629,8 +716,8 @@ const InwardTable = ({ data }: any) => {
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-3 sm:justify-end sm:gap-6">
+              <div className="hidden items-center gap-2 md:flex">
                 <span className="text-sm text-muted-foreground">Rows per page:</span>
                 <select
                   value={pageSize === data.length ? 100000000 : pageSize}
@@ -639,7 +726,7 @@ const InwardTable = ({ data }: any) => {
                     setPageSize(newSize === 100000000 ? data.length : newSize);
                     setPageIndex(0);
                   }}
-                  className="h-8 rounded-md border px-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  className="h-8 rounded-xl border shadow-sm px-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
                   {[10, 20, 50, 100, 500, 1000, 100000000].map(size => (
                     <option key={size} value={size}>

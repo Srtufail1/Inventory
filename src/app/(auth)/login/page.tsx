@@ -44,8 +44,8 @@ const Login = () => {
           </div>
           <div className="login-center">
             <h2>ZamZam Cold Storage</h2>
-            <br /><br /><br /><br />
-            <form action={handleSubmit} className="w-full px-5">
+            <p>Sign in to continue</p>
+            <form action={handleSubmit} className="w-full">
               <FormInput
                 name="email"
                 type="email"
@@ -70,7 +70,7 @@ const Login = () => {
                   type="submit"
                   className={`${loading && "disabled cursor-not-allowed"} w-full bg-blue-500`}
                 >
-                  {loading ? "loading..." : "Login"}
+                  {loading ? "Signing in..." : "Sign in"}
                 </Button>
               </div>
             </form>

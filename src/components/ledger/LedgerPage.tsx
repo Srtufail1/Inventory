@@ -10,8 +10,7 @@ import {
   SortingState,
   getSortedRowModel,
 } from "@tanstack/react-table";
-import { ArrowUpDown, Search, Printer } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { ArrowUpDown, BookOpenText, Search, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import DarkModeToggle from '../DarkModeToggle';
+import PageToolbar from '@/components/PageToolbar';
 import LaborTable, { LaborEntry } from './LaborTable';
 import { useCustomers } from '@/context/CustomersContext';
 
@@ -126,9 +125,11 @@ type CustomerDetail = {
 };
 
 const CustomerDetailsTable = ({ details }: { details: CustomerDetail[] }) => (
-  <div className="mb-6">
-    <h2 className="text-xl font-semibold mb-2">Customer Details</h2>
-    <div className="overflow-x-auto">
+  <section className="data-panel [&_.responsive-table]:rounded-none [&_.responsive-table]:border-0">
+    <div className="border-b bg-muted/30 px-4 py-3 sm:px-5">
+      <h2 className="font-semibold">Customer and stock details</h2>
+      <p className="mt-0.5 text-xs text-muted-foreground">Inward identity, item, quantity, and current balance.</p>
+    </div>
       <Table>
         <TableHeader>
           <TableRow>
@@ -155,8 +156,7 @@ const CustomerDetailsTable = ({ details }: { details: CustomerDetail[] }) => (
           ))}
         </TableBody>
       </Table>
-    </div>
-  </div>
+  </section>
 );
 
 // New component for individual Ledger tables
@@ -361,24 +361,27 @@ const LedgerTable = ({
   };
 
   return (
-    <div className="mb-8">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xl font-semibold">Ledger Table (Inward Number: {inumber})</h2>
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-muted-foreground whitespace-nowrap">Date range:</label>
+    <section className="data-panel [&_.responsive-table]:rounded-none [&_.responsive-table]:border-0">
+      <div className="flex flex-col gap-3 border-b bg-muted/30 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div>
+          <p className="text-xs font-semibold uppercase text-muted-foreground">Inward ledger</p>
+          <h2 className="mt-0.5 text-lg font-bold text-primary">#{inumber}</h2>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="whitespace-nowrap text-xs font-medium text-muted-foreground">Print range</label>
           <input
             type="date"
             value={printFromDate}
             onChange={(e) => setPrintFromDate(e.target.value)}
-            className="border rounded px-2 py-1 text-sm"
+            className="h-9 min-w-0 flex-1 rounded-md border bg-background px-2 text-sm sm:w-36 sm:flex-none"
             title="From date"
           />
-          <span className="text-sm text-muted-foreground">—</span>
+          <span className="text-sm text-muted-foreground">to</span>
           <input
             type="date"
             value={printToDate}
             onChange={(e) => setPrintToDate(e.target.value)}
-            className="border rounded px-2 py-1 text-sm"
+            className="h-9 min-w-0 flex-1 rounded-md border bg-background px-2 text-sm sm:w-36 sm:flex-none"
             title="To date"
           />
           <Button variant="outline" size="sm" onClick={handlePrint} title="Print as PDF">
@@ -387,7 +390,6 @@ const LedgerTable = ({
           </Button>
         </div>
       </div>
-      <div className="rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -434,7 +436,6 @@ const LedgerTable = ({
             )}
           </TableBody>
         </Table>
-      </div>
       <div className="flex items-center justify-end space-x-2 py-5">
         <div className="space-x-2">
           <Button
@@ -455,7 +456,7 @@ const LedgerTable = ({
           </Button>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
@@ -518,21 +519,23 @@ const LedgerPage = () => {
 
   return (
     <div>
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
-        <div className="w-full"></div>
-        <DarkModeToggle />
-        <Button onClick={() => signOut()} type="submit">
-          Sign Out
-        </Button>
-      </div>
-      <div className="p-6">
-        <div className="flex item justify-between pt-3 pb-6">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Ledger
-          </h1>
+      <PageToolbar icon={<BookOpenText className="h-4 w-4" />} title="Ledger" />
+      <div className="page-shell">
+        <div className="section-heading">
+          <h1 className="text-2xl font-bold tracking-tight">Ledger</h1>
+          <p className="text-sm text-muted-foreground">Review storage movement, remaining stock, labour, rates, and calculated amounts.</p>
         </div>
-        <div className="relative w-full flex items-center">
-          <div className="relative w-1/4 mr-2">
+        {/* overflow-visible so the customer suggestion list can escape the panel */}
+        <section className="data-panel overflow-visible p-4 sm:p-5">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary"><BookOpenText className="h-4 w-4" /></span>
+            <div>
+              <h2 className="font-semibold">Find a customer ledger</h2>
+              <p className="text-xs text-muted-foreground">Use an inward number only when you need one specific account.</p>
+            </div>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative min-w-0 flex-1">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               ref={searchRef}
@@ -542,7 +545,7 @@ const LedgerPage = () => {
               className="pl-8"
             />
             {filteredCustomers.length > 0 && (
-              <ul className="absolute z-10 w-full bg-popover border mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
+              <ul className="absolute z-50 w-full bg-popover border mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
                 {filteredCustomers.map((customer, index) => (
                   <li 
                     key={index}
@@ -559,18 +562,20 @@ const LedgerPage = () => {
             placeholder="Inward number (optional)"
             value={inwardNumber}
             onChange={(e) => setInwardNumber(e.target.value)}
-            className="w-1/4 mr-2"
+            className="min-w-0 flex-1"
           />
-          <Button onClick={handleSearch} disabled={isLoading} className="ml-2">
+          <Button onClick={handleSearch} disabled={isLoading} className="sm:min-w-28">
             {isLoading ? 'Searching...' : 'Search'}
           </Button>
-        </div>
-        <div className="pb-6"></div>
+          </div>
+        </section>
         {customerDetails.length > 0 && <CustomerDetailsTable details={customerDetails} />}
         {laborData.length > 0 && <LaborTable data={laborData} />}
-        {dataSets.map((dataSet) => (
-          <LedgerTable key={dataSet.inumber} data={dataSet.ledgerData} inumber={dataSet.inumber} customerName={searchTerm} customerDetails={customerDetails} laborData={laborData} />
-        ))}
+        <div className="space-y-5">
+          {dataSets.map((dataSet) => (
+            <LedgerTable key={dataSet.inumber} data={dataSet.ledgerData} inumber={dataSet.inumber} customerName={searchTerm} customerDetails={customerDetails} laborData={laborData} />
+          ))}
+        </div>
       </div>
     </div>
   );

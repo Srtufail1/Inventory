@@ -12,7 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, ChevronUp, Plus, Search, Trash2 } from "lucide-react";
+import { ArrowUpDown, ChevronDown, ChevronUp, Phone, PhoneOff, Plus, Search, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,12 +30,12 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { signOut } from "next-auth/react";
-import DarkModeToggle from '../DarkModeToggle';
+import { ToolbarActions } from "@/components/PageToolbar";
 
 interface CustomerData {
   customer: string;
   totalInwards: number;
+  contacts: Contact[];
 }
 
 interface Contact {
@@ -51,6 +51,7 @@ interface ExpandedState {
 }
 
 const CustomerPage = ({ data }: { data: CustomerData[] }) => {
+  const [directoryData, setDirectoryData] = React.useState(data);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -131,11 +132,17 @@ const CustomerPage = ({ data }: { data: CustomerData[] }) => {
 
     setExpandedState((prev) => ({ ...prev, saving: true }));
     try {
-      await fetch("/api/customer-details", {
+      const response = await fetch("/api/customer-details", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ customer: expandedCustomer, contacts: filled }),
       });
+      if (!response.ok) throw new Error("Failed to save contacts");
+      setDirectoryData((current) => current.map((customer) =>
+        customer.customer === expandedCustomer
+          ? { ...customer, contacts: filled }
+          : customer
+      ));
       setExpandedState((prev) => ({ ...prev, saving: false, saved: true }));
     } catch {
       setExpandedState((prev) => ({ ...prev, saving: false }));
@@ -157,16 +164,29 @@ const CustomerPage = ({ data }: { data: CustomerData[] }) => {
       cell: ({ row }) => {
         const name = row.getValue("customer") as string;
         const isOpen = expandedCustomer === name;
+        const validContacts = row.original.contacts.filter((contact) => contact.phone.length === 11);
         return (
           <button
-            className="flex items-center gap-1 capitalize font-medium hover:text-blue-600 transition-colors cursor-pointer"
+            className="group flex min-w-[220px] items-center gap-3 text-left transition-colors"
             onClick={() => handleRowClick(name)}
           >
-            {name}
-            {isOpen
-              ? <ChevronUp className="h-4 w-4 text-muted-foreground" />
-              : <ChevronDown className="h-4 w-4 text-muted-foreground" />
-            }
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${validContacts.length ? "bg-primary/10 text-primary" : "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400"}`}>
+              {validContacts.length ? <Phone className="h-4 w-4" /> : <PhoneOff className="h-4 w-4" />}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="flex items-center gap-1 font-semibold capitalize group-hover:text-primary">
+                <span className="truncate">{name}</span>
+                {isOpen ? <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />}
+              </span>
+              {validContacts.length ? (
+                <span className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="tabular-nums">{validContacts[0].phone}</span>
+                  {validContacts.length > 1 && <span className="rounded bg-muted px-1.5 py-0.5 font-semibold">+{validContacts.length - 1}</span>}
+                </span>
+              ) : (
+                <span className="mt-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400">Missing number</span>
+              )}
+            </span>
           </button>
         );
       },
@@ -188,7 +208,7 @@ const CustomerPage = ({ data }: { data: CustomerData[] }) => {
   ], [expandedCustomer]);
 
   const table = useReactTable({
-    data,
+    data: directoryData,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -207,22 +227,22 @@ const CustomerPage = ({ data }: { data: CustomerData[] }) => {
 
   return (
     <div>
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
-        <div className="flex items-center gap-3 w-full">
-          <div className="relative">
+      <div className="app-toolbar">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="relative min-w-0 flex-1 sm:max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search Customer..."
               value={(table?.getColumn("customer")?.getFilterValue() as string) ?? ""}
               onChange={(event) => table?.getColumn("customer")?.setFilterValue(event?.target?.value)}
-              className="pl-8 max-w-sm outline-none focus:outline-none"
+              className="w-full pl-8 outline-none focus:outline-none"
             />
           </div>
           <div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="ml-auto">
-                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                <Button variant="outline" className="ml-auto px-3">
+                  <span className="hidden sm:inline">Columns</span><ChevronDown className="h-4 w-4 sm:ml-2" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -243,21 +263,21 @@ const CustomerPage = ({ data }: { data: CustomerData[] }) => {
             </DropdownMenu>
           </div>
         </div>
-        <DarkModeToggle />
-        <Button onClick={() => signOut()} type="submit">
-          Sign Out
-        </Button>
+        <ToolbarActions />
       </div>
-      <div className="p-6">
-        <div className="flex items-center justify-between pt-3 pb-6">
-          <h1 className="text-3xl font-bold tracking-tight">Customer List</h1>
-          <div className="flex items-center space-x-2 text-sm font-medium bg-muted rounded-full px-4 py-2 shadow-sm">
+      <div className="page-shell">
+        <div className="flex items-center justify-between gap-4">
+          <div className="section-heading">
+            <h1 className="text-xl font-bold">Customer list</h1>
+            <p className="text-sm text-muted-foreground">Review inward activity and maintain contact details.</p>
+          </div>
+          <div className="flex shrink-0 items-center space-x-2 rounded-md border bg-card px-3 py-2 text-sm font-medium shadow-sm">
             <span className="text-muted-foreground">Total Customers:</span>
             <span className="text-green-600 font-bold">{data.length}</span>
           </div>
         </div>
         <div>
-          <div className="rounded-md border">
+          <div className="data-panel">
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (

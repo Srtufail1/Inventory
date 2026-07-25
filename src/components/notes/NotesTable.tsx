@@ -32,11 +32,10 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { signOut } from "next-auth/react";
 import NoteData from "./NoteData";
 import NoteUpdate from "./NoteUpdate";
 import { format } from "date-fns";
-import DarkModeToggle from "../DarkModeToggle";
+import { ToolbarActions } from "@/components/PageToolbar";
 
 type NoteDataProps = {
   id: string;
@@ -261,7 +260,7 @@ const NotesTable = ({ data }: { data: NoteDataProps[] }) => {
 
   return (
     <div>
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
+      <div className="app-toolbar">
         <div className="flex items-center gap-3 w-full">
           {/* Search by title */}
           <div className="relative">
@@ -313,7 +312,7 @@ const NotesTable = ({ data }: { data: NoteDataProps[] }) => {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="block rounded-md border px-3 py-2 text-sm shadow-sm focus:border-primary focus:ring focus:ring-ring focus:ring-opacity-50 bg-background text-foreground"
+            className="block rounded-xl border shadow-sm px-3 py-2 text-sm shadow-sm focus:border-primary focus:ring focus:ring-ring focus:ring-opacity-50 bg-background text-foreground"
           >
             <option value="all">All Types</option>
             <option value="old_inward">Old Inward</option>
@@ -351,15 +350,12 @@ const NotesTable = ({ data }: { data: NoteDataProps[] }) => {
             </DropdownMenu>
           </div>
         </div>
-        <DarkModeToggle />
-        <Button onClick={() => signOut()} type="submit">
-          Sign Out
-        </Button>
+        <ToolbarActions />
       </div>
       <div className="p-6">
         <div className="flex item justify-between pt-3 pb-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
               <StickyNote className="h-8 w-8" />
               Notes & Archive
             </h1>
@@ -400,7 +396,7 @@ const NotesTable = ({ data }: { data: NoteDataProps[] }) => {
         </div>
 
         <div>
-          <div className="rounded-md border">
+          <div className="rounded-xl border shadow-sm">
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -475,7 +471,7 @@ const NotesTable = ({ data }: { data: NoteDataProps[] }) => {
                   const newSize = Number(e.target.value);
                   setPageSize(newSize === 100000000 ? data.length : newSize);
                 }}
-                className="block rounded-md border shadow-sm focus:border-primary focus:ring focus:ring-ring focus:ring-opacity-50 bg-background text-foreground"
+                className="block rounded-xl border shadow-sm shadow-sm focus:border-primary focus:ring focus:ring-ring focus:ring-opacity-50 bg-background text-foreground"
               >
                 {[10, 20, 50, 100, 500, 1000, 100000000].map((size) => (
                   <option key={size} value={size}>

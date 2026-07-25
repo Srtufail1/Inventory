@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { DatabaseBackup, Download, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
-import DarkModeToggle from '@/components/DarkModeToggle';
-import { signOut } from "next-auth/react";
+import PageToolbar from '@/components/PageToolbar';
 
 const loadingMessages = [
   "Connecting to database...",
@@ -95,18 +94,12 @@ const BackupPage = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
-        <div className="flex items-center gap-3 w-full"></div>
-        <DarkModeToggle />
-        <Button onClick={() => signOut()} type="submit">
-          Sign Out
-        </Button>
-      </div>
+      <PageToolbar icon={<DatabaseBackup className="h-4 w-4" />} title="Backup" />
 
       {/* Main Content */}
       <div className="p-6">
         <div className="flex items-center justify-between pt-3 pb-6">
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight">
             Database Backup
           </h1>
         </div>

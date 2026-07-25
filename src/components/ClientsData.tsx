@@ -14,7 +14,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown, Search, KeyRound, UserPlus } from "lucide-react";
-import DarkModeToggle from "./DarkModeToggle";
+import { ToolbarActions } from "@/components/PageToolbar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -33,7 +33,6 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Input } from "./ui/input";
-import { signOut } from "next-auth/react";
 import { toast } from "./ui/use-toast";
 import Link from "next/link";
 
@@ -282,9 +281,9 @@ const ClientsData = ({ data }: { data: UserData[] }) => {
 
   return (
     <div className="w-full">
-      <div className="flex justify-between w-full h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
-        <div className="flex items-center gap-3 w-full">
-          <div className="relative">
+      <div className="app-toolbar flex-wrap">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="relative min-w-0 flex-1 sm:max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search name..."
@@ -294,14 +293,14 @@ const ClientsData = ({ data }: { data: UserData[] }) => {
               onChange={(event: any) =>
                 table?.getColumn("name")?.setFilterValue(event?.target?.value)
               }
-              className="pl-8 max-w-sm outline-none focus:outline-none"
+              className="w-full pl-8 outline-none focus:outline-none"
             />
           </div>
           <div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="ml-auto">
-                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                <Button variant="outline" className="ml-auto px-3">
+                  <span className="hidden sm:inline">Columns</span><ChevronDown className="sm:ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -326,25 +325,21 @@ const ClientsData = ({ data }: { data: UserData[] }) => {
             </DropdownMenu>
           </div>
         </div>
-        <Link href="/signup">
-          <Button className="bg-green-600 hover:bg-green-700">
-            <UserPlus className="h-4 w-4 mr-2" />
-            Create User
-          </Button>
-        </Link>
-        <DarkModeToggle />
-        <Button
-          onClick={(e) => {
-            e.preventDefault();
-            signOut();
-          }}
-          type="submit"
-        >
-          Sign Out
-        </Button>
+        <ToolbarActions>
+          <Link href="/signup" className="shrink-0">
+            <Button size="sm" className="h-9 bg-green-600 px-3 hover:bg-green-700">
+              <UserPlus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Create User</span>
+            </Button>
+          </Link>
+        </ToolbarActions>
       </div>
-      <div className="p-6">
-        <div className="rounded-md border">
+      <div className="page-shell">
+        <div className="section-heading">
+          <h1 className="text-xl font-bold">Team access</h1>
+          <p className="text-sm text-muted-foreground">Manage users, roles, activity, and access scope.</p>
+        </div>
+        <div className="data-panel">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (

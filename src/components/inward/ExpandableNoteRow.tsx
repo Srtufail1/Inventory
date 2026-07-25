@@ -11,6 +11,7 @@ type ExpandableNoteRowProps = {
   inumber: string;
   notes: string | null;
   colSpan: number;
+  asCard?: boolean;
   onNotesSaved?: (id: string, notes: string | null) => void;
   onCollapse?: () => void;
 };
@@ -20,6 +21,7 @@ const ExpandableNoteRow: React.FC<ExpandableNoteRowProps> = ({
   inumber,
   notes,
   colSpan,
+  asCard = false,
   onNotesSaved,
   onCollapse,
 }) => {
@@ -72,9 +74,8 @@ const ExpandableNoteRow: React.FC<ExpandableNoteRowProps> = ({
     }
   };
 
-  return (
-    <td colSpan={colSpan} className="p-0">
-      <div className="bg-amber-50/50 dark:bg-amber-950/20 border-t border-b border-amber-200 dark:border-amber-800/50 px-6 py-4">
+  const editor = (
+      <div className="bg-amber-50/50 dark:bg-amber-950/20 border-t border-b border-amber-200 dark:border-amber-800/50 px-4 py-4 sm:px-6">
         <div className="flex items-center gap-2 mb-3">
           <StickyNote className="h-4 w-4 text-amber-600 dark:text-amber-400" />
           <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">
@@ -89,7 +90,7 @@ const ExpandableNoteRow: React.FC<ExpandableNoteRowProps> = ({
           onKeyDown={handleKeyDown}
           placeholder="Add notes for this inward record... (Ctrl+Enter to save)"
           rows={3}
-          className="w-full rounded-md border border-amber-200 dark:border-amber-800 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 resize-y min-h-[80px]"
+          className="w-full rounded-xl border shadow-sm border-amber-200 dark:border-amber-800 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 resize-y min-h-[80px]"
         />
 
         <div className="flex items-center justify-between mt-3">
@@ -129,8 +130,9 @@ const ExpandableNoteRow: React.FC<ExpandableNoteRowProps> = ({
           </div>
         </div>
       </div>
-    </td>
   );
+
+  return asCard ? <div>{editor}</div> : <td colSpan={colSpan} className="p-0">{editor}</td>;
 };
 
 export default ExpandableNoteRow;

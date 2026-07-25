@@ -9,6 +9,7 @@ import {
   Eye,
   EyeOff,
   Calendar,
+  ScrollText,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -33,8 +34,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { signOut } from "next-auth/react";
-import DarkModeToggle from "../DarkModeToggle";
+import PageToolbar from "@/components/PageToolbar";
 import { deleteAuditLog, deleteAuditLogsByDate } from "@/actions/user";
 import { toast } from "../ui/use-toast";
 
@@ -272,17 +272,10 @@ export default function AuditLogTable({ data }: { data: AuditLog[] }) {
   };
 
   return (
-    <div className="w-full p-4 md:p-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold">Audit Logs</h1>
-        <div className="flex items-center gap-2">
-          <DarkModeToggle />
-          <Button variant="outline" onClick={() => signOut()}>
-            Sign Out
-          </Button>
-        </div>
-      </div>
+    <>
+      <PageToolbar icon={<ScrollText className="h-4 w-4" />} title="Audit Logs" />
+      <div className="w-full p-4 md:p-6">
+      <h1 className="text-2xl font-bold mb-6">Audit Logs</h1>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
@@ -339,12 +332,12 @@ export default function AuditLogTable({ data }: { data: AuditLog[] }) {
       {/* Date Groups */}
       <div className="space-y-2">
         {dateGroups.length === 0 ? (
-          <div className="rounded-md border p-8 text-center text-muted-foreground">
+          <div className="rounded-xl border shadow-sm p-8 text-center text-muted-foreground">
             No audit logs found.
           </div>
         ) : (
           dateGroups.map((group) => (
-            <div key={group.dateKey} className="rounded-md border">
+            <div key={group.dateKey} className="rounded-xl border shadow-sm">
               {/* Date Row */}
               <div
                 className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors"
@@ -490,6 +483,7 @@ export default function AuditLogTable({ data }: { data: AuditLog[] }) {
           ))
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

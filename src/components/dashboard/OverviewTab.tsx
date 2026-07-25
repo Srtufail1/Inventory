@@ -23,28 +23,28 @@ const OverviewTab = ({
   return (
     <>
       {/* Today's Highlight Banner */}
-      <div className="border rounded-xl overflow-hidden bg-card">
-        <div className="px-4 py-2.5 border-b bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-orange-500/10 dark:from-blue-500/5 dark:via-purple-500/5 dark:to-orange-500/5 flex items-center gap-2">
-          <CalendarDays className="h-4 w-4 text-muted-foreground" />
+      <div className="border rounded-xl overflow-hidden bg-card shadow-sm">
+        <div className="px-5 py-3 border-b bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-orange-500/5 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-orange-500/10 flex items-center gap-2">
+          <CalendarDays className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold text-foreground">Today&apos;s Activity</h3>
-          <span className="text-xs text-muted-foreground ml-auto">{format(new Date(), "EEEE, dd MMMM yyyy")}</span>
+          <span className="text-xs text-muted-foreground ml-auto font-medium">{format(new Date(), "EEEE, dd MMMM yyyy")}</span>
         </div>
-        <div className="grid grid-cols-4 divide-x">
-          <div className="p-3 text-center">
-            <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{todayActivity.inwardCount}</p>
-            <p className="text-[11px] text-muted-foreground">Inward Entries</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0">
+          <div className="p-4 text-center group hover:bg-muted/30 transition-colors">
+            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 group-hover:scale-105 transition-transform">{todayActivity.inwardCount}</p>
+            <p className="text-xs text-muted-foreground mt-1 font-medium">Inward Entries</p>
           </div>
-          <div className="p-3 text-center">
-            <p className="text-lg font-bold text-orange-600 dark:text-orange-400">{todayActivity.outwardCount}</p>
-            <p className="text-[11px] text-muted-foreground">Outward Entries</p>
+          <div className="p-4 text-center group hover:bg-muted/30 transition-colors">
+            <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 group-hover:scale-105 transition-transform">{todayActivity.outwardCount}</p>
+            <p className="text-xs text-muted-foreground mt-1 font-medium">Outward Entries</p>
           </div>
-          <div className="p-3 text-center">
-            <p className="text-lg font-bold text-green-600 dark:text-green-400">{todayActivity.inwardQty.toLocaleString("en-IN")}</p>
-            <p className="text-[11px] text-muted-foreground">Qty Received</p>
+          <div className="p-4 text-center group hover:bg-muted/30 transition-colors">
+            <p className="text-2xl font-bold text-green-600 dark:text-green-400 group-hover:scale-105 transition-transform">{todayActivity.inwardQty.toLocaleString("en-IN")}</p>
+            <p className="text-xs text-muted-foreground mt-1 font-medium">Qty Received</p>
           </div>
-          <div className="p-3 text-center">
-            <p className="text-lg font-bold text-red-600 dark:text-red-400">{todayActivity.outwardQty.toLocaleString("en-IN")}</p>
-            <p className="text-[11px] text-muted-foreground">Qty Dispatched</p>
+          <div className="p-4 text-center group hover:bg-muted/30 transition-colors">
+            <p className="text-2xl font-bold text-red-600 dark:text-red-400 group-hover:scale-105 transition-transform">{todayActivity.outwardQty.toLocaleString("en-IN")}</p>
+            <p className="text-xs text-muted-foreground mt-1 font-medium">Qty Dispatched</p>
           </div>
         </div>
       </div>

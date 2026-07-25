@@ -2,6 +2,7 @@ import React, { Suspense } from "react";
 import { db } from "@/lib/db";
 import StockTab from "@/components/dashboard/StockTab";
 import { Skeleton } from "@/components/ui/skeleton";
+import PageToolbar from "@/components/PageToolbar";
 import { Package } from "lucide-react";
 
 async function StockData() {
@@ -74,12 +75,9 @@ async function StockData() {
 const StockPage = () => {
   return (
     <div>
-      <div className="flex h-14 lg:h-16 items-center gap-4 border-b bg-muted/40 px-6">
-        <Package className="h-5 w-5 text-muted-foreground" />
-        <span className="font-medium text-foreground">Stock</span>
-      </div>
-      <div className="p-4 space-y-5">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Stock</h1>
+      <PageToolbar icon={<Package className="h-4 w-4" />} title="Stock" />
+      <div className="page-shell">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Stock</h1>
         <Suspense
           fallback={
             <div className="space-y-4">

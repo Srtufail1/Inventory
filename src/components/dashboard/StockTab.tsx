@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { Package, ChevronDown, ChevronRight, Search, TrendingDown } from "lucide-react";
+import { Package, ChevronDown, ChevronRight, Search, TrendingDown, SlidersHorizontal } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { isWithinInterval, startOfDay, endOfDay } from "date-fns";
@@ -50,6 +50,7 @@ const StockTab = ({ customerStock }: { customerStock: CustomerStock[] }) => {
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null, null]);
   const [startDate, endDate] = dateRange;
   const [showNegativeOnly, setShowNegativeOnly] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   useEffect(() => {
     setChecked(loadChecked());
@@ -116,32 +117,45 @@ const StockTab = ({ customerStock }: { customerStock: CustomerStock[] }) => {
   return (
     <div className="space-y-4">
       {/* Filter row */}
-      <div className="flex flex-wrap gap-2">
-        <div className="relative">
+      <div className="flex items-center justify-between rounded-md border bg-card p-3 md:hidden">
+        <div>
+          <p className="text-xs font-medium text-muted-foreground">Total remaining</p>
+          <p className={`text-xl font-bold ${filteredCustomers.reduce((sum, c) => sum + c.totalRemaining, 0) < 0 ? "text-red-500" : "text-primary"}`}>
+            {filteredCustomers.reduce((sum, c) => sum + c.totalRemaining, 0).toLocaleString("en-IN")}
+          </p>
+        </div>
+        <Button variant={showMobileFilters ? "secondary" : "outline"} size="sm" className="h-10 gap-2" onClick={() => setShowMobileFilters((visible) => !visible)}>
+          <SlidersHorizontal className="h-4 w-4" />
+          Filters
+        </Button>
+      </div>
+
+      <div className={`${showMobileFilters ? "flex" : "hidden"} flex-col gap-2 md:flex md:flex-row md:flex-wrap`}>
+        <div className="relative w-full md:w-auto">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search Customer..."
             value={customerFilter}
             onChange={(e) => setCustomerFilter(e.target.value)}
-            className="pl-8 h-10 w-52 text-sm"
+            className="h-10 w-full pl-8 text-sm md:w-52"
           />
         </div>
-        <div className="relative">
+        <div className="relative w-full md:w-auto">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search Inward No..."
             value={inumberFilter}
             onChange={(e) => setInumberFilter(e.target.value)}
-            className="pl-8 h-10 w-52 text-sm"
+            className="h-10 w-full pl-8 text-sm md:w-52"
           />
         </div>
-        <div className="relative">
+        <div className="relative w-full md:w-auto">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search Item..."
             value={itemFilter}
             onChange={(e) => setItemFilter(e.target.value)}
-            className="pl-8 h-10 w-52 text-sm"
+            className="h-10 w-full pl-8 text-sm md:w-52"
           />
         </div>
         <DatePicker
@@ -150,20 +164,20 @@ const StockTab = ({ customerStock }: { customerStock: CustomerStock[] }) => {
           endDate={endDate}
           onChange={(update: [Date | null, Date | null]) => setDateRange(update)}
           placeholderText="Select Date range..."
-          className="h-10 w-48 rounded-md border border-input bg-background px-2.5 text-sm placeholder:text-muted-foreground focus:outline-none"
+          className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus:outline-none md:w-48"
           dateFormat="dd MMM yyyy"
           isClearable
         />
         <Button
           variant={showNegativeOnly ? "destructive" : "outline"}
           size="sm"
-          className="h-10 gap-2"
+          className="h-10 w-full gap-2 md:w-auto"
           onClick={() => setShowNegativeOnly((v) => !v)}
         >
           <TrendingDown className="h-4 w-4" />
           Negative Stock
         </Button>
-        <div className="h-10 flex items-center gap-2 rounded-md border border-input bg-muted/40 px-3 text-sm ml-auto">
+        <div className="ml-auto hidden h-10 items-center gap-2 rounded-md border border-input bg-muted/40 px-3 text-sm md:flex">
           <span className="text-muted-foreground">Total Remaining:</span>
           <span
             className={`font-bold ${
@@ -180,7 +194,7 @@ const StockTab = ({ customerStock }: { customerStock: CustomerStock[] }) => {
       </div>
 
       {/* Customer list */}
-      <div className="border rounded-xl overflow-hidden bg-card">
+      <div className="overflow-hidden rounded-md border bg-card">
         <div className="px-4 py-2.5 border-b bg-muted/50 flex items-center gap-2">
           <Package className="h-4 w-4 text-blue-500" />
           <h3 className="text-sm font-semibold text-foreground">
@@ -197,7 +211,7 @@ const StockTab = ({ customerStock }: { customerStock: CustomerStock[] }) => {
           </p>
         ) : (
           <div>
-            <div className="grid grid-cols-[28px_1fr_auto] items-center px-4 py-2 bg-muted/30 border-b text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            <div className="grid grid-cols-[28px_1fr_auto] items-center border-b bg-muted/30 px-3 py-2 text-xs font-medium uppercase text-muted-foreground sm:px-4">
               <div />
               <div>Customer</div>
               <div className="pr-1">Total Remaining Qty</div>
@@ -208,7 +222,7 @@ const StockTab = ({ customerStock }: { customerStock: CustomerStock[] }) => {
               return (
                 <div key={cust.customer}>
                   <div
-                    className="grid grid-cols-[28px_1fr_auto] items-center px-4 py-3 border-b cursor-pointer hover:bg-muted/30 transition-colors"
+                    className="grid cursor-pointer grid-cols-[24px_minmax(0,1fr)_auto] items-center border-b px-3 py-3 transition-colors hover:bg-muted/30 sm:grid-cols-[28px_1fr_auto] sm:px-4"
                     onClick={() => toggleCustomer(cust.customer)}
                   >
                     <div>
@@ -218,7 +232,7 @@ const StockTab = ({ customerStock }: { customerStock: CustomerStock[] }) => {
                         <ChevronRight className="h-4 w-4 text-muted-foreground" />
                       )}
                     </div>
-                    <div className="font-medium text-foreground text-sm">
+                    <div className="truncate pr-3 text-sm font-medium text-foreground">
                       {cust.customer}
                     </div>
                     <div
@@ -231,7 +245,37 @@ const StockTab = ({ customerStock }: { customerStock: CustomerStock[] }) => {
                   </div>
 
                   {expanded && (
-                    <div className="bg-muted/10 border-b">
+                    <div className="border-b bg-muted/10">
+                      <div className="space-y-2 p-3 md:hidden">
+                        {cust.visibleInwards.map((inw) => (
+                          <article key={inw.id} className={`rounded-md border bg-card p-3 ${checked.has(inw.id) ? "border-green-300 bg-green-50 dark:border-green-900 dark:bg-green-950/20" : ""}`}>
+                            <div className="flex items-start gap-3">
+                              <Checkbox checked={checked.has(inw.id)} onCheckedChange={() => toggleCheck(inw.id)} aria-label={`Mark inward ${inw.inumber}`} />
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div>
+                                    <p className="text-xs uppercase text-muted-foreground">Inward</p>
+                                    <p className="font-bold text-primary">#{inw.inumber}</p>
+                                  </div>
+                                  <time className="text-xs text-muted-foreground">{formatDate(inw.addDate)}</time>
+                                </div>
+                                <p className="mt-2 truncate text-sm font-medium">{inw.item}</p>
+                                <div className="mt-3 grid grid-cols-2 gap-2">
+                                  <div className="rounded bg-muted/50 p-2">
+                                    <p className="text-[10px] uppercase text-muted-foreground">Inward qty</p>
+                                    <p className="font-semibold">{inw.inwardQty.toLocaleString("en-IN")}</p>
+                                  </div>
+                                  <div className="rounded bg-muted/50 p-2">
+                                    <p className="text-[10px] uppercase text-muted-foreground">Remaining</p>
+                                    <p className={`font-semibold ${inw.remaining < 0 ? "text-red-500" : ""}`}>{inw.remaining.toLocaleString("en-IN")}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                      <div className="hidden md:block">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -285,6 +329,7 @@ const StockTab = ({ customerStock }: { customerStock: CustomerStock[] }) => {
                           ))}
                         </TableBody>
                       </Table>
+                      </div>
                     </div>
                   )}
                 </div>
