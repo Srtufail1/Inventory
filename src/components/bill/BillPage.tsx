@@ -4,8 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Calendar, Printer, FileDown, CheckCircle, Loader2 } from "lucide-react";
-import DarkModeToggle from '../DarkModeToggle';
-import { signOut } from "next-auth/react";
+import PageToolbar from '@/components/PageToolbar';
 import { useCustomers } from '@/context/CustomersContext';
 import { generateCustomerPdf, generateMonthlyPrint } from './billPdfGenerator';
 
@@ -501,13 +500,7 @@ const BillPage: React.FC<BillPageProps> = ({ isSuperAdmin = false }) => {
 
   return (
     <div>
-      <div className="app-toolbar">
-        <div className="flex items-center gap-3 w-full"></div>
-        <DarkModeToggle />
-        <Button onClick={() => signOut()} type="submit">
-          Sign Out
-        </Button>
-      </div>
+      <PageToolbar icon={<FileDown className="h-4 w-4" />} title="Billing" />
       <div className="p-6">
         <div className="flex item justify-between pt-3 pb-6">
           <h1 className="text-2xl font-bold tracking-tight">

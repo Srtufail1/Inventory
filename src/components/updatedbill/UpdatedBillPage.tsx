@@ -4,8 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Calendar, Printer, FileDown, CheckCircle, Loader2 } from "lucide-react";
-import DarkModeToggle from '../DarkModeToggle';
-import { signOut } from "next-auth/react";
+import PageToolbar from '@/components/PageToolbar';
 import { useCustomers } from '@/context/CustomersContext';
 import { generateCustomerPdf, generateMonthlyPrint, generateCombinedCustomerPdf, MonthBillSection } from '../bill/billPdfGenerator';
 
@@ -648,13 +647,7 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
 
   return (
     <div>
-      <div className="app-toolbar">
-        <div className="flex items-center gap-3 w-full"></div>
-        <DarkModeToggle />
-        <Button onClick={() => signOut()} type="submit">
-          Sign Out
-        </Button>
-      </div>
+      <PageToolbar icon={<FileDown className="h-4 w-4" />} title="Updated Bill" />
       <div className="page-shell pb-0">
         <div className="section-heading">
           <h1 className="text-2xl font-bold tracking-tight">Updated Bill</h1>
@@ -666,7 +659,7 @@ const UpdatedBillPage: React.FC<UpdatedBillPageProps> = ({ isSuperAdmin = false 
         {/* Search Section - Side by Side */}
         <div className={`mb-8 grid grid-cols-1 ${isSuperAdmin ? 'md:grid-cols-2' : ''} gap-4`}>
           {/* Customer Search */}
-          <section className="data-panel h-fit p-5">
+          <section className="data-panel overflow-visible h-fit p-5">
             <h3 className="text-lg font-medium text-foreground mb-3 flex items-center gap-2">
               <Search className="h-5 w-5" />
               Search by Customer

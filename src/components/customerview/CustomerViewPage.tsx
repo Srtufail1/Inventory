@@ -4,8 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Eye } from "lucide-react";
-import DarkModeToggle from "@/components/DarkModeToggle";
-import { signOut } from "next-auth/react";
+import PageToolbar from "@/components/PageToolbar";
 import { useCustomers } from "@/context/CustomersContext";
 import ClientDashboard from "@/components/clientdashboard/ClientDashboard";
 
@@ -94,16 +93,7 @@ const CustomerViewPage = () => {
   return (
     <div>
       {/* Header */}
-      <div className="app-toolbar">
-        <div className="flex items-center gap-3 w-full">
-          <Eye className="h-5 w-5 text-muted-foreground" />
-          <span className="font-medium text-foreground">Customer View</span>
-        </div>
-        <DarkModeToggle />
-        <Button onClick={() => signOut()} type="submit">
-          Sign Out
-        </Button>
-      </div>
+      <PageToolbar icon={<Eye className="h-4 w-4" />} title="Customer View" />
 
       <div className="p-6">
         <div className="flex items-center justify-between pt-3 pb-6">

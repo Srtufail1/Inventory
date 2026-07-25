@@ -2,6 +2,8 @@
 import { sidebar } from "@/lib/data";
 import { Home, LogsIcon, Menu, MonitorDown, MonitorUp, PanelLeftClose, PanelLeft } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+import Logo from "../../public/logo.png";
 import { usePathname } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import {
@@ -111,18 +113,23 @@ const Sidebar = ({ isSuperAdmin = false }: SidebarProps) => {
         {/* Logo Header */}
         <div className={`relative flex h-16 items-center border-b px-4 ${collapsed ? 'justify-center' : 'justify-start'}`}>
           <Link href="/" className="flex items-center gap-2.5 font-semibold text-foreground overflow-hidden">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-foreground text-[10px] font-black text-background">
-              ZZ
-            </div>
+             <Image
+                src={Logo}
+                alt="ZamZam Cold Storage"
+                width={32}
+                height={32}
+                className="h-full w-full object-contain"
+                priority
+              />
             {!collapsed && (
               <span className="text-sm font-bold tracking-tight whitespace-nowrap animate-fade-in">
-                ZamZam
+                ZamZam Cold Storage
               </span>
             )}
           </Link>
           <button
             onClick={toggleCollapse}
-            className="absolute -right-3 top-1/2 z-10 hidden h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border bg-card text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground lg:flex"
+            className="absolute -right-3 top-1/2 z-50 hidden h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border bg-card text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground lg:flex"
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {collapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
@@ -166,8 +173,15 @@ const Sidebar = ({ isSuperAdmin = false }: SidebarProps) => {
           <SheetContent side="left" className="flex flex-col p-0">
             <SheetHeader className="border-b px-5 py-5 text-left">
               <SheetTitle className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-md bg-foreground text-[11px] font-black text-background">
-                  ZZ
+                <span className="flex h-9 w-9 items-center justify-center rounded-md overflow-hidden">
+                  <Image
+                    src={Logo}
+                    alt="ZamZam Cold Storage"
+                    width={28}
+                    height={28}
+                    className="max-h-full max-w-full object-contain"
+                    priority
+                  />
                 </span>
                 ZamZam Cold Storage
               </SheetTitle>

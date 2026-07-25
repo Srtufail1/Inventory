@@ -13,8 +13,8 @@ const InwardTableSkeleton = () => {
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-10 w-24" />
         </div>
-        <Skeleton className="h-10 w-10 rounded-full" />
-        <Skeleton className="h-10 w-24" />
+        <Skeleton className="h-9 w-9 rounded-lg" />
+        <Skeleton className="h-9 w-24 rounded-md" />
       </div>
 
       {/* Content skeleton */}

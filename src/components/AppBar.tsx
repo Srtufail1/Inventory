@@ -1,48 +1,52 @@
 import Link from "next/link";
 import React from "react";
-import { auth, signOut } from "../../auth";
+import { auth } from "../../auth";
+import { ToolbarActions } from "@/components/PageToolbar";
+import DarkModeToggle from "@/components/DarkModeToggle";
 
 const AppBar = async () => {
   const session = await auth();
   return (
     <div className="app-toolbar">
       {session && session?.user ? (
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full gradient-primary text-white text-sm font-bold">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full gradient-primary text-sm font-bold text-white">
             {session.user.name?.charAt(0)?.toUpperCase() || "U"}
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold text-foreground leading-tight">{session?.user?.name}</span>
-            <span className="text-xs text-muted-foreground leading-tight">Welcome back</span>
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-sm font-semibold leading-tight text-foreground">
+              {session?.user?.name}
+            </span>
+            <span className="text-xs leading-tight text-muted-foreground">
+              Welcome back
+            </span>
           </div>
         </div>
       ) : (
-        <h2 className="text-foreground font-semibold text-sm">ZamZam Cold Storage</h2>
+        <h2 className="text-sm font-semibold text-foreground">
+          ZamZam Cold Storage
+        </h2>
       )}
 
-      <div className="ml-auto">
-        {session && session?.user ? (
-          <form
-            action={async () => {
-              "use server";
-              await signOut();
-            }}
+      {session && session?.user ? (
+        <ToolbarActions />
+      ) : (
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          <DarkModeToggle />
+          <Link
+            href="/signup"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            <button type="submit" className="text-sm font-medium px-4 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200">
-              Sign Out
-            </button>
-          </form>
-        ) : (
-          <div className="flex gap-2">
-            <Link href="/signup" className="text-sm font-medium px-4 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200">
-              Sign Up
-            </Link>
-            <Link href="/login" className="text-sm font-medium px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200">
-              Sign In
-            </Link>
-          </div>
-        )}
-      </div>
+            Sign Up
+          </Link>
+          <Link
+            href="/login"
+            className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Sign In
+          </Link>
+        </div>
+      )}
     </div>
   );
 };

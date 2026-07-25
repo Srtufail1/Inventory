@@ -1,15 +1,13 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
 import {
   BarChart3,
   TrendingUp,
   AlertTriangle,
   Shield,
 } from "lucide-react";
-import { signOut } from "next-auth/react";
-import DarkModeToggle from "../DarkModeToggle";
+import { ToolbarActions } from "@/components/PageToolbar";
 import OverviewTab from "./OverviewTab";
 import AnalyticsTab from "./AnalyticsTab";
 import AlertsTab from "./AlertsTab";
@@ -67,17 +65,7 @@ const DashboardSummary: React.FC<Props> = ({
           </div>
           <span className="font-semibold text-foreground">Dashboard</span>
         </div>
-        <div className="flex items-center gap-2">
-          <DarkModeToggle />
-          <Button
-            variant="ghost"
-            onClick={() => signOut()}
-            type="submit"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            Sign Out
-          </Button>
-        </div>
+        <ToolbarActions />
       </div>
 
       <div className="page-shell">

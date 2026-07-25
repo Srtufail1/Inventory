@@ -14,7 +14,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown, Search, KeyRound, UserPlus } from "lucide-react";
-import DarkModeToggle from "./DarkModeToggle";
+import { ToolbarActions } from "@/components/PageToolbar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -33,7 +33,6 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Input } from "./ui/input";
-import { signOut } from "next-auth/react";
 import { toast } from "./ui/use-toast";
 import Link from "next/link";
 
@@ -326,23 +325,14 @@ const ClientsData = ({ data }: { data: UserData[] }) => {
             </DropdownMenu>
           </div>
         </div>
-        <Link href="/signup" className="shrink-0">
-          <Button className="bg-green-600 px-3 hover:bg-green-700">
-            <UserPlus className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Create User</span><span className="sm:hidden">New</span>
-          </Button>
-        </Link>
-        <DarkModeToggle />
-        <Button
-          onClick={(e) => {
-            e.preventDefault();
-            signOut();
-          }}
-          type="submit"
-          className="hidden sm:inline-flex"
-        >
-          Sign Out
-        </Button>
+        <ToolbarActions>
+          <Link href="/signup" className="shrink-0">
+            <Button size="sm" className="h-9 bg-green-600 px-3 hover:bg-green-700">
+              <UserPlus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Create User</span>
+            </Button>
+          </Link>
+        </ToolbarActions>
       </div>
       <div className="page-shell">
         <div className="section-heading">

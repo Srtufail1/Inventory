@@ -22,7 +22,7 @@ const DashboardLayout = async ({ children }: { children: ReactNode }) => {
   return (
     <div className="flex min-h-screen w-full bg-background">
       <HeartbeatProvider />
-      <div className="shrink-0 border-r bg-card">
+      <div className="relative z-40 shrink-0 border-r bg-card">
         <Sidebar isSuperAdmin={user.isSuperAdmin ?? false} />
       </div>
       <main className="min-w-0 flex-1 overflow-x-hidden pb-24 lg:pb-0">

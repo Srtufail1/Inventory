@@ -39,12 +39,12 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { signOut } from "next-auth/react";
 import OutwardData from "../outward/OutwardData";
 import OutwardUpdate from "../outward/OutwardUpdate";
 import ExpandableNoteRow from "./ExpandableNoteRow";
 import { format, isWithinInterval } from 'date-fns';
 import DarkModeToggle from '../DarkModeToggle';
+import { ToolbarActions, SignOutButton } from '@/components/PageToolbar';
 import { FaCalendarAlt } from 'react-icons/fa';
 import { useCustomers } from '@/context/CustomersContext';
 import { useItems } from '@/context/ItemsContext';
@@ -336,6 +336,7 @@ const OutwardTable = ({ data }: any) => {
           </div>
           <div className="flex items-center gap-1">
             <DarkModeToggle />
+            <SignOutButton />
             <Button
               variant={showMobileFilters ? "secondary" : "outline"}
               size="sm"
@@ -467,12 +468,7 @@ const OutwardTable = ({ data }: any) => {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <div className="ml-auto hidden shrink-0 items-center gap-2 md:flex">
-          <DarkModeToggle />
-          <Button onClick={() => signOut()} type="submit" size="sm" className="h-9">
-            Sign Out
-          </Button>
-        </div>
+        <ToolbarActions className="hidden md:flex" />
       </div>
       <div className="gate-pass-shell page-shell animate-fade-in">
         <div className="flex flex-col gap-4 pb-2 sm:flex-row sm:items-center sm:justify-between">

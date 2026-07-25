@@ -3,9 +3,8 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Calendar, Printer, FileDown, MonitorDown, MonitorUp } from "lucide-react";
-import DarkModeToggle from '@/components/DarkModeToggle';
-import { signOut } from "next-auth/react";
+import { Search, Calendar, Printer, FileDown, MonitorDown, MonitorUp, HardHat } from "lucide-react";
+import PageToolbar from '@/components/PageToolbar';
 import {
   Table,
   TableBody,
@@ -436,13 +435,7 @@ const LabourBillPage = () => {
   return (
     <div>
       {/* Header */}
-      <div className="app-toolbar">
-        <div className="flex items-center gap-3 w-full"></div>
-        <DarkModeToggle />
-        <Button onClick={() => signOut()} type="submit">
-          Sign Out
-        </Button>
-      </div>
+      <PageToolbar icon={<HardHat className="h-4 w-4" />} title="Labour Bill" />
 
       {/* Main Content */}
       <div className="page-shell">

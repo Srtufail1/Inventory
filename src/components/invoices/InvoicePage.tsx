@@ -3,9 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
-import DarkModeToggle from '../DarkModeToggle';
-import { signOut } from "next-auth/react";
+import { Search, Receipt } from "lucide-react";
+import PageToolbar from '@/components/PageToolbar';
 import { useCustomers } from '@/context/CustomersContext';
 
 type InvoiceItem = {
@@ -97,13 +96,7 @@ const InvoicePage: React.FC = () => {
 
   return (
     <div>
-      <div className="app-toolbar">
-        <div className="flex items-center gap-3 w-full"></div>
-        <DarkModeToggle />
-        <Button onClick={() => signOut()} type="submit">
-          Sign Out
-        </Button>
-      </div>
+      <PageToolbar icon={<Receipt className="h-4 w-4" />} title="Invoices" />
 
       <div className="p-6">
         <div className="flex items-center justify-between pt-3 pb-6">

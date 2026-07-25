@@ -11,7 +11,6 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { ArrowUpDown, BookOpenText, Search, Printer } from "lucide-react";
-import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import DarkModeToggle from '../DarkModeToggle';
+import PageToolbar from '@/components/PageToolbar';
 import LaborTable, { LaborEntry } from './LaborTable';
 import { useCustomers } from '@/context/CustomersContext';
 
@@ -520,19 +519,14 @@ const LedgerPage = () => {
 
   return (
     <div>
-      <div className="app-toolbar">
-        <div className="w-full"></div>
-        <DarkModeToggle />
-        <Button onClick={() => signOut()} type="submit">
-          Sign Out
-        </Button>
-      </div>
+      <PageToolbar icon={<BookOpenText className="h-4 w-4" />} title="Ledger" />
       <div className="page-shell">
         <div className="section-heading">
           <h1 className="text-2xl font-bold tracking-tight">Ledger</h1>
           <p className="text-sm text-muted-foreground">Review storage movement, remaining stock, labour, rates, and calculated amounts.</p>
         </div>
-        <section className="data-panel p-4 sm:p-5">
+        {/* overflow-visible so the customer suggestion list can escape the panel */}
+        <section className="data-panel overflow-visible p-4 sm:p-5">
           <div className="mb-4 flex items-center gap-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary"><BookOpenText className="h-4 w-4" /></span>
             <div>
@@ -551,7 +545,7 @@ const LedgerPage = () => {
               className="pl-8"
             />
             {filteredCustomers.length > 0 && (
-              <ul className="absolute z-10 w-full bg-popover border mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
+              <ul className="absolute z-50 w-full bg-popover border mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
                 {filteredCustomers.map((customer, index) => (
                   <li 
                     key={index}

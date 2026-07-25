@@ -32,11 +32,10 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { signOut } from "next-auth/react";
 import NoteData from "./NoteData";
 import NoteUpdate from "./NoteUpdate";
 import { format } from "date-fns";
-import DarkModeToggle from "../DarkModeToggle";
+import { ToolbarActions } from "@/components/PageToolbar";
 
 type NoteDataProps = {
   id: string;
@@ -351,10 +350,7 @@ const NotesTable = ({ data }: { data: NoteDataProps[] }) => {
             </DropdownMenu>
           </div>
         </div>
-        <DarkModeToggle />
-        <Button onClick={() => signOut()} type="submit">
-          Sign Out
-        </Button>
+        <ToolbarActions />
       </div>
       <div className="p-6">
         <div className="flex item justify-between pt-3 pb-6">

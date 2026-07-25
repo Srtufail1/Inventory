@@ -30,8 +30,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { signOut } from "next-auth/react";
-import DarkModeToggle from '../DarkModeToggle';
+import { ToolbarActions } from "@/components/PageToolbar";
 
 interface CustomerData {
   customer: string;
@@ -264,10 +263,7 @@ const CustomerPage = ({ data }: { data: CustomerData[] }) => {
             </DropdownMenu>
           </div>
         </div>
-        <DarkModeToggle />
-        <Button onClick={() => signOut()} type="submit" className="hidden sm:inline-flex">
-          Sign Out
-        </Button>
+        <ToolbarActions />
       </div>
       <div className="page-shell">
         <div className="flex items-center justify-between gap-4">

@@ -24,8 +24,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Search, Plus, Pencil, Trash2, Languages } from "lucide-react";
-import DarkModeToggle from "@/components/DarkModeToggle";
-import { signOut } from "next-auth/react";
+import PageToolbar from "@/components/PageToolbar";
 import { toast } from "@/components/ui/use-toast";
 
 type ItemTranslation = {
@@ -145,16 +144,7 @@ const ItemTranslationsPage = () => {
   return (
     <div>
       {/* Header */}
-      <div className="app-toolbar">
-        <div className="flex items-center gap-3 w-full">
-          <Languages className="h-5 w-5 text-muted-foreground" />
-          <span className="font-medium text-foreground">Item Translations</span>
-        </div>
-        <DarkModeToggle />
-        <Button onClick={() => signOut()} type="submit">
-          Sign Out
-        </Button>
-      </div>
+      <PageToolbar icon={<Languages className="h-4 w-4" />} title="Item Translations" />
 
       <div className="p-6">
         <div className="flex items-center justify-between pt-3 pb-6">
